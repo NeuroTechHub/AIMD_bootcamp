@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computer Vision Playground — NTH Bootcamp / M1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1c1c1a; --ink-2:#3a3a36; --muted:#6c6c66; --muted-2:#9a9a93;
+  --rule:#d8d6cf; --rule-2:#ebe9e2; --paper:#fbfaf6; --paper-2:#f4f2eb;
+  --accent:#b58900; --accent-2:#8a6700; --accent-wash:#f3e9c8;
+  --danger:#8a3a1d; --code-bg:#f1efe7;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  font-size:16px;line-height:1.55}
+::selection{background:var(--accent-wash);color:var(--ink)}
+.page{max-width:1180px;margin:0 auto;padding:48px 40px 96px}
+header.masthead{border-bottom:1px solid var(--rule);padding-bottom:28px;margin-bottom:36px}
+header.masthead .eyebrow{font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);font-weight:500}
+header.masthead h1{font-size:36px;font-weight:600;letter-spacing:-0.02em;line-height:1.1;margin:14px 0 14px}
+header.masthead p.lede{color:var(--ink-2);font-size:17px;max-width:760px;margin:0}
+header.masthead .meta{display:flex;gap:24px;flex-wrap:wrap;margin-top:22px;font-size:13px;color:var(--muted);font-family:'JetBrains Mono',ui-monospace,monospace}
+header.masthead .meta strong{color:var(--ink);font-weight:600}
+
+h2{font-size:22px;font-weight:600;letter-spacing:-0.01em;margin:48px 0 12px;color:var(--ink)}
+h2 .num{color:var(--muted-2);font-variant-numeric:tabular-nums;margin-right:14px;font-weight:500}
+h3{font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);margin:24px 0 8px}
+p{margin:0 0 14px;color:var(--ink-2)}
+p.kicker{color:var(--ink);font-size:17px;margin-bottom:16px;max-width:760px}
+a{color:var(--accent-2);text-decoration:none;border-bottom:1px solid var(--rule)}
+a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);padding:1px 5px;border-radius:3px;font-size:0.9em;color:var(--ink)}
+hr.div{border:0;border-top:1px solid var(--rule);margin:40px 0}
+
+aside.callout{border-left:3px solid var(--accent);background:var(--paper-2);padding:14px 18px;margin:20px 0;font-size:14.5px;color:var(--ink-2);border-radius:0 4px 4px 0;max-width:760px}
+aside.callout strong{color:var(--ink)}
+
+/* Illustration */
+figure.illust{margin:18px 0 28px;padding:18px 20px;background:var(--paper-2);border:1px solid var(--rule);border-radius:6px}
+figure.illust img{display:block;width:100%;max-width:780px;height:auto;margin:0 auto;background:#fff;border-radius:4px}
+figure.illust figcaption{margin-top:12px;font-size:13.5px;color:var(--ink-2);max-width:820px;line-height:1.5}
+figure.illust figcaption .cite{display:block;margin-top:8px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+figure.illust figcaption .cite a{color:var(--muted);border-bottom:1px solid var(--rule-2)}
+figure.illust figcaption .cite a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Pipeline diagram */
+.pipeline{display:flex;align-items:stretch;gap:0;margin:14px 0 8px;flex-wrap:wrap;max-width:920px}
+.pipeline .step{flex:1 1 0;min-width:120px;background:#fff;border:1px solid var(--rule);
+  padding:12px 14px;border-radius:5px;font-size:13px;color:var(--ink-2);position:relative}
+.pipeline .step .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+.pipeline .step .name{color:var(--ink);font-weight:600;margin-top:2px}
+.pipeline .arr{display:flex;align-items:center;justify-content:center;width:20px;color:var(--muted-2);font-family:'JetBrains Mono',monospace}
+.pipeline .step.active{border-color:var(--accent);background:var(--accent-wash)}
+
+/* Playground */
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px 22px;
+  background:#fff;border:1px solid var(--rule);border-radius:6px;padding:18px 20px;margin:18px 0}
+.ctrl label{display:block;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+.ctrl input[type=range]{width:100%}
+.ctrl .val{float:right;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:12px}
+.method-tabs{display:flex;gap:0;border:1px solid var(--rule);border-radius:5px;overflow:hidden;width:fit-content;flex-wrap:wrap}
+.method-tabs button{background:#fff;border:0;border-right:1px solid var(--rule);padding:8px 16px;
+  font-family:'Inter',sans-serif;font-size:13px;color:var(--ink-2);cursor:pointer;letter-spacing:0.01em}
+.method-tabs button:last-child{border-right:0}
+.method-tabs button.active{background:var(--accent);color:#1c1c1a;font-weight:600}
+.method-tabs button:hover:not(.active){background:var(--paper-2)}
+.file-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.file-row button,.file-row label.fbtn{background:#fff;border:1px solid var(--rule);padding:7px 14px;
+  border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;color:var(--ink-2);cursor:pointer}
+.file-row button:hover,.file-row label.fbtn:hover{border-color:var(--accent);color:var(--accent-2)}
+.file-row .preset{background:var(--paper-2)}
+.file-row input[type=file]{display:none}
+
+.canvas-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:18px 0}
+.canvas-wrap{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:12px;display:flex;flex-direction:column}
+.canvas-wrap .cap{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;display:flex;justify-content:space-between}
+.canvas-wrap .cap .what{color:var(--ink)}
+.canvas-wrap canvas{width:100%;height:auto;display:block;background:#000;border-radius:3px}
+.canvas-wrap.tall canvas{max-height:520px;object-fit:contain;background:#111}
+
+/* Status / loader */
+.status{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin:6px 0}
+.status.err{color:var(--danger)}
+.status.ok{color:var(--accent-2)}
+
+/* Explainer — tabs + single panel, fixed footprint */
+.explain-intro{font-size:14.5px;color:var(--ink-2);margin:8px 0 10px;max-width:760px}
+.explain{background:#fff;border:1px solid var(--rule);border-radius:6px;margin:10px 0 28px;overflow:hidden;max-width:880px}
+.explain .ex-tabs{display:flex;border-bottom:1px solid var(--rule);background:var(--paper-2);flex-wrap:wrap}
+.explain .ex-tabs button{flex:1 1 0;min-width:0;background:transparent;border:0;border-right:1px solid var(--rule);
+  padding:12px 14px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink-2);cursor:pointer;
+  display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;
+  border-top:3px solid transparent;transition:background 0.12s,border-color 0.12s}
+.explain .ex-tabs button:last-child{border-right:0}
+.explain .ex-tabs button:hover:not(.active){background:#fff}
+.explain .ex-tabs button.active{background:#fff;border-top-color:var(--accent);color:var(--ink)}
+.explain .ex-tabs .tag{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;
+  letter-spacing:0.06em;color:var(--accent-2);background:var(--accent-wash);padding:2px 7px;border-radius:3px}
+.explain .ex-tabs .title{font-weight:600;font-size:13.5px;color:inherit}
+.explain .ex-panel{padding:16px 20px 18px;min-height:200px}
+.explain .ex-content{animation:exp-fade 0.18s ease}
+.explain .ex-content[hidden]{display:none}
+.explain .ex-content p{margin:0 0 8px;font-size:14px;color:var(--ink-2)}
+.explain .ex-content p:last-child{margin-bottom:0}
+.explain .ex-content ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;color:var(--ink-2)}
+.explain .ex-content ul li{margin:3px 0}
+@keyframes exp-fade{from{opacity:0;transform:translateY(-2px)}to{opacity:1;transform:none}}
+@media (max-width:680px){
+  .explain .ex-tabs button{border-right:0;border-bottom:1px solid var(--rule);flex:1 1 50%}
+  .explain .ex-tabs button.active{border-top-color:var(--accent)}
+}
+
+/* YOLO demo */
+.yolo-stage{position:relative;background:#000;border:1px solid var(--rule);border-radius:6px;
+  overflow:hidden;display:flex;justify-content:center;align-items:center;margin:18px auto;
+  max-width:520px}
+.yolo-stage canvas{display:block;max-width:100%;height:auto}
+.yolo-legend{display:flex;flex-wrap:wrap;gap:6px 10px;margin:10px auto 0;font-family:'JetBrains Mono',monospace;font-size:12px;max-width:520px}
+.yolo-legend .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;background:#fff;
+  border:1px solid var(--rule);border-radius:3px;color:var(--ink-2)}
+.yolo-legend .chip .swatch{width:10px;height:10px;border-radius:2px;display:inline-block}
+.yolo-legend .chip .conf{color:var(--muted)}
+.yolo-buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 4px}
+.yolo-buttons button{background:#fff;border:1px solid var(--rule);padding:7px 14px;border-radius:4px;
+  font-size:13px;color:var(--ink-2);cursor:pointer}
+.yolo-buttons button:hover{border-color:var(--accent);color:var(--accent-2)}
+.yolo-buttons button.primary{background:var(--accent);color:#1c1c1a;border-color:var(--accent);font-weight:600}
+.yolo-buttons label.fbtn{background:var(--paper-2);border:1px solid var(--rule);padding:7px 14px;border-radius:4px;
+  font-size:13px;color:var(--ink-2);cursor:pointer}
+.yolo-buttons label.fbtn:hover{border-color:var(--accent);color:var(--accent-2)}
+.yolo-buttons input[type=file]{display:none}
+.yolo-status{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-left:4px}
+.yolo-status.err{color:var(--danger)}
+.yolo-status.ok{color:var(--accent-2)}
+
+/* Webcam */
+.cam-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:18px 0}
+.cam-wrap{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:12px;display:flex;flex-direction:column}
+.cam-wrap .cap{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;display:flex;justify-content:space-between}
+.cam-wrap .cap .what{color:var(--ink)}
+.cam-wrap canvas,.cam-wrap video{width:100%;height:auto;background:#000;border-radius:3px;display:block}
+.cam-wrap video{display:none}
+.cam-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}
+.cam-controls button{background:#fff;border:1px solid var(--rule);padding:7px 14px;border-radius:4px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.cam-controls button.primary{background:var(--accent);color:#1c1c1a;border-color:var(--accent);font-weight:600}
+.cam-controls button:disabled{opacity:0.5;cursor:not-allowed}
+
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+footer a{color:var(--muted);border-bottom:1px solid var(--rule-2)}
+footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+@media (max-width:900px){
+  .canvas-row,.cam-row{grid-template-columns:1fr}
+  .page{padding:32px 20px 64px}
+  header.masthead h1{font-size:28px}
+}
+
+/* TOC (harmonised, lifted from M2) */
+nav.toc{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);padding:16px 0;margin-bottom:36px}
+nav.toc a{padding:4px 18px 4px 0;font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--muted);text-decoration:none;display:flex;gap:8px;align-items:baseline}
+nav.toc a:hover{color:var(--accent)}
+nav.toc a .n{color:var(--muted-2);font-variant-numeric:tabular-nums}
+
+/* Self-check prompts (harmonised with M3's CSS border-triangle marker) */
+details.prompt{background:#fff;border:1px solid var(--rule);border-radius:5px;
+  padding:10px 14px;margin:8px 0;max-width:820px}
+details.prompt summary{cursor:pointer;font-weight:500;color:var(--ink);
+  font-size:14px;line-height:1.45;list-style:none;
+  display:flex;align-items:flex-start;gap:10px}
+details.prompt summary::-webkit-details-marker{display:none}
+details.prompt summary::marker{content:''}
+details.prompt summary::before{
+  content:'';flex:0 0 auto;display:inline-block;width:0;height:0;margin-top:6px;
+  border-style:solid;border-width:5px 0 5px 7px;
+  border-color:transparent transparent transparent var(--muted-2);
+  transition:transform 0.15s ease, border-left-color 0.15s ease;
+  transform-origin:2px center}
+details.prompt[open] summary::before{transform:rotate(90deg);border-left-color:var(--accent)}
+details.prompt summary:hover::before{border-left-color:var(--accent)}
+details.prompt p{margin:8px 0 0;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);
+  padding:1px 5px;border-radius:3px;font-size:0.92em;color:var(--ink)}
+</style>
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <div class="eyebrow">NTH / M1 · Playground</div>
+  <h1>Computer vision — interactive</h1>
+  <p class="lede">Before a cortical prosthesis can stimulate the brain, it has to decide <em>what to light up</em>. Play with the controls below to see how a computer turns a photo into information.</p>
+  <div class="meta">
+    <span><strong>Module:</strong> M1</span>
+    <span><strong>For:</strong> the curious, no programming required</span>
+    <span><strong>Pair with:</strong> <a href="computer-vision.ipynb">computer-vision.ipynb</a></span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#pipeline"><span class="n">01</span>Where this fits</a>
+  <a href="#playground"><span class="n">02</span>Pixel-level operators</a>
+  <a href="#yolo"><span class="n">03</span>YOLO — finding the objects</a>
+  <a href="#webcam"><span class="n">04</span>Try it live</a>
+  <a href="#self-check"><span class="n">05</span>Self-check</a>
+  <a href="#next"><span class="n">06</span>Next: open the notebook</a>
+</nav>
+
+<!-- =============== 01 PIPELINE =============== -->
+<section id="pipeline">
+<h2><span class="num">01</span>Where this fits</h2>
+<p class="kicker">A cortical visual prosthesis turns a camera feed into electrical stimulation of the visual cortex. This page is the first step — module M1 below — and decides which parts of the image matter.</p>
+
+<h3>The workshop, module by module</h3>
+<div class="pipeline">
+  <div class="step active"><div class="lbl">M1 · here</div><div class="name">Camera + CV</div></div>
+  <div class="arr">→</div>
+  <div class="step"><div class="lbl">M2</div><div class="name">Gaze</div></div>
+  <div class="arr">→</div>
+  <div class="step"><div class="lbl">M3</div><div class="name">Stimulation</div></div>
+  <div class="arr">→</div>
+  <div class="step"><div class="lbl">M4</div><div class="name">Phosphenes</div></div>
+  <div class="arr">→</div>
+  <div class="step"><div class="lbl">M5</div><div class="name">Decoding</div></div>
+</div>
+
+<h3>End-to-end overview</h3>
+<figure class="illust">
+<img src="assets/cortical_prosthesis_fig.jpg" alt="Schematic illustration of a cortical visual neuro-prosthesis: the visual environment is captured by a camera, processed by a mobile computer, and a corresponding stimulation pattern is delivered through an electrode array implanted in the primary visual cortex (V1), evoking a percept of phosphenes.">
+<figcaption>A camera captures the scene, a mobile computer processes the image, the implanted electrode array stimulates the matching cluster of neurons in primary visual cortex (V1), and the user perceives a pattern of phosphenes that sketches the original scene.
+<span class="cite">Figure reproduced from de Ruyter van Steveninck J, Güçlü U, van Wezel R, van Gerven M. <em>End-to-end optimization of prosthetic vision</em>. Journal of Vision, 2022;22(2):20. <a href="https://doi.org/10.1167/jov.22.2.20" target="_blank" rel="noopener">doi:10.1167/jov.22.2.20</a>. Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.</span>
+</figcaption>
+</figure>
+</section>
+
+<!-- =============== 02 PLAYGROUND =============== -->
+<section id="playground">
+<h2><span class="num">02</span>Pixel-level operators</h2>
+<p class="kicker">Two strategies for finding structure in an image: <em>thresholding</em> (pick a brightness cutoff and split light from dark) and <em>edge detection</em> (find where brightness changes sharply — the outline of a person, the side of a bus, the lane markings on the road). Threshold is technically not edge detection, but it lives in the same toolbox: both turn a continuous greyscale image into a sparse mask. Try each method, drag the sliders, and watch the right panel update live.</p>
+
+<h3>How each algorithm works — in plain words</h3>
+<p class="explain-intro">Click a tab to read about that method. Each one answers the same question — <em>"where does the brightness change?"</em> — in a different way.</p>
+
+<div class="explain" id="explainer">
+  <div class="ex-tabs" role="tablist">
+    <button class="active" data-ex="threshold" role="tab" aria-selected="true"><span class="tag">Threshold</span><span class="title">The simple cutoff</span></button>
+    <button data-ex="sobel" role="tab" aria-selected="false"><span class="tag">Sobel</span><span class="title">The gradient sniffer</span></button>
+    <button data-ex="canny" role="tab" aria-selected="false"><span class="tag">Canny</span><span class="title">The smart edge finder</span></button>
+    <button data-ex="common" role="tab" aria-selected="false"><span class="tag">Common</span><span class="title">Gaussian blur</span></button>
+  </div>
+  <div class="ex-panel">
+    <div class="ex-content" data-ex="threshold">
+      <p>Look at each pixel. If it's brighter than some level, paint it white. Otherwise paint it black. That's it.</p>
+      <p>Works great when the thing you want is much darker (or much brighter) than the background — like black text on white paper. Fails when everything is similar in brightness.</p>
+      <ul>
+        <li><strong>Threshold level</strong> — where to make the cut. 0 = everything white, 255 = everything black.</li>
+        <li><strong>Otsu</strong> — let the computer guess a good level by looking at how bright/dark the whole image is.</li>
+        <li><strong>Adaptive</strong> — pick a different level for each small region of the photo. Useful when lighting is uneven (one side of the image is sunny, the other is in shadow).</li>
+      </ul>
+    </div>
+    <div class="ex-content" data-ex="sobel" hidden>
+      <p>For every pixel, compare it to its neighbours. If the pixels to the left are dark and the pixels to the right are bright, that's an edge — Sobel marks it. It does this in two directions (left-right and up-down) and combines them.</p>
+      <p>The result is fuzzy and continuous: stronger edges look brighter. Good for a quick first look, but it lights up <em>everything</em> textured, including noise.</p>
+      <ul>
+        <li><strong>Sobel kernel</strong> — how wide the neighbourhood is (3, 5, or 7 pixels). Bigger = smoother, but loses fine detail.</li>
+        <li><strong>Sobel cutoff</strong> — only keep edges stronger than this. Drag it left to see everything, right to keep only the strongest edges.</li>
+      </ul>
+    </div>
+    <div class="ex-content" data-ex="canny" hidden>
+      <p>Canny is Sobel's careful older sibling. It runs the same gradient idea, then does three extra steps: (1) thin every edge down to a single-pixel line, (2) drop weak speckles, (3) connect strong edges to weaker neighbours so outlines stay continuous.</p>
+      <p>Result: clean, thin, joined-up edges. The default tool for most real pipelines.</p>
+      <ul>
+        <li><strong>Low threshold</strong> — anything weaker than this is thrown away.</li>
+        <li><strong>High threshold</strong> — anything stronger than this is definitely an edge. Anything between low and high is kept only if it touches a strong edge. Two thresholds = the "smart connect" step.</li>
+      </ul>
+    </div>
+    <div class="ex-content" data-ex="common" hidden>
+      <p>All three methods can be told to blur the image a tiny bit first. Blurring smooths out random speckle so the algorithms don't mistake noise for edges.</p>
+      <ul>
+        <li><strong>σ (sigma)</strong> — how strong the blur is. 0 = no blur, 4 = quite smudged. A light blur (σ ≈ 1) usually cleans things up nicely; too much erases real edges along with the noise.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="file-row">
+  <button class="preset" data-preset="bus">Bus scene (default)</button>
+  <button class="preset" data-preset="checkerboard">Checkerboard</button>
+  <button class="preset" data-preset="gradient">Gradient ramp</button>
+  <label class="fbtn">Upload image<input type="file" id="fileInput" accept="image/*"></label>
+  <span class="status" id="cvStatus">Loading OpenCV.js …</span>
+</div>
+
+<div class="controls">
+  <div class="ctrl" style="grid-column:1/-1">
+    <label>Method</label>
+    <div class="method-tabs" id="methodTabs">
+      <button data-method="sobel">Sobel</button>
+      <button data-method="canny" class="active">Canny</button>
+      <button data-method="threshold">Threshold</button>
+    </div>
+  </div>
+  <div class="ctrl">
+    <label>Gaussian blur σ <span class="val" id="blurVal">0.0</span></label>
+    <input type="range" id="blur" min="0" max="40" value="0">
+  </div>
+  <div class="ctrl" data-show-for="canny">
+    <label>Canny low threshold <span class="val" id="lowVal">20</span></label>
+    <input type="range" id="low" min="0" max="255" value="20">
+  </div>
+  <div class="ctrl" data-show-for="canny">
+    <label>Canny high threshold <span class="val" id="highVal">80</span></label>
+    <input type="range" id="high" min="0" max="255" value="80">
+  </div>
+  <div class="ctrl" data-show-for="sobel">
+    <label>Sobel kernel <span class="val" id="ksizeVal">3</span></label>
+    <input type="range" id="ksize" min="1" max="3" step="1" value="1">
+  </div>
+  <div class="ctrl" data-show-for="sobel">
+    <label>Sobel cutoff <span class="val" id="sobThVal">40</span></label>
+    <input type="range" id="sobTh" min="0" max="255" value="40">
+  </div>
+  <div class="ctrl" data-show-for="threshold">
+    <label>Threshold level <span class="val" id="thVal">128</span></label>
+    <input type="range" id="th" min="0" max="255" value="128">
+  </div>
+  <div class="ctrl" data-show-for="threshold">
+    <label>Mode</label>
+    <select id="thMode" style="width:100%;padding:6px;font-family:inherit;border:1px solid var(--rule);border-radius:4px;background:#fff">
+      <option value="binary">Binary</option>
+      <option value="otsu">Otsu (auto level)</option>
+      <option value="adaptive">Adaptive (local)</option>
+    </select>
+  </div>
+</div>
+
+<div class="canvas-row">
+  <div class="canvas-wrap"><div class="cap"><span class="what">Original</span><span id="srcDim">—</span></div><canvas id="srcCanvas"></canvas></div>
+  <div class="canvas-wrap"><div class="cap"><span class="what">Edge map</span><span id="edgeDim">—</span></div><canvas id="edgeCanvas"></canvas></div>
+</div>
+</section>
+
+<hr class="div">
+
+<!-- =============== 03 YOLO DEMO =============== -->
+<section id="yolo">
+<h2><span class="num">03</span>YOLO — finding the objects</h2>
+<p class="kicker">Edge detection finds <em>where</em> brightness changes. It does not know what those edges <em>are</em>. YOLO does: it's a neural network that has been shown millions of photos and learned to recognise everyday things — people, cars, buses, dogs — and to draw a precise outline around each one.</p>
+
+<h3>How YOLO works — in plain words</h3>
+<p>YOLO stands for "You Only Look Once". It scans the whole image in a single pass, splits it into a grid, and for every grid cell guesses three things at the same time:</p>
+<ul style="max-width:760px;color:var(--ink-2)">
+  <li>Is there something here? <em>(yes / no, plus a confidence score)</em></li>
+  <li>What is it? <em>(person, car, bus, bicycle, dog, …)</em></li>
+  <li>Where exactly does it begin and end? <em>(a box around it; for the segmentation version, a per-pixel mask)</em></li>
+</ul>
+<p>Below is the output of the real YOLOv8 model run on the bus scene. Press <strong>Play</strong> to watch each object's mask appear, one by one, in the order they were detected (biggest first).</p>
+
+<div class="yolo-buttons">
+  <button id="yoloPlay" class="primary">▶ Play</button>
+  <button id="yoloShowAll">Show all</button>
+  <button id="yoloClear">Clear</button>
+  <button id="yoloReset">↺ Bus scene</button>
+  <label class="fbtn">Upload your own image<input type="file" id="yoloFile" accept="image/*"></label>
+  <span class="yolo-status" id="yoloStatus"></span>
+</div>
+
+<div class="yolo-stage">
+  <canvas id="yoloCanvas"></canvas>
+</div>
+<div class="yolo-legend" id="yoloLegend"></div>
+
+<aside class="callout"><strong>What you are seeing.</strong> The default scene has six detections — the bus, four people, and a small skateboard — each in its own colour, with confidence percentages. When you upload your own image the page runs a YOLO-style object detector right in your browser tab; it draws boxes around what it finds (instead of pixel-accurate masks). Notice how the model handles occlusion and how confidence drops on small or unusual objects.</aside>
+</section>
+
+<hr class="div">
+
+<!-- =============== 04 WEBCAM =============== -->
+<section id="webcam">
+<h2><span class="num">04</span>Try it live — your camera</h2>
+<p class="kicker">Now run the same techniques on your own webcam feed in real time. Click <strong>Start camera</strong> and choose between the pixel-level operators (Sobel, Canny, Threshold) or object detection (YOLO).</p>
+
+<div class="cam-controls">
+  <button id="camStart" class="primary">▶ Start camera</button>
+  <button id="camStop" disabled>■ Stop</button>
+  <div class="method-tabs" id="camTabs" style="margin-left:auto">
+    <button data-cam="none" class="active">None</button>
+    <button data-cam="sobel">Sobel</button>
+    <button data-cam="canny">Canny</button>
+    <button data-cam="threshold">Threshold</button>
+    <button data-cam="yolo">YOLO (objects)</button>
+  </div>
+</div>
+<div class="status" id="camStatus">Camera off. Click "Start camera" when you're ready.</div>
+
+<div class="cam-row">
+  <div class="cam-wrap"><div class="cap"><span class="what">Live camera</span><span id="camDim">—</span></div>
+    <video id="camVideo" playsinline muted></video>
+    <canvas id="camOriginal"></canvas>
+  </div>
+  <div class="cam-wrap"><div class="cap"><span class="what">Processed</span><span id="camMode">—</span></div>
+    <canvas id="camProcessed"></canvas>
+  </div>
+</div>
+
+<aside class="callout"><strong>Heads up.</strong> The webcam stays in your browser — nothing is uploaded anywhere. The YOLO option uses a small object-detector that runs entirely in your browser tab; the first time you switch to YOLO it has to download about 25 MB of model weights, so give it a few seconds. After that it should run at several frames per second on most laptops.</aside>
+</section>
+
+<hr class="div">
+
+<section id="self-check">
+<h2><span class="num">05</span>Self-check</h2>
+<p>Predict the answer first, then verify with the playground above.</p>
+
+<details class="prompt">
+  <summary>Q1. You raise Canny's high threshold without touching the low threshold. What happens to the edge map?</summary>
+  <p>Fewer edges survive. Canny first marks pixels with gradient above the <em>high</em> threshold as strong edges, then traces neighbours above the <em>low</em> threshold. Raising the high threshold throws out borderline edges, so you keep only the most contrasted contours. Useful when the scene is noisy.</p>
+</details>
+
+<details class="prompt">
+  <summary>Q2. Sobel returns a magnitude image, not a binary mask. Why does that matter for stimulation?</summary>
+  <p>A magnitude map says "this edge is stronger than that one", which gives the prosthesis a per-pixel intensity to drive amplitude with. A binary mask says only "edge or not", losing the gradient information. Sobel is therefore a friendlier activation-map source for amplitude modulation; Canny is better when you want sparse, well-defined contours.</p>
+</details>
+
+<details class="prompt">
+  <summary>Q3. The YOLO demo runs entirely in your browser. What does the model actually return for the bus photo?</summary>
+  <p>A list of detections: each one has a class label (bus, person, skateboard…), a confidence score (0–1), and an axis-aligned bounding box in pixels. The page shows boxes; the underlying network also outputs class probabilities for every box it considers, plus an "objectness" score that gates whether the box is reported at all.</p>
+</details>
+
+<details class="prompt">
+  <summary>Q4. Webcam stream at 30 fps × Sobel = how much data per second arrives at the activation map?</summary>
+  <p>At 640×480 grayscale Sobel output, 30 fps: <code>640 × 480 × 30 ≈ 9.2 M values/sec</code>. A 100-channel prosthesis stimulates at ~300 Hz, so it accepts roughly <code>100 × 300 = 30 K values/sec</code>. The CV stage discards ~99.7% of the data before stimulation — that's why <em>which</em> data survives matters.</p>
+</details>
+</section>
+
+<hr class="div">
+
+<section id="next">
+<h2><span class="num">06</span>Next: open the notebook</h2>
+<p>Open <a href="computer-vision.ipynb"><code>computer-vision.ipynb</code></a> in Jupyter to do the real exercises — write your own edge detector, run YOLO, build the activation maps that drive the rest of the prosthesis pipeline.</p>
+</section>
+
+<footer>
+  NTH bootcamp · M1 · <a href="../bootcamp-plan.html">back to plan</a>
+</footer>
+
+</main>
+
+<!-- ====================================================================== -->
+<!-- ============================== SCRIPTS =============================== -->
+<!-- ====================================================================== -->
+
+<!-- inlined assets (base64) so the page works when opened via file:// -->
+<script src="assets/bundle.js" onerror="console.warn('bundle.js missing, falling back to relative paths')"></script>
+
+<script>
+/* ---------- preset images (data URIs so the page works offline) ---------- */
+function makeCheckerboard(){
+  const c=document.createElement('canvas'); c.width=320; c.height=320;
+  const ctx=c.getContext('2d');
+  for(let y=0;y<8;y++) for(let x=0;x<8;x++){
+    ctx.fillStyle=((x+y)%2===0)?'#fff':'#111';
+    ctx.fillRect(x*40,y*40,40,40);
+  }
+  ctx.fillStyle='#b58900'; ctx.beginPath(); ctx.arc(160,160,42,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1c1c1a'; ctx.fillRect(60,260,200,30);
+  return c.toDataURL('image/png');
+}
+function makeGradient(){
+  const c=document.createElement('canvas'); c.width=320; c.height=320;
+  const ctx=c.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,320,320);
+  g.addColorStop(0,'#000'); g.addColorStop(1,'#fff');
+  ctx.fillStyle=g; ctx.fillRect(0,0,320,320);
+  ctx.fillStyle='#b58900'; ctx.fillRect(120,80,80,160);
+  return c.toDataURL('image/png');
+}
+
+/* ---------- state ---------- */
+const state = {
+  method: 'canny',
+  blur: 0.0,
+  low: 20, high: 80,
+  ksize: 3, sobTh: 40,
+  th: 128, thMode: 'binary',
+  cv: null,
+  srcMat: null,
+};
+
+const $ = (id)=>document.getElementById(id);
+
+function syncMethodVisibility(){
+  document.querySelectorAll('[data-show-for]').forEach(el=>{
+    el.style.display = (el.getAttribute('data-show-for')===state.method)?'':'none';
+  });
+  document.querySelectorAll('#methodTabs button').forEach(b=>{
+    b.classList.toggle('active', b.getAttribute('data-method')===state.method);
+  });
+}
+
+function loadFromImage(img){
+  const srcCanvas=$('srcCanvas');
+  const maxSide=480;
+  const s = Math.min(1, maxSide/Math.max(img.width,img.height));
+  const W=Math.round(img.width*s), H=Math.round(img.height*s);
+  srcCanvas.width=W; srcCanvas.height=H;
+  srcCanvas.getContext('2d').drawImage(img,0,0,W,H);
+  $('srcDim').textContent=`${W}×${H}`;
+  if(state.srcMat){ state.srcMat.delete(); state.srcMat=null; }
+  state.srcMat = state.cv.imread(srcCanvas);
+  runPipeline();
+}
+
+function loadFromURL(url){
+  const img=new Image();
+  // crossOrigin only when fetching from a remote http(s) host;
+  // for local/relative paths it can trigger failures on file:// URLs.
+  if(/^https?:\/\//i.test(url)) img.crossOrigin='anonymous';
+  img.onload=()=>loadFromImage(img);
+  img.onerror=()=>{
+    $('cvStatus').textContent='Could not load image: '+url;
+    $('cvStatus').className='status err';
+  };
+  img.src=url;
+}
+
+function runPipeline(){
+  if(!state.cv||!state.srcMat) return;
+  const cv=state.cv;
+  const src=state.srcMat;
+  const gray=new cv.Mat();
+  cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
+
+  const blurred=new cv.Mat();
+  const sigma=state.blur;
+  if(sigma>0.1){
+    let k=Math.max(3, Math.round(sigma*4)|1);
+    if(k%2===0) k+=1;
+    cv.GaussianBlur(gray,blurred,new cv.Size(k,k),sigma,sigma,cv.BORDER_DEFAULT);
+  } else {
+    gray.copyTo(blurred);
+  }
+
+  const edge=new cv.Mat();
+  if(state.method==='canny'){
+    cv.Canny(blurred, edge, state.low, state.high, 3, false);
+  } else if(state.method==='sobel'){
+    const gx=new cv.Mat(), gy=new cv.Mat(), absX=new cv.Mat(), absY=new cv.Mat(), mag=new cv.Mat();
+    cv.Sobel(blurred, gx, cv.CV_16S, 1, 0, state.ksize, 1, 0, cv.BORDER_DEFAULT);
+    cv.Sobel(blurred, gy, cv.CV_16S, 0, 1, state.ksize, 1, 0, cv.BORDER_DEFAULT);
+    cv.convertScaleAbs(gx, absX); cv.convertScaleAbs(gy, absY);
+    cv.addWeighted(absX, 0.5, absY, 0.5, 0, mag);
+    cv.threshold(mag, edge, state.sobTh, 255, cv.THRESH_BINARY);
+    gx.delete(); gy.delete(); absX.delete(); absY.delete(); mag.delete();
+  } else {
+    if(state.thMode==='otsu'){
+      cv.threshold(blurred, edge, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU);
+    } else if(state.thMode==='adaptive'){
+      cv.adaptiveThreshold(blurred, edge, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
+    } else {
+      cv.threshold(blurred, edge, state.th, 255, cv.THRESH_BINARY);
+    }
+  }
+
+  cv.imshow('edgeCanvas', edge);
+  $('edgeDim').textContent=`${edge.cols}×${edge.rows}`;
+  gray.delete(); blurred.delete(); edge.delete();
+}
+
+function bindControls(){
+  $('blur').oninput=e=>{ state.blur=parseInt(e.target.value)/10; $('blurVal').textContent=state.blur.toFixed(1); runPipeline(); };
+  $('low').oninput=e=>{ state.low=+e.target.value; $('lowVal').textContent=state.low; if(state.low>state.high){ state.high=state.low; $('high').value=state.high; $('highVal').textContent=state.high; } runPipeline(); };
+  $('high').oninput=e=>{ state.high=+e.target.value; $('highVal').textContent=state.high; if(state.high<state.low){ state.low=state.high; $('low').value=state.low; $('lowVal').textContent=state.low; } runPipeline(); };
+  $('ksize').oninput=e=>{ state.ksize=({1:3,2:5,3:7})[+e.target.value]||3; $('ksizeVal').textContent=state.ksize; runPipeline(); };
+  $('sobTh').oninput=e=>{ state.sobTh=+e.target.value; $('sobThVal').textContent=state.sobTh; runPipeline(); };
+  $('th').oninput=e=>{ state.th=+e.target.value; $('thVal').textContent=state.th; runPipeline(); };
+  $('thMode').onchange=e=>{ state.thMode=e.target.value; runPipeline(); };
+
+  document.querySelectorAll('#methodTabs button').forEach(b=>{
+    b.onclick=()=>{ state.method=b.getAttribute('data-method'); syncMethodVisibility(); runPipeline(); };
+  });
+
+  // Explainer tabs — exactly one panel visible at a time
+  const exTabs=document.querySelectorAll('#explainer .ex-tabs button');
+  const exContents=document.querySelectorAll('#explainer .ex-content');
+  exTabs.forEach(btn=>{
+    btn.onclick=()=>{
+      const key=btn.getAttribute('data-ex');
+      exTabs.forEach(b=>{
+        const active=(b===btn);
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      exContents.forEach(c=>{ c.hidden = c.getAttribute('data-ex')!==key; });
+    };
+  });
+
+  document.querySelectorAll('.preset').forEach(b=>{
+    b.onclick=()=>{
+      const which=b.getAttribute('data-preset');
+      if(which==='bus') loadFromURL((window.BUNDLE && window.BUNDLE.bus) || 'assets/bus.jpg');
+      else if(which==='checkerboard') loadFromURL(makeCheckerboard());
+      else loadFromURL(makeGradient());
+    };
+  });
+  $('fileInput').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>loadFromURL(ev.target.result);
+    r.readAsDataURL(f);
+  };
+}
+
+/* ====================================================================== */
+/* ============================ YOLO DEMO =============================== */
+/* ====================================================================== */
+const yolo = {
+  mode: 'precomputed',   // 'precomputed' (bus masks) or 'detection' (live bboxes)
+  baseImg: null,
+  detections: [],
+  masks: [],     // HTMLImageElement | null, same indexing as detections
+  visible: new Set(),
+  playing: false,
+  playTimer: null,
+  precomputed: null,     // cached {baseImg, detections, masks} so "↺ Bus scene" resets cleanly
+};
+const YOLO_PALETTE = ["#ff6b6b","#4ecdc4","#ffd93d","#a78bfa","#6bcb77","#ff8e6e","#5ec5ff","#ffa600"];
+const YOLO_MAX_W = 480, YOLO_MAX_H = 540;
+
+function setYoloStatus(msg, cls){ const s=$('yoloStatus'); if(!s) return; s.textContent=msg||''; s.className='yolo-status'+(cls?(' '+cls):''); }
+function fitYoloCanvas(img){
+  const c=$('yoloCanvas');
+  const s=Math.min(1, YOLO_MAX_W/img.naturalWidth, YOLO_MAX_H/img.naturalHeight);
+  c.width=Math.round(img.naturalWidth*s);
+  c.height=Math.round(img.naturalHeight*s);
+}
+
+function loadImage(src){
+  return new Promise((res,rej)=>{
+    const im=new Image();
+    im.onload=()=>res(im);
+    im.onerror=()=>rej(new Error('image load failed: '+src.slice(0,60)));
+    im.src=src;
+  });
+}
+
+async function loadYoloAssets(){
+  // Prefer the inlined bundle (works from file:// too); fall back to fetch if missing
+  let detections, busSrc, maskSrcs;
+  if(window.BUNDLE){
+    detections = window.BUNDLE.detections;
+    busSrc = window.BUNDLE.bus;
+    maskSrcs = window.BUNDLE.masks;
+  } else {
+    const r = await fetch('assets/bus_detections.json');
+    if(!r.ok) throw new Error('detections JSON missing');
+    const meta = await r.json();
+    detections = meta.detections;
+    busSrc = 'assets/bus.jpg';
+    maskSrcs = detections.map(d=>'assets/'+d.mask);
+  }
+  yolo.detections = detections;
+  const [base, ...maskImgs] = await Promise.all([loadImage(busSrc), ...maskSrcs.map(loadImage)]);
+  yolo.baseImg = base;
+  yolo.masks = maskImgs;
+  yolo.mode = 'precomputed';
+  // cache so the "↺ Bus scene" button restores without reloading
+  yolo.precomputed = { baseImg: base, detections: yolo.detections.slice(), masks: maskImgs.slice() };
+  fitYoloCanvas(base);
+  rebuildYoloLegend();
+  drawYolo();
+}
+
+function rebuildYoloLegend(){
+  const leg=$('yoloLegend');
+  leg.innerHTML='';
+  if(!yolo.detections.length){
+    leg.innerHTML='<span class="chip" style="color:var(--muted)">no objects detected</span>';
+    return;
+  }
+  yolo.detections.forEach((d,i)=>{
+    const chip=document.createElement('span'); chip.className='chip';
+    chip.innerHTML=`<span class="swatch" style="background:${d.color}"></span>${d.class} <span class="conf">${(d.conf*100).toFixed(0)}%</span>`;
+    chip.onclick=()=>{
+      if(yolo.visible.has(i)) yolo.visible.delete(i); else yolo.visible.add(i);
+      drawYolo();
+    };
+    chip.style.cursor='pointer';
+    leg.appendChild(chip);
+  });
+}
+
+function drawYolo(){
+  const c=$('yoloCanvas'); const ctx=c.getContext('2d');
+  if(!yolo.baseImg) return;
+  ctx.drawImage(yolo.baseImg, 0, 0, c.width, c.height);
+  for(const i of yolo.visible){
+    const d=yolo.detections[i];
+    drawDetection(ctx, d, yolo.masks[i], c.width, c.height);
+  }
+}
+
+function drawDetection(ctx, det, maskImg, W, H){
+  const hexColor=det.color;
+  const r=parseInt(hexColor.slice(1,3),16);
+  const g=parseInt(hexColor.slice(3,5),16);
+  const b=parseInt(hexColor.slice(5,7),16);
+  const sx=W/yolo.baseImg.naturalWidth, sy=H/yolo.baseImg.naturalHeight;
+  const [x1,y1,x2,y2]=det.bbox;
+
+  if(maskImg){
+    // draw mask into an offscreen canvas, recolour its white pixels
+    const off=document.createElement('canvas'); off.width=W; off.height=H;
+    const octx=off.getContext('2d',{willReadFrequently:true});
+    octx.drawImage(maskImg, 0, 0, W, H);
+    const data=octx.getImageData(0,0,W,H);
+    const px=data.data;
+    for(let i=0;i<px.length;i+=4){
+      const v=px[i];
+      if(v>128){ px[i]=r; px[i+1]=g; px[i+2]=b; px[i+3]=140; }
+      else { px[i+3]=0; }
+    }
+    octx.putImageData(data,0,0);
+    ctx.drawImage(off,0,0);
+  } else {
+    // no mask available: just tint the bbox interior softly
+    ctx.fillStyle=`rgba(${r},${g},${b},0.18)`;
+    ctx.fillRect(x1*sx, y1*sy, (x2-x1)*sx, (y2-y1)*sy);
+  }
+
+  // outline + label
+  ctx.save();
+  ctx.strokeStyle=hexColor; ctx.lineWidth=2;
+  ctx.strokeRect(x1*sx, y1*sy, (x2-x1)*sx, (y2-y1)*sy);
+  const label=`${det.class}  ${(det.conf*100).toFixed(0)}%`;
+  ctx.font='600 13px Inter, sans-serif';
+  const tw=ctx.measureText(label).width;
+  ctx.fillStyle=hexColor;
+  ctx.fillRect(x1*sx, Math.max(0,y1*sy-20), tw+10, 18);
+  ctx.fillStyle='#1c1c1a';
+  ctx.fillText(label, x1*sx+5, Math.max(13,y1*sy-6));
+  ctx.restore();
+}
+
+function stopPlay(){
+  if(yolo.playing){ clearInterval(yolo.playTimer); yolo.playing=false; $('yoloPlay').textContent='▶ Play'; }
+}
+
+async function ensureCocoModel(){
+  if(cam.cocoModel) return cam.cocoModel;
+  if(typeof cocoSsd === 'undefined') throw new Error('object-detection library not loaded');
+  setYoloStatus('Loading object-detection model (≈25 MB) …');
+  cam.cocoModel = await cocoSsd.load();
+  setYoloStatus('');
+  return cam.cocoModel;
+}
+
+async function loadYoloUserImage(dataUrl){
+  try {
+    stopPlay();
+    setYoloStatus('Reading image …');
+    const img = await loadImage(dataUrl);
+    yolo.baseImg = img;
+    fitYoloCanvas(img);
+    // show the raw image immediately so the user gets feedback
+    const c=$('yoloCanvas'); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    yolo.detections=[]; yolo.masks=[]; yolo.visible.clear(); rebuildYoloLegend();
+
+    const model = await ensureCocoModel();
+    setYoloStatus('Detecting objects …');
+    // detect at the natural resolution so small objects aren't missed
+    const tmp=document.createElement('canvas');
+    tmp.width=img.naturalWidth; tmp.height=img.naturalHeight;
+    tmp.getContext('2d').drawImage(img, 0, 0);
+    const preds = await model.detect(tmp);
+
+    yolo.mode = 'detection';
+    yolo.detections = preds.map((p,i)=>({
+      class: p.class,
+      conf: p.score,
+      bbox: [p.bbox[0], p.bbox[1], p.bbox[0]+p.bbox[2], p.bbox[1]+p.bbox[3]],
+      color: YOLO_PALETTE[i % YOLO_PALETTE.length],
+    }));
+    yolo.masks = yolo.detections.map(()=>null);
+    yolo.visible = new Set(yolo.detections.map((_,i)=>i)); // show all immediately
+    rebuildYoloLegend();
+    drawYolo();
+    setYoloStatus(`Found ${preds.length} object${preds.length===1?'':'s'}.`, 'ok');
+  } catch(e){
+    setYoloStatus('Failed: '+e.message, 'err');
+  }
+}
+
+function resetYoloToPrecomputed(){
+  if(!yolo.precomputed) return;
+  stopPlay();
+  yolo.mode = 'precomputed';
+  yolo.baseImg = yolo.precomputed.baseImg;
+  yolo.detections = yolo.precomputed.detections.slice();
+  yolo.masks = yolo.precomputed.masks.slice();
+  yolo.visible.clear();
+  fitYoloCanvas(yolo.baseImg);
+  rebuildYoloLegend();
+  drawYolo();
+  setYoloStatus('');
+}
+
+function bindYolo(){
+  $('yoloPlay').onclick=()=>{
+    if(yolo.playing){ stopPlay(); return; }
+    if(!yolo.detections.length) return;
+    yolo.visible.clear(); drawYolo();
+    yolo.playing=true; $('yoloPlay').textContent='⏸ Pause';
+    let i=0;
+    yolo.playTimer=setInterval(()=>{
+      if(i>=yolo.detections.length){ stopPlay(); return; }
+      yolo.visible.add(i); drawYolo(); i++;
+    }, 700);
+  };
+  $('yoloShowAll').onclick=()=>{
+    stopPlay();
+    yolo.visible=new Set(yolo.detections.map((_,i)=>i));
+    drawYolo();
+  };
+  $('yoloClear').onclick=()=>{
+    stopPlay();
+    yolo.visible.clear(); drawYolo();
+  };
+  $('yoloReset').onclick=resetYoloToPrecomputed;
+  $('yoloFile').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>loadYoloUserImage(ev.target.result);
+    r.readAsDataURL(f);
+    e.target.value=''; // allow re-selecting the same file
+  };
+}
+
+/* ====================================================================== */
+/* ============================== WEBCAM ================================ */
+/* ====================================================================== */
+const cam = {
+  stream: null,
+  mode: 'none',
+  rafId: null,
+  cocoModel: null,
+  cocoLoading: false,
+  videoEl: null,
+  origCtx: null,
+  procCtx: null,
+};
+
+function setCamStatus(msg, cls){ const s=$('camStatus'); s.textContent=msg; s.className='status'+(cls?(' '+cls):''); }
+
+async function startCamera(){
+  if(cam.stream) return;
+  try{
+    setCamStatus('Requesting camera permission …');
+    cam.stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user', width:{ideal:640}, height:{ideal:480}}, audio:false});
+    cam.videoEl = $('camVideo');
+    cam.videoEl.srcObject = cam.stream;
+    await cam.videoEl.play();
+    const W=cam.videoEl.videoWidth, H=cam.videoEl.videoHeight;
+    $('camOriginal').width=W; $('camOriginal').height=H;
+    $('camProcessed').width=W; $('camProcessed').height=H;
+    cam.origCtx=$('camOriginal').getContext('2d');
+    cam.procCtx=$('camProcessed').getContext('2d');
+    $('camDim').textContent=`${W}×${H}`;
+    $('camStart').disabled=true; $('camStop').disabled=false;
+    setCamStatus('Camera live · '+W+'×'+H, 'ok');
+    cam.rafId = requestAnimationFrame(camLoop);
+  } catch(e){
+    setCamStatus('Could not open camera: '+e.message, 'err');
+  }
+}
+
+function stopCamera(){
+  if(cam.rafId){ cancelAnimationFrame(cam.rafId); cam.rafId=null; }
+  if(cam.stream){ cam.stream.getTracks().forEach(t=>t.stop()); cam.stream=null; }
+  if(cam.videoEl){ cam.videoEl.srcObject=null; }
+  $('camStart').disabled=false; $('camStop').disabled=true;
+  setCamStatus('Camera off.');
+}
+
+function camLoop(){
+  if(!cam.videoEl || cam.videoEl.readyState<2){ cam.rafId=requestAnimationFrame(camLoop); return; }
+  const W=cam.videoEl.videoWidth, H=cam.videoEl.videoHeight;
+  cam.origCtx.drawImage(cam.videoEl, 0, 0, W, H);
+
+  if(cam.mode==='none'){
+    cam.procCtx.drawImage(cam.videoEl, 0, 0, W, H);
+    $('camMode').textContent='passthrough';
+  } else if(cam.mode==='yolo'){
+    cam.procCtx.drawImage(cam.videoEl, 0, 0, W, H);
+    runCocoOnce(W, H);
+    $('camMode').textContent='object detection';
+  } else {
+    runCvFilter(W, H);
+    $('camMode').textContent=cam.mode;
+  }
+  cam.rafId = requestAnimationFrame(camLoop);
+}
+
+function runCvFilter(W, H){
+  if(!state.cv) return;
+  const cv=state.cv;
+  const src=cv.imread($('camOriginal'));
+  const gray=new cv.Mat(); cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+  const blur=new cv.Mat();
+  if(state.blur>0.1){
+    let k=Math.max(3, Math.round(state.blur*4)|1); if(k%2===0) k+=1;
+    cv.GaussianBlur(gray, blur, new cv.Size(k,k), state.blur, state.blur, cv.BORDER_DEFAULT);
+  } else { gray.copyTo(blur); }
+  const out=new cv.Mat();
+  if(cam.mode==='canny') cv.Canny(blur, out, state.low, state.high, 3, false);
+  else if(cam.mode==='sobel'){
+    const gx=new cv.Mat(), gy=new cv.Mat(), ax=new cv.Mat(), ay=new cv.Mat(), mg=new cv.Mat();
+    cv.Sobel(blur, gx, cv.CV_16S, 1, 0, state.ksize);
+    cv.Sobel(blur, gy, cv.CV_16S, 0, 1, state.ksize);
+    cv.convertScaleAbs(gx, ax); cv.convertScaleAbs(gy, ay);
+    cv.addWeighted(ax, 0.5, ay, 0.5, 0, mg);
+    cv.threshold(mg, out, state.sobTh, 255, cv.THRESH_BINARY);
+    gx.delete(); gy.delete(); ax.delete(); ay.delete(); mg.delete();
+  } else { // threshold
+    if(state.thMode==='otsu') cv.threshold(blur, out, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU);
+    else if(state.thMode==='adaptive') cv.adaptiveThreshold(blur, out, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
+    else cv.threshold(blur, out, state.th, 255, cv.THRESH_BINARY);
+  }
+  cv.imshow('camProcessed', out);
+  src.delete(); gray.delete(); blur.delete(); out.delete();
+}
+
+let _cocoBusy = false;
+async function runCocoOnce(W, H){
+  if(!cam.cocoModel){
+    if(cam.cocoLoading) return;
+    cam.cocoLoading=true;
+    setCamStatus('Loading object-detection model (≈25 MB) …');
+    try {
+      cam.cocoModel = await cocoSsd.load();
+      setCamStatus('Object-detection model ready.', 'ok');
+    } catch(e){
+      setCamStatus('Could not load model: '+e.message, 'err');
+      cam.cocoLoading=false;
+      cam.mode='none';
+      return;
+    }
+    cam.cocoLoading=false;
+  }
+  if(_cocoBusy) return;
+  _cocoBusy=true;
+  try {
+    const preds = await cam.cocoModel.detect($('camOriginal'));
+    // redraw frame + overlays
+    cam.procCtx.drawImage(cam.videoEl, 0, 0, W, H);
+    cam.procCtx.font='600 14px Inter, sans-serif';
+    cam.procCtx.lineWidth=2;
+    const PAL=["#ff6b6b","#4ecdc4","#ffd93d","#a78bfa","#6bcb77","#ff8e6e","#5ec5ff","#ffa600"];
+    preds.forEach((p,i)=>{
+      const [x,y,w,h]=p.bbox; const col=PAL[i%PAL.length];
+      cam.procCtx.strokeStyle=col; cam.procCtx.strokeRect(x,y,w,h);
+      const lbl=`${p.class} ${(p.score*100).toFixed(0)}%`;
+      const tw=cam.procCtx.measureText(lbl).width;
+      cam.procCtx.fillStyle=col; cam.procCtx.fillRect(x, Math.max(0,y-20), tw+10, 18);
+      cam.procCtx.fillStyle='#1c1c1a'; cam.procCtx.fillText(lbl, x+5, Math.max(13,y-6));
+    });
+  } finally {
+    _cocoBusy=false;
+  }
+}
+
+function bindCam(){
+  $('camStart').onclick=startCamera;
+  $('camStop').onclick=stopCamera;
+  document.querySelectorAll('#camTabs button').forEach(b=>{
+    b.onclick=()=>{
+      cam.mode=b.getAttribute('data-cam');
+      document.querySelectorAll('#camTabs button').forEach(x=>x.classList.toggle('active', x===b));
+    };
+  });
+}
+
+/* ---------- OpenCV.js bootstrap ---------- */
+function onOpenCvReady(){
+  state.cv=window.cv;
+  $('cvStatus').textContent='OpenCV.js ready';
+  $('cvStatus').className='status ok';
+
+  bindControls();
+  syncMethodVisibility();
+  bindYolo();
+  bindCam();
+  loadFromURL((window.BUNDLE && window.BUNDLE.bus) || 'assets/bus.jpg');
+  loadYoloAssets().catch(e=>{
+    $('yoloLegend').innerHTML='<span class="chip" style="color:var(--danger)">YOLO assets failed to load: '+e.message+'</span>';
+  });
+}
+window.Module = { onRuntimeInitialized: onOpenCvReady };
+</script>
+<script async src="https://docs.opencv.org/4.10.0/opencv.js" onerror="document.getElementById('cvStatus').textContent='OpenCV.js failed to load — check internet'; document.getElementById('cvStatus').className='status err';"></script>
+<!-- Object detection model for the webcam section (loaded lazily on first use) -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+
+</body>
+</html>

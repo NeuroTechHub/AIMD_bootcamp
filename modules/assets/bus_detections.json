@@ -1,0 +1,80 @@
+{
+  "image_size": [
+    810,
+    1080
+  ],
+  "detections": [
+    {
+      "class": "bus",
+      "conf": 0.838,
+      "bbox": [
+        2.9,
+        227.9,
+        800.5,
+        722.1
+      ],
+      "mask": "bus_det_00_bus.png",
+      "color": "#ff6b6b"
+    },
+    {
+      "class": "person",
+      "conf": 0.86,
+      "bbox": [
+        48.5,
+        396.3,
+        242.4,
+        904.4
+      ],
+      "mask": "bus_det_01_person.png",
+      "color": "#4ecdc4"
+    },
+    {
+      "class": "person",
+      "conf": 0.841,
+      "bbox": [
+        222.5,
+        407.8,
+        344.2,
+        861.9
+      ],
+      "mask": "bus_det_02_person.png",
+      "color": "#ffd93d"
+    },
+    {
+      "class": "person",
+      "conf": 0.878,
+      "bbox": [
+        670.2,
+        388.7,
+        809.5,
+        877.1
+      ],
+      "mask": "bus_det_03_person.png",
+      "color": "#a78bfa"
+    },
+    {
+      "class": "person",
+      "conf": 0.412,
+      "bbox": [
+        0.0,
+        551.7,
+        77.8,
+        875.5
+      ],
+      "mask": "bus_det_04_person.png",
+      "color": "#6bcb77"
+    },
+    {
+      "class": "skateboard",
+      "conf": 0.392,
+      "bbox": [
+        669.0,
+        822.9,
+        810.0,
+        882.2
+      ],
+      "mask": "bus_det_05_skateboard.png",
+      "color": "#ff8e6e"
+    }
+  ]
+}

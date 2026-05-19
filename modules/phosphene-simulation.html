@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NTH Bootcamp - Phosphene Simulator (interactive)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1c1c1a; --ink-2:#3a3a36; --muted:#6c6c66; --muted-2:#9a9a93;
+  --rule:#d8d6cf; --rule-2:#ebe9e2; --paper:#fbfaf6; --paper-2:#f4f2eb;
+  --accent:#b58900; --accent-2:#8a6700; --accent-wash:#f3e9c8;
+  --danger:#8a3a1d; --code-bg:#f1efe7;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  font-size:16px;line-height:1.55}
+.page{max-width:1180px;margin:0 auto;padding:48px 36px 100px}
+header.masthead{border-bottom:1px solid var(--rule);padding-bottom:28px;margin-bottom:32px}
+header.masthead .eyebrow{font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);font-weight:500}
+header.masthead h1{font-size:34px;font-weight:600;letter-spacing:-0.02em;line-height:1.1;margin:12px 0 14px}
+header.masthead p.lede{color:var(--ink-2);font-size:16px;max-width:760px;margin:0}
+h2{font-size:22px;font-weight:600;letter-spacing:-0.01em;margin:52px 0 12px;color:var(--ink)}
+h2 .num{color:var(--muted-2);font-variant-numeric:tabular-nums;margin-right:12px;font-weight:500}
+h3{font-size:13px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);margin:24px 0 8px}
+p{margin:0 0 12px;color:var(--ink-2)}
+p.kicker{color:var(--ink);font-size:16px;margin-bottom:14px}
+code,.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:0.92em}
+code{background:var(--code-bg);padding:1px 5px;border-radius:3px;color:var(--ink)}
+hr.div{border:0;border-top:1px solid var(--rule);margin:42px 0}
+
+nav.toc{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);padding:16px 0;margin-bottom:36px}
+nav.toc a{padding:4px 18px 4px 0;font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--muted);text-decoration:none;display:flex;gap:8px;align-items:baseline}
+nav.toc a:hover{color:var(--accent)}
+nav.toc a .n{color:var(--muted-2);font-variant-numeric:tabular-nums}
+
+.lab{display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start;
+     border:1px solid var(--rule);background:#fff;border-radius:6px;
+     padding:18px;margin:18px 0}
+.lab .controls h4{margin:0 0 8px;font-size:12px;font-weight:600;letter-spacing:0.05em;
+  text-transform:uppercase;color:var(--ink)}
+.lab .controls label{display:block;font-size:12px;font-family:'JetBrains Mono',monospace;
+  color:var(--ink-2);margin:14px 0 4px}
+.lab .controls .row{display:flex;justify-content:space-between;align-items:baseline}
+.lab .controls .row .val{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2)}
+.lab .controls input[type=range]{width:100%;accent-color:var(--accent)}
+.lab .controls select,.lab .controls button{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  padding:6px 10px;border:1px solid var(--rule);background:#fff;color:var(--ink);
+  border-radius:4px;cursor:pointer}
+.lab .controls button:hover{border-color:var(--accent);color:var(--accent-2)}
+.lab .controls button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.lab .controls .btnrow{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.lab .stage{display:flex;flex-direction:column;gap:8px;align-items:center}
+.lab canvas{background:#000;image-rendering:pixelated;border:1px solid var(--rule);border-radius:4px;display:block}
+.lab .caption{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:center}
+.lab .twin{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Pipeline progress widget (matches computer-vision-playground.html) */
+.pipeline{display:flex;align-items:stretch;gap:0;margin:14px 0 28px;flex-wrap:wrap;max-width:920px}
+.pipeline .step{flex:1 1 0;min-width:120px;background:#fff;border:1px solid var(--rule);
+  padding:12px 14px;border-radius:5px;font-size:13px;color:var(--ink-2);position:relative}
+.pipeline .step .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+.pipeline .step .name{color:var(--ink);font-weight:600;margin-top:2px}
+.pipeline .arr{display:flex;align-items:center;justify-content:center;width:20px;color:var(--muted-2);font-family:'JetBrains Mono',monospace}
+.pipeline .step.active{border-color:var(--accent);background:var(--accent-wash)}
+
+aside.callout{border-left:3px solid var(--accent);background:var(--paper-2);
+  padding:12px 16px;margin:18px 0;font-size:14px;color:var(--ink-2);border-radius:0 4px 4px 0}
+aside.callout strong{color:var(--ink)}
+details.prompt{border:1px solid var(--rule);background:#fff;border-radius:6px;
+  padding:10px 14px;margin:14px 0;font-size:14px}
+details.prompt summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:13.5px;
+  letter-spacing:0.02em;list-style:none;outline:none}
+details.prompt summary::before{content:"?  "; color:var(--accent); font-weight:600;
+  font-family:'JetBrains Mono',monospace}
+details.prompt[open] summary::before{content:"\2713  "; color:var(--accent-2)}
+details.prompt p{margin:10px 0 4px;color:var(--ink-2);font-size:13.5px}
+
+.spec{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);
+  background:var(--paper-2);padding:8px 12px;border-radius:4px;margin:6px 0 0}
+
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);
+  font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+@media (max-width:880px){
+  .lab{grid-template-columns:1fr}
+  .lab .twin{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <div class="eyebrow">NTH / M4 - Interactive companion</div>
+  <h1>Phosphene Simulator</h1>
+  <p class="lede">A live, no-Python playground for the same equations as
+    <code>dynaphos</code>. Move the sliders, watch the basis change. Use this
+    to build intuition before (or alongside) the notebook.</p>
+</header>
+
+<aside class="callout" style="margin:8px 0 32px"><strong>What is dynaphos?</strong>
+An open, differentiable forward model of phosphene perception under cortical microstimulation
+(van der Grinten et al., <em>eLife</em> 2024). It maps a current per electrode all the way to
+what the user sees, through a short pipeline you'll meet section by section:
+<strong>current</strong> (&micro;A per electrode) &rarr;
+<strong>effective current</strong> = current above <strong>rheobase</strong>
+(the per-pulse threshold below which no spikes are evoked) &rarr;
+<strong>charge per second</strong> (effective current &times; pulse width &times; frequency) &rarr;
+<strong>activation</strong> (a running low-pass integral of charge per second, &sect;04) &rarr;
+<strong>trace</strong> (a slower reservoir that subtracts from drive &mdash; the model of neural fatigue,
+&sect;04) &rarr;
+per-phosphene <strong>brightness</strong> (mapped from current activation) and
+<strong>shape</strong> (a Gaussian whose &sigma; comes from <strong>current spread K</strong> and
+the eccentricity-dependent <strong>cortical magnification M(r)</strong>).
+Vocabulary defined here will be re-used inline whenever a term first re-appears below.</aside>
+
+<div class="pipeline" aria-label="Bootcamp pipeline progress">
+  <div class="step"><div class="lbl">M1</div><div class="name">Camera + CV</div></div>
+  <div class="arr">&rarr;</div>
+  <div class="step"><div class="lbl">M2</div><div class="name">Gaze</div></div>
+  <div class="arr">&rarr;</div>
+  <div class="step"><div class="lbl">M3</div><div class="name">Stimulation</div></div>
+  <div class="arr">&rarr;</div>
+  <div class="step active"><div class="lbl">M4 &middot; here</div><div class="name">Phosphenes</div></div>
+  <div class="arr">&rarr;</div>
+  <div class="step"><div class="lbl">M5</div><div class="name">Decoding</div></div>
+</div>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#single"><span class="n">01</span>Single phosphene</a>
+  <a href="#population"><span class="n">02</span>Phosphene population</a>
+  <a href="#forward"><span class="n">03</span>Image to phosphenes</a>
+  <a href="#temporal"><span class="n">04</span>Temporal dynamics</a>
+  <a href="#self-check"><span class="n">05</span>Self-check</a>
+  <a href="#next"><span class="n">06</span>Next: open the notebook</a>
+</nav>
+
+<!-- ============================================================ 01 -->
+<section id="single">
+<h2><span class="num">01</span>One phosphene</h2>
+<p class="kicker">A single electrode evokes a Gaussian-shaped bright spot.
+Its position is set by the retinotopic map; its size is set by current and
+local cortical magnification.</p>
+
+<aside class="callout"><strong>The whole module in one sentence.</strong>
+Every percept on this page is a sum of Gaussians, one per electrode. Their positions
+follow cortical magnification (dipole model). Their sizes follow current spread. Adjust
+the sliders below and watch which equations bite.</aside>
+
+<div class="lab">
+  <div class="controls">
+    <h4>Single electrode</h4>
+
+    <label class="row"><span>eccentricity (deg)</span><span class="val" id="v-s-ecc">6.0</span></label>
+    <input type="range" id="s-ecc" min="0.5" max="14" step="0.1" value="6.0">
+
+    <label class="row"><span>angle (deg)</span><span class="val" id="v-s-ang">30</span></label>
+    <input type="range" id="s-ang" min="-180" max="180" step="1" value="30">
+
+    <label class="row"><span>current I (&micro;A)</span><span class="val" id="v-s-cur">80</span></label>
+    <input type="range" id="s-cur" min="20" max="100" step="1" value="80">
+
+    <label class="row"><span>current-spread K (&micro;A/mm&sup2;)</span><span class="val" id="v-s-k">675</span></label>
+    <input type="range" id="s-k" min="100" max="2000" step="10" value="675">
+
+    <label class="row"><span>radius &rarr; sigma <span style="color:var(--muted-2)">(yaml: 0.5)</span></span><span class="val" id="v-s-rts">1.00</span></label>
+    <input type="range" id="s-rts" min="0.3" max="4" step="0.05" value="1.00">
+
+    <div class="spec" id="s-readout">sigma = - deg | M = -</div>
+  </div>
+  <div class="stage">
+    <canvas id="cv-single" width="280" height="280"></canvas>
+    <div class="caption">Visual field, 16 deg wide (dynaphos default). Fovea = center.</div>
+  </div>
+</div>
+
+<details class="prompt">
+  <summary>Slide eccentricity from 0.5 to 14. What happens to the phosphene?</summary>
+  <p>It grows. Cortical magnification M(r) drops with eccentricity, and
+  <code>sigma_deg = radius_to_sigma * sqrt(I/K) / M(r)</code>. Smaller M -> bigger
+  apparent size for the same current. This is why peripheral phosphenes
+  appear large and blob-like, while foveal ones are crisp dots.</p>
+</details>
+
+<details class="prompt">
+  <summary>Halve K. Does the phosphene get bigger or smaller? Why?</summary>
+  <p>Bigger. K is the current-spread constant (uA/mm^2). A smaller K means
+  the same current spreads over a larger cortical area, activating more
+  tissue -> larger phosphene radius -> larger sigma.</p>
+</details>
+</section>
+
+<!-- ============================================================ 02 -->
+<section id="population">
+<h2><span class="num">02</span>Phosphene population</h2>
+<p class="kicker">Real prostheses use hundreds to thousands of electrodes.
+The placement strategy determines what kinds of percepts are achievable.</p>
+
+<aside class="callout"><strong>The placement controls here are abstract &mdash; real arrays aren't.</strong>
+On the page you pick "foveated vs uniform" by sampling probabilistically. In a real implant
+the placement is constrained by anatomy and surgery: V1 is mostly buried in the calcarine sulcus,
+so only a fraction of the cortical surface is reachable without entering tissue; vasculature
+must be avoided; arrays come in fixed geometries (the Utah array is a 4&times;4&nbsp;mm grid of
+96 shanks, 400&nbsp;&micro;m pitch); electrode pitch can't shrink indefinitely without crosstalk
+and tissue damage; and V1's cortical magnification means foveal eccentricities consume far more
+cortex than peripheral ones, so a fixed array footprint covers different visual-field eccentricity
+ranges depending on where it's placed. Today's research and early-clinical cortical prostheses
+(e.g. Orion / Second Sight &mdash; now ended; Cortigent; the ICVP / CORTIVIS efforts; Neuralink B1)
+operate within these constraints.</aside>
+
+<div class="lab">
+  <div class="controls">
+    <h4>Population</h4>
+
+    <label class="row"><span>N electrodes</span><span class="val" id="v-p-n">600</span></label>
+    <input type="range" id="p-n" min="50" max="2000" step="10" value="600">
+
+    <label class="row"><span>current I (&micro;A, same for all)</span><span class="val" id="v-p-cur">80</span></label>
+    <input type="range" id="p-cur" min="20" max="100" step="1" value="80">
+
+    <label class="row"><span>radius &rarr; sigma <span style="color:var(--muted-2)">(yaml: 0.5)</span></span><span class="val" id="v-p-rts">1.00</span></label>
+    <input type="range" id="p-rts" min="0.3" max="4" step="0.05" value="1.00">
+
+    <label>layout</label>
+    <select id="p-layout">
+      <option value="foveated" selected>foveated (prob ∝ M)</option>
+      <option value="uniform">uniform grid in visual field</option>
+    </select>
+
+    <div class="btnrow">
+      <button id="p-shuffle">resample</button>
+      <button id="p-show-centers" class="primary">toggle centers</button>
+    </div>
+    <div class="spec" id="p-readout">n_visible = -</div>
+  </div>
+  <div class="stage">
+    <div class="twin">
+      <div>
+        <canvas id="cv-pop-bases" width="220" height="220"></canvas>
+        <div class="caption">All bases, max-projected</div>
+      </div>
+      <div>
+        <canvas id="cv-pop-centers" width="220" height="220"></canvas>
+        <div class="caption">Electrode centers only</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<details class="prompt">
+  <summary>Switch from foveated to uniform. Which gives finer central detail?</summary>
+  <p>Foveated. With the same N electrodes, foveated placement crowds them
+  near the fovea, where sigma is also smaller, producing crisper central
+  vision. Uniform placement gives the periphery the same density as the
+  fovea but each phosphene is small in the centre and large in the
+  periphery, wasting resolution on the easy regions and falling apart in
+  the periphery anyway.</p>
+</details>
+
+<details class="prompt">
+  <summary>Set N = 200. Roughly how small can a feature be before you can't make it out?</summary>
+  <p>The visual field is 16&nbsp;deg wide (8&nbsp;deg radius, &asymp; 200&nbsp;deg<sup>2</sup>
+  of area). Spreading 200 electrodes uniformly gives one electrode per &asymp; 1&nbsp;deg<sup>2</sup>,
+  so the typical inter-electrode spacing is on the order of <strong>1&nbsp;deg</strong>. Two
+  phosphenes start to merge below about 3&sigma; separation, so features finer than a few times
+  the typical sigma (also &sim;&nbsp;0.5&ndash;1&nbsp;deg here) won't be resolvable. In Snellen terms
+  (the chart-distance notation for visual acuity, 20/x = "I read at 20&nbsp;ft what a sighted user
+  reads at x&nbsp;ft") that lands in the ballpark of 20/600 &mdash; broadly the legal-blindness
+  range &mdash; though the exact number depends on layout and sigma. The point is that even with
+  hundreds of electrodes, prosthetic vision is acuity-limited.</p>
+</details>
+</section>
+
+<!-- ============================================================ 03 -->
+<section id="forward">
+<h2><span class="num">03</span>Image to phosphenes</h2>
+<p class="kicker">The forward pass: sample image intensity at each
+electrode's location, convert to a stimulation current, render the canvas.</p>
+
+<aside class="callout"><strong>What you are seeing.</strong>
+The left canvas is the input image at the prosthesis's input resolution. The right
+canvas is what the user would perceive given the current electrode array. The lost
+detail between left and right is the entire challenge of cortical prosthetics: you
+have to choose which image features survive the bottleneck.</aside>
+
+<div class="lab">
+  <div class="controls">
+    <h4>Forward pass</h4>
+
+    <label>target image</label>
+    <select id="f-target">
+      <option value="square" selected>square + disc</option>
+      <option value="letterE">letter "E"</option>
+      <option value="face">face (icon)</option>
+      <option value="grid">grating bars</option>
+      <option value="diag">diagonal line</option>
+    </select>
+
+    <label class="row"><span>peak current (&micro;A at pixel=1.0)</span><span class="val" id="v-f-scale">80</span></label>
+    <input type="range" id="f-scale" min="20" max="100" step="1" value="80">
+
+    <label class="row"><span>N electrodes</span><span class="val" id="v-f-n">800</span></label>
+    <input type="range" id="f-n" min="50" max="2000" step="10" value="800">
+
+    <label class="row"><span>radius &rarr; sigma <span style="color:var(--muted-2)">(yaml: 0.5)</span></span><span class="val" id="v-f-rts">1.00</span></label>
+    <input type="range" id="f-rts" min="0.3" max="4" step="0.05" value="1.00">
+
+    <div class="spec" id="f-readout">- electrodes active</div>
+  </div>
+  <div class="stage">
+    <div class="twin">
+      <div>
+        <canvas id="cv-fwd-target" width="220" height="220"></canvas>
+        <div class="caption">Target image</div>
+      </div>
+      <div>
+        <canvas id="cv-fwd-out" width="220" height="220"></canvas>
+        <div class="caption">Phosphene render</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<details class="prompt">
+  <summary>Pick the grating. How fine a grating can you still resolve?</summary>
+  <p>The limit is the Nyquist of the electrode lattice in the relevant
+  region. Bars finer than ~2x the inter-electrode spacing alias to a
+  uniform field (or a coarser bar pattern). This is the "phosphene
+  acuity" upper bound.</p>
+</details>
+
+<details class="prompt">
+  <summary>Walk peak current down: 20, then 25, then 35&ndash;40 &micro;A. What happens at each step?</summary>
+  <p>Two thresholds gate the percept and they're easy to confuse:</p>
+  <ul class="tight">
+    <li><strong>20 &micro;A</strong>: below dynaphos's rheobase of 23.9 &micro;A. Every pixel that maps to
+    less than rheobase produces zero charge per second &mdash; the electrodes go silent and the canvas
+    goes black.</li>
+    <li><strong>25 &micro;A</strong>: just above rheobase, so charge per second is positive but tiny.
+    The leaky activation integrator (&sect;04) needs time and head-room above rheobase to climb past the
+    brightness threshold; with only the brightest pixels barely above it, you'll see at most a faint
+    speckle, not a coherent image.</li>
+    <li><strong>35&ndash;40 &micro;A</strong>: comfortably above rheobase. Brightness emerges first
+    &mdash; you can see the image is <em>there</em> before you can tell what shape it has. As you climb
+    further, the Gaussian shape resolves last. Shape is more robust than brightness because shape
+    depends on which electrodes fire, not how much each is firing.</li>
+  </ul>
+</details>
+</section>
+
+<!-- ============================================================ 04 -->
+<section id="temporal">
+<h2><span class="num">04</span>Temporal dynamics</h2>
+<p class="kicker">Each electrode is a leaky integrator. Watch brightness
+build up under sustained stim and decay after it stops.</p>
+
+<aside class="callout"><strong>Vocabulary for this section.</strong>
+The dynaphos pipeline introduced at the top of the page bottlenecks through two state variables
+that this playground exposes &mdash; they're the source of every behaviour you'll see below.
+<strong>charge_per_s</strong> = max(I &minus; rheobase, 0) &times; pulse_width &times; frequency.
+The driving signal: how much net charge the electrode delivers per second, after subtracting the
+rheobase threshold. Zero below rheobase, linear above it.
+<strong>activation</strong> = a running low-pass integral of charge_per_s. Mathematically this is a
+<strong>leaky integrator</strong> &mdash; a one-pole filter, dx/dt = input &minus; <strong>activation_decay</strong> &middot; x &mdash;
+that accumulates input and forgets it exponentially. activation_decay (units: s<sup>&minus;1</sup>) is the inverse
+time constant: large values forget fast, small values integrate over many seconds. Brightness is read out
+from activation, not from the instantaneous current.
+<strong>trace</strong> = a much slower second reservoir that's <em>added</em> to rheobase as an
+extra leak. As trace builds up under sustained stim, less of your current ends up as effective charge,
+so charge_per_s shrinks, activation drops, brightness fades. That is what we call
+<strong>adaptation</strong> &mdash; the loss of percept under sustained stim that real cortex shows over
+seconds (Fern&aacute;ndez et al., 2021). The "disable trace" mode kills this term and turns the cortex
+into a perfect transducer.</aside>
+
+<div class="lab">
+  <div class="controls">
+    <h4>Time</h4>
+    <div class="btnrow">
+      <button id="t-play" class="primary">play</button>
+      <button id="t-reset">reset</button>
+    </div>
+
+    <label class="row"><span>frame</span><span class="val" id="v-t-frame">0</span></label>
+    <input type="range" id="t-frame" min="0" max="209" step="1" value="0">
+
+    <label class="row"><span>stim current (&micro;A)</span><span class="val" id="v-t-cur">80</span></label>
+    <input type="range" id="t-cur" min="20" max="100" step="1" value="80">
+
+    <label class="row"><span>activation_decay/s <span style="color:var(--muted-2)">(yaml: 1.2e-4)</span></span><span class="val" id="v-t-decay">0.00012</span></label>
+    <input type="range" id="t-decay" min="0.00001" max="0.5" step="0.00001" value="0.00012">
+
+    <label class="row"><span>stim ON until frame</span><span class="val" id="v-t-on">105</span></label>
+    <input type="range" id="t-on" min="0" max="210" step="1" value="105">
+
+    <label>mode</label>
+    <select id="t-mode">
+      <option value="persistent" selected>state preserved across frames</option>
+      <option value="reset">reset each frame</option>
+      <option value="notrace">no adaptation (trace disabled)</option>
+    </select>
+
+    <div class="spec" id="t-readout">brightness = -</div>
+  </div>
+  <div class="stage">
+    <canvas id="cv-temp" width="220" height="220"></canvas>
+    <canvas id="cv-temp-plot" width="380" height="120"></canvas>
+    <div class="caption">Mean canvas brightness over time. Shaded = stim ON.</div>
+  </div>
+</div>
+
+<details class="prompt">
+  <summary>With the yaml default (1.2e-4), why does brightness drop during sustained stim?</summary>
+  <p>This is <strong>adaptation</strong>, not decay. Dynaphos has two states:
+  fast activation (which tracks instantaneous charge) and slow trace (which
+  accumulates). The trace adds to the leak current, so the effective
+  amplitude (<code>I - rheobase - trace</code>) shrinks over ~1 second,
+  charge drops, activation drops, brightness fades. Switch to
+  "disable trace" to see what happens without it.</p>
+</details>
+
+<details class="prompt">
+  <summary>Compare "state preserved across frames" against "no adaptation". Which behaviour matches what cortical neurons actually do under sustained stim?</summary>
+  <p>"State preserved across frames" runs both activation <em>and</em> trace; the
+  trace builds up under sustained stim and the percept fades over seconds.
+  "No adaptation" keeps the activation integrator but kills the trace, so the
+  percept stays bright indefinitely &mdash; what you'd see if cortex were a
+  perfect transducer. Real cortical neurons adapt (Fern&aacute;ndez et al., 2021,
+  <em>NEJM</em>): sustained stim produces a percept that decays over seconds.
+  Dynaphos's defaults are calibrated to that human implant data, so the
+  "state preserved" mode is the realistic one.</p>
+</details>
+
+<details class="prompt">
+  <summary>Crank activation_decay/s to 0.5. What happens?</summary>
+  <p>You override the yaml. Activation now decays exp(-0.69/35) per frame
+  &asymp; 2% per frame instead of essentially-instantly. This is the
+  same as making the activation integrator slow. Brightness now builds
+  over many frames before saturating - the dynaphos default treats
+  activation as effectively instant.</p>
+</details>
+</section>
+
+<!-- ============================================================ 05 -->
+<section id="self-check">
+<h2><span class="num">05</span>Self-check</h2>
+<p>Without running anything, predict the answer first; then check with the
+sliders above.</p>
+
+<details class="prompt">
+  <summary>Q1. Doubling the current with K and radius_to_sigma fixed: how much does sigma grow?</summary>
+  <p>sigma scales as sqrt(I/K), so doubling I scales sigma by sqrt(2) ~ 1.41x.</p>
+</details>
+
+<details class="prompt">
+  <summary>Q2. Where is the cortical-magnification factor M largest?</summary>
+  <p>Near the fovea (small r). M(r) = k * (1/(r+a) - 1/(r+b)) in the dipole
+  model; both fractions decrease in r, but the first faster, so M is
+  monotonically decreasing.</p>
+</details>
+
+<details class="prompt">
+  <summary>Q3. You have 1000 electrodes. To read text, what layout?</summary>
+  <p>Foveated, low radius_to_sigma. Text needs small features near where
+  the eye is fixating, which is the foveal pit. Don't waste electrodes on
+  the far periphery.</p>
+</details>
+
+<details class="prompt">
+  <summary>Q4. Rheobase is 23.9 &micro;A. What does setting stim to 24 &micro;A do?</summary>
+  <p>Almost nothing. <code>charge_per_s = (I - rheobase) &times; pw &times; freq</code>
+  with <code>I - rheobase = 0.1 &micro;A</code> gives an essentially zero
+  effective current. Below the activation threshold (9.14e-8) you get
+  zero brightness. Useful current range starts around 30 &micro;A and
+  saturates near 100 &micro;A.</p>
+</details>
+</section>
+
+<hr class="div">
+
+<section id="next">
+<h2><span class="num">06</span>Next: open the notebook</h2>
+<p>Open <a href="phosphene-simulation.ipynb"><code>phosphene-simulation.ipynb</code></a>
+in Jupyter (or Colab) to run the same equations against real <code>dynaphos</code>,
+swap in your own electrode layouts, and chain phosphenes into the full
+camera &rarr; gaze &rarr; stim &rarr; percept pipeline.</p>
+</section>
+
+<hr class="div">
+<footer>
+  NTH bootcamp · M4 · <a href="../bootcamp-plan.html">back to plan</a> ·
+  all physics implemented in <code>~400 lines of vanilla JS</code> below ·
+  built against <code>dynaphos 0.1.3</code>.
+</footer>
+
+</main>
+
+<script>
+"use strict";
+
+// ----------------------------------------------------------- math ------------
+// Constants mirror dynaphos/config/params.yaml (k=17.3, b=120, view=16, fps=35).
+const DEG2RAD = Math.PI / 180;
+const VIEW_DEG = 16;             // run.view_angle
+const HEMI = VIEW_DEG / 2;
+const FPS = 35;                  // run.fps
+const CORTEX = { a: 0.75, b: 120, k: 17.3 };   // cortex_model dipole
+
+// dynaphos physical constants (yaml)
+const PHYS = {
+  rheobase:           23.9e-6,                  // thresholding.rheobase (A)
+  pw:                 170e-6,                   // default_stim.pw_default (s)
+  freq:               300,                      // default_stim.freq_default (Hz)
+  current_spread:     675e-6,                   // size.current_spread (A/mm^2)
+  act_threshold:      9.141886e-08,             // thresholding.activation_threshold
+  cps_half:           1.057631e-07,             // brightness_saturation.cps_half
+  slope_bright:       1.9152642500946816e7,     // brightness_saturation.slope_brightness
+  // temporal: trace_decay_per_second = 0.99949191  ->  decay_rate = -ln() = 5.085e-4
+  trace_decay_rate:   -Math.log(0.99949191),    // per second
+  trace_increase:     13.95528162,              // temporal_dynamics.trace_increase_rate
+  // activation_decay_per_second yaml default = 0.000123  ->  rate ~9.0 /s
+  act_decay_yaml:     0.00012340980408667956,
+};
+
+// dipole magnification, in mm/deg
+function magnification(r){ return CORTEX.k * (1/(r+CORTEX.a) - 1/(r+CORTEX.b)); }
+
+// sigma in degrees for current I (Amperes), spread K (A/mm^2), radius_to_sigma s
+function sigmaDeg(I, K, s, r){
+  const radius_mm = Math.sqrt(Math.max(I, 0) / K);
+  return s * radius_mm / Math.max(magnification(r), 1e-3);
+}
+
+// Effective charge per second from amplitude (Amperes), with extra leak (Amperes)
+// from trace. Implements the get_current() path of GaussianSimulator.
+function chargePerSec(I, extraLeak=0){
+  const eff = I - (PHYS.rheobase + extraLeak);
+  return eff > 0 ? eff * PHYS.pw * PHYS.freq : 0;
+}
+
+// Steady-state activation = charge_per_s / decay_rate. Used for the
+// non-temporal sections, since dynaphos's activation decay is fast enough
+// that one frame reaches near-steady-state.
+function steadyActivation(charge_ps){
+  const decay_rate = -Math.log(PHYS.act_decay_yaml);   // ~9.0 /s
+  return charge_ps / decay_rate;
+}
+
+// Sigmoid brightness with threshold gate, matching __call__:
+//   supra = activation > threshold ? brightness : 0
+function brightnessFromActivation(activation){
+  if (activation <= PHYS.act_threshold) return 0;
+  const x = PHYS.slope_bright * (activation - PHYS.cps_half);
+  // numerically-safe sigmoid
+  return x > 30 ? 1 : (x < -30 ? 0 : 1 / (1 + Math.exp(-x)));
+}
+
+// Convenience: steady-state brightness for a current (Amperes) without trace
+function steadyBrightness(I_amp){
+  return brightnessFromActivation(steadyActivation(chargePerSec(I_amp, 0)));
+}
+
+// truncated normal PRNG (Box-Muller, rejection)
+function rand(rng){ return rng(); }
+function makeRng(seed){
+  let s = seed | 0 || 1;
+  return () => { s ^= s<<13; s ^= s>>>17; s ^= s<<5; return ((s>>>0) % 1e9) / 1e9; };
+}
+
+// ----------------------------------------------------------- electrode set ---
+function makeElectrodesFoveated(N, rng){
+  // sample eccentricity proportional to M(r), angle uniform
+  const samples = 600;
+  const rs = new Array(samples);
+  const ws = new Array(samples);
+  let total = 0;
+  for (let i=0; i<samples; i++){
+    rs[i] = 0.2 + (HEMI - 0.2) * i / (samples-1);
+    ws[i] = magnification(rs[i]);
+    total += ws[i];
+  }
+  // build CDF
+  const cdf = new Array(samples);
+  let s = 0;
+  for (let i=0; i<samples; i++){ s += ws[i]/total; cdf[i] = s; }
+
+  const out = [];
+  for (let k=0; k<N; k++){
+    const u = rand(rng);
+    // binary search
+    let lo=0, hi=samples-1;
+    while (lo<hi){ const m=(lo+hi)>>1; if (cdf[m]<u) lo=m+1; else hi=m; }
+    const r = rs[lo];
+    const phi = (rand(rng) - 0.5) * 2 * Math.PI;
+    const x = r*Math.cos(phi), y = r*Math.sin(phi);
+    if (Math.abs(x) <= HEMI && Math.abs(y) <= HEMI) out.push({x, y, r});
+  }
+  return out;
+}
+
+function makeElectrodesUniform(N, rng){
+  const side = Math.ceil(Math.sqrt(N));
+  const out = [];
+  for (let i=0; i<side; i++){
+    for (let j=0; j<side; j++){
+      const x = -HEMI + (i + 0.5) * (2*HEMI/side);
+      const y = -HEMI + (j + 0.5) * (2*HEMI/side);
+      const r = Math.hypot(x, y);
+      out.push({x, y, r});
+      if (out.length >= N) return out;
+    }
+  }
+  return out;
+}
+
+// ------------------------------------------------------- canvas helpers ------
+function degToPx(canvas, xDeg, yDeg){
+  // visual field is [-HEMI, HEMI] mapped to [0, canvas.width]
+  const cx = canvas.width  * (xDeg + HEMI) / VIEW_DEG;
+  const cy = canvas.height * (HEMI - yDeg) / VIEW_DEG; // y flipped (image coords)
+  return [cx, cy];
+}
+
+function clearCanvas(canvas, fill="#000"){
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = fill;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+// Render Gaussian basis: out[y,x] = max_e brightness_e * exp(-d^2/(2sig^2))
+// (max-projection for visualization; the actual simulator sums.)
+function renderBases(canvas, electrodes, sigmaDegArr, brightnessArr, modeSum=false){
+  const W = canvas.width, H = canvas.height;
+  const buf = new Float32Array(W*H);
+  const pxPerDeg = W / VIEW_DEG;
+
+  for (let e=0; e<electrodes.length; e++){
+    const el = electrodes[e];
+    const sig_deg = sigmaDegArr[e];
+    if (sig_deg <= 0) continue;
+    const bright = brightnessArr[e];
+    if (bright <= 0) continue;
+    const sig_px = sig_deg * pxPerDeg;
+    if (sig_px < 0.05) continue;
+    const [cx, cy] = degToPx(canvas, el.x, el.y);
+    const rad = Math.min(W, Math.ceil(sig_px * 3.0));
+    const x0 = Math.max(0, Math.floor(cx - rad));
+    const x1 = Math.min(W, Math.ceil(cx + rad));
+    const y0 = Math.max(0, Math.floor(cy - rad));
+    const y1 = Math.min(H, Math.ceil(cy + rad));
+    const inv2s2 = 1 / (2 * sig_px * sig_px);
+    for (let yy=y0; yy<y1; yy++){
+      const dy = yy + 0.5 - cy;
+      const dy2 = dy*dy;
+      for (let xx=x0; xx<x1; xx++){
+        const dx = xx + 0.5 - cx;
+        const v = bright * Math.exp(-(dx*dx + dy2) * inv2s2);
+        const idx = yy*W + xx;
+        if (modeSum) buf[idx] += v;
+        else if (v > buf[idx]) buf[idx] = v;
+      }
+    }
+  }
+
+  // write to canvas
+  const ctx = canvas.getContext("2d");
+  const img = ctx.createImageData(W, H);
+  for (let i=0; i<buf.length; i++){
+    const v = Math.min(1, Math.max(0, buf[i]));
+    const g = Math.round(v * 255);
+    img.data[4*i  ] = g;
+    img.data[4*i+1] = g;
+    img.data[4*i+2] = g;
+    img.data[4*i+3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+// --------------------------------------------------- target image makers -----
+function targetImage(name, W, H){
+  const out = new Float32Array(W*H);
+  if (name === "square"){
+    for (let y=H*0.20|0; y<H*0.45|0; y++)
+      for (let x=W*0.20|0; x<W*0.45|0; x++) out[y*W+x] = 1;
+    const cx=W*0.7, cy=H*0.7, r=H*0.18;
+    for (let y=0; y<H; y++) for (let x=0; x<W; x++)
+      if ((x-cx)*(x-cx)+(y-cy)*(y-cy) < r*r) out[y*W+x] = 1;
+  } else if (name === "letterE"){
+    const t = Math.max(2, H*0.06|0);
+    const yLo = H*0.18|0, yHi = H*0.82|0;
+    const xLo = W*0.28|0, xHi = W*0.72|0;
+    // vertical bar
+    for (let y=yLo; y<yHi; y++) for (let x=xLo; x<xLo+t; x++) out[y*W+x] = 1;
+    // three horizontals
+    for (let x=xLo; x<xHi; x++){
+      for (let y=yLo; y<yLo+t; y++) out[y*W+x] = 1;
+      for (let y=H/2-t/2|0; y<H/2+t/2|0; y++) out[y*W+x] = 1;
+      for (let y=yHi-t; y<yHi; y++) out[y*W+x] = 1;
+    }
+  } else if (name === "face"){
+    const cx=W/2, cy=H/2;
+    for (let y=0; y<H; y++) for (let x=0; x<W; x++){
+      const dx=(x-cx)/(W*0.32), dy=(y-cy)/(H*0.40);
+      if (dx*dx + dy*dy < 1) out[y*W+x] = 0.5;
+    }
+    // eyes
+    for (const [ex,ey] of [[W*0.38, H*0.42], [W*0.62, H*0.42]]){
+      for (let y=0; y<H; y++) for (let x=0; x<W; x++){
+        if ((x-ex)*(x-ex)+(y-ey)*(y-ey) < (H*0.05)**2) out[y*W+x] = 1;
+      }
+    }
+    // mouth
+    for (let x=W*0.35|0; x<W*0.65|0; x++){
+      const y = H*0.65 + Math.cos((x-W/2)/(W*0.15))*H*0.04;
+      const yi = y|0;
+      out[yi*W+x] = 1;
+      if (yi+1<H) out[(yi+1)*W+x] = 1;
+    }
+  } else if (name === "grid"){
+    const period = Math.max(4, W*0.08|0);
+    for (let y=0; y<H; y++) for (let x=0; x<W; x++){
+      out[y*W+x] = ((x/period|0) % 2);
+    }
+  } else if (name === "diag"){
+    for (let i=0; i<Math.min(W,H); i++){
+      const x = i, y = i;
+      for (let dx=-2; dx<=2; dx++){
+        const xi = x+dx;
+        if (xi>=0 && xi<W) out[y*W+xi] = 1;
+      }
+    }
+  }
+  return out;
+}
+
+function drawGrayscale(canvas, buf, W, H){
+  const ctx = canvas.getContext("2d");
+  // map source buf to canvas (canvas may not equal W,H)
+  const off = document.createElement("canvas");
+  off.width = W; off.height = H;
+  const ctx2 = off.getContext("2d");
+  const img = ctx2.createImageData(W, H);
+  for (let i=0; i<buf.length; i++){
+    const v = Math.min(1, Math.max(0, buf[i]));
+    const g = Math.round(v * 255);
+    img.data[4*i  ] = g; img.data[4*i+1] = g; img.data[4*i+2] = g; img.data[4*i+3] = 255;
+  }
+  ctx2.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
+}
+
+// sample image at electrode positions
+function sampleStimulus(electrodes, img, W, H){
+  const pxPerDeg = W / VIEW_DEG;
+  const out = new Float32Array(electrodes.length);
+  for (let i=0; i<electrodes.length; i++){
+    const el = electrodes[i];
+    const xPx = ((el.x + HEMI) * pxPerDeg) | 0;
+    const yPx = ((HEMI - el.y) * pxPerDeg) | 0;
+    if (xPx<0 || xPx>=W || yPx<0 || yPx>=H) { out[i] = 0; continue; }
+    out[i] = img[yPx*W + xPx];   // already in [0,1]
+  }
+  return out;
+}
+
+// ---------------------------------------------------------- bind helpers -----
+function bindRange(id, valId, fmt = x => x){
+  const el = document.getElementById(id);
+  const val = document.getElementById(valId);
+  const update = () => { val.textContent = fmt(parseFloat(el.value)); };
+  el.addEventListener("input", update);
+  update();
+  return el;
+}
+
+// =========================================================== Section 1 -----
+(function setupSingle(){
+  const cv = document.getElementById("cv-single");
+  const inEcc = bindRange("s-ecc", "v-s-ecc", x => x.toFixed(1));
+  const inAng = bindRange("s-ang", "v-s-ang", x => x.toFixed(0));
+  const inCur = bindRange("s-cur", "v-s-cur", x => x.toFixed(0));
+  const inK   = bindRange("s-k",   "v-s-k",   x => x.toFixed(0));
+  const inRts = bindRange("s-rts", "v-s-rts", x => x.toFixed(2));
+  const readout = document.getElementById("s-readout");
+
+  function update(){
+    const r = parseFloat(inEcc.value);
+    const phi = parseFloat(inAng.value) * DEG2RAD;
+    const I_uA = parseFloat(inCur.value);
+    const K_uA = parseFloat(inK.value);
+    const rts  = parseFloat(inRts.value);
+    const I = I_uA * 1e-6;
+    const K = K_uA * 1e-6;
+    const sig = sigmaDeg(I, K, rts, r);
+    const M = magnification(r);
+    const br = steadyBrightness(I);
+    const el = { x: r*Math.cos(phi), y: r*Math.sin(phi), r };
+    renderBases(cv, [el], [sig], [br], true);
+    const tag = (I_uA <= 23.9) ? " | <below rheobase>" : (br < 0.02 ? " | <below threshold>" : "");
+    readout.textContent =
+      `sigma = ${sig.toFixed(3)} deg | M = ${M.toFixed(2)} mm/deg | brightness = ${br.toFixed(2)}${tag}`;
+  }
+  [inEcc, inAng, inCur, inK, inRts].forEach(i => i.addEventListener("input", update));
+  update();
+})();
+
+// =========================================================== Section 2 -----
+(function setupPopulation(){
+  const cvBases   = document.getElementById("cv-pop-bases");
+  const cvCenters = document.getElementById("cv-pop-centers");
+  const inN     = bindRange("p-n", "v-p-n", x => x.toFixed(0));
+  const inCur   = bindRange("p-cur", "v-p-cur", x => x.toFixed(0));
+  const inRts   = bindRange("p-rts", "v-p-rts", x => x.toFixed(2));
+  const selLay  = document.getElementById("p-layout");
+  const btnRe   = document.getElementById("p-shuffle");
+  const btnTog  = document.getElementById("p-show-centers");
+  const readout = document.getElementById("p-readout");
+  let showCenters = true;
+  let seed = 1;
+
+  function update(){
+    const N = parseInt(inN.value);
+    const I = parseFloat(inCur.value) * 1e-6;
+    const rts = parseFloat(inRts.value);
+    const rng = makeRng(seed);
+    const elecs = selLay.value === "uniform"
+      ? makeElectrodesUniform(N, rng)
+      : makeElectrodesFoveated(N, rng);
+    const sigs = elecs.map(e => sigmaDeg(I, PHYS.current_spread, rts, e.r));
+    const br_one = steadyBrightness(I);
+    const brs = new Array(elecs.length).fill(br_one);
+    renderBases(cvBases, elecs, sigs, brs, false);
+
+    // centers panel
+    clearCanvas(cvCenters, "#fbfaf6");
+    const ctx = cvCenters.getContext("2d");
+    ctx.fillStyle = "#1c1c1a";
+    for (const e of elecs){
+      const [x, y] = degToPx(cvCenters, e.x, e.y);
+      ctx.beginPath(); ctx.arc(x, y, 1.3, 0, 2*Math.PI); ctx.fill();
+    }
+    ctx.strokeStyle = "#d8d6cf";
+    ctx.beginPath(); ctx.arc(cvCenters.width/2, cvCenters.height/2, 2, 0, 2*Math.PI); ctx.stroke();
+    readout.textContent = `n_visible = ${elecs.length} | mean sigma = ${(sigs.reduce((a,b)=>a+b,0)/Math.max(1,sigs.length)).toFixed(2)} deg`;
+  }
+  [inN, inCur, inRts, selLay].forEach(i => i.addEventListener("input", update));
+  btnRe.addEventListener("click", () => { seed = (seed+1)|0; update(); });
+  btnTog.addEventListener("click", () => { cvCenters.style.display = (cvCenters.style.display==="none")?"block":"none"; });
+  update();
+})();
+
+// =========================================================== Section 3 -----
+(function setupForward(){
+  const cvTgt = document.getElementById("cv-fwd-target");
+  const cvOut = document.getElementById("cv-fwd-out");
+  const inN    = bindRange("f-n", "v-f-n", x => x.toFixed(0));
+  const inScl  = bindRange("f-scale", "v-f-scale", x => x.toFixed(0));
+  const inRts  = bindRange("f-rts", "v-f-rts", x => x.toFixed(2));
+  const selTgt = document.getElementById("f-target");
+  const readout = document.getElementById("f-readout");
+
+  const W = 96, H = 96;   // internal target buffer (lo-res, fast)
+
+  function update(){
+    const N = parseInt(inN.value);
+    const peak_uA = parseFloat(inScl.value);
+    const rts = parseFloat(inRts.value);
+
+    const img = targetImage(selTgt.value, W, H);
+    drawGrayscale(cvTgt, img, W, H);
+
+    const rng = makeRng(7);
+    const elecs = makeElectrodesFoveated(N, rng);
+    const stim = sampleStimulus(elecs, img, W, H);  // pixel value in [0,1]
+    let active = 0;
+    const sig_arr = new Array(elecs.length);
+    const br_arr = new Array(elecs.length);
+    for (let i=0; i<elecs.length; i++){
+      const I = stim[i] * peak_uA * 1e-6;            // Amperes
+      sig_arr[i] = sigmaDeg(I, PHYS.current_spread, rts, elecs[i].r);
+      const br = steadyBrightness(I);                // gated by activation_threshold
+      br_arr[i] = br;
+      if (br > 0.05) active++;
+    }
+    renderBases(cvOut, elecs, sig_arr, br_arr, true);
+    readout.textContent = `${active} above-threshold / ${elecs.length} | peak charge ~ `
+      + (chargePerSec(peak_uA*1e-6)*1e6).toFixed(2) + " &mu;C/s";
+  }
+  [inN, inScl, inRts, selTgt].forEach(i => i.addEventListener("input", update));
+  update();
+})();
+
+// =========================================================== Section 4 -----
+(function setupTemporal(){
+  const cv = document.getElementById("cv-temp");
+  const cvPlot = document.getElementById("cv-temp-plot");
+  const btnPlay = document.getElementById("t-play");
+  const btnReset = document.getElementById("t-reset");
+  const inFrame = document.getElementById("t-frame");
+  const valFrame = document.getElementById("v-t-frame");
+  const inCur   = bindRange("t-cur",   "v-t-cur",   x => x.toFixed(0));
+  const inDecay = bindRange("t-decay", "v-t-decay", x => x.toExponential(2));
+  const inOn    = bindRange("t-on",    "v-t-on",    x => x.toFixed(0));
+  const selMode = document.getElementById("t-mode");
+  const readout = document.getElementById("t-readout");
+
+  const NFRAMES = 210;             // 6 seconds at fps=35
+  let playing = false, raf = null;
+
+  // Fixed scene: 600 foveated electrodes, target = square+disc
+  const rng = makeRng(11);
+  const elecs = makeElectrodesFoveated(600, rng);
+  const W = 96, H = 96;
+  const img = targetImage("square", W, H);
+  const stim_pixel = sampleStimulus(elecs, img, W, H);   // per-electrode in [0,1]
+
+  // Pre-compute the per-frame brightness for current settings.
+  // Implements the full dynaphos chain:
+  //   leak = trace + rheobase
+  //   charge_per_s = max(0, I - leak) * pw * freq
+  //   activation: A <- A * (1 - decay_a/fps) + cps/fps
+  //   trace:      T <- T * (1 - decay_t/fps) + trace_inc * cps/fps
+  //   brightness: sigmoid(slope * (A - cps_half)) gated by A > act_threshold
+  let cache = null;
+  function buildCache(){
+    const onFrame  = parseInt(inOn.value);
+    const I_peak   = parseFloat(inCur.value) * 1e-6;
+    const decay_a  = -Math.log(Math.max(parseFloat(inDecay.value), 1e-6));    // /s
+    const decay_t  = PHYS.trace_decay_rate;                                    // /s (yaml)
+    const mode     = selMode.value;
+
+    const N = elecs.length;
+    const sig_arr = new Array(N);
+    for (let i=0; i<N; i++) sig_arr[i] = sigmaDeg(stim_pixel[i]*I_peak, PHYS.current_spread, 1.0, elecs[i].r);
+
+    const A = new Float32Array(N);   // activation
+    const T = new Float32Array(N);   // trace
+    const trace_br = [];
+    const mean_arr = [];
+    const peak_act = [];
+    const peak_trc = [];
+    const dt = 1/FPS;
+    const useTrace = (mode !== "notrace");
+
+    for (let f=0; f<NFRAMES; f++){
+      if (mode === "reset"){ A.fill(0); T.fill(0); }
+      const stimOn = f < onFrame;
+      let mBri = 0, mA = 0, mT = 0;
+      const br = new Array(N);
+      for (let i=0; i<N; i++){
+        const I_e = stimOn ? stim_pixel[i] * I_peak : 0;
+        const leak = useTrace ? (T[i] + PHYS.rheobase) : PHYS.rheobase;
+        const eff = I_e - leak;
+        const cps = eff > 0 ? eff * PHYS.pw * PHYS.freq : 0;
+        // Forward Euler one step (dynaphos uses num_steps; at these decay rates 1 step is fine).
+        A[i] = Math.max(0, A[i] * (1 - decay_a*dt) + cps*dt);
+        if (useTrace){
+          T[i] = Math.max(0, T[i] * (1 - decay_t*dt) + PHYS.trace_increase*cps*dt);
+        }
+        br[i] = brightnessFromActivation(A[i]);
+        mBri += br[i]; mA += A[i]; mT += T[i];
+      }
+      trace_br.push(br);
+      mean_arr.push(mBri / N);
+      peak_act.push(mA / N);
+      peak_trc.push(mT / N);
+    }
+    return { trace: trace_br, mean: mean_arr, act: peak_act, trc: peak_trc, sig_arr };
+  }
+
+  function drawPlot(c, currentFrame){
+    const ctx = cvPlot.getContext("2d");
+    const W2 = cvPlot.width, H2 = cvPlot.height;
+    ctx.fillStyle = "#fbfaf6"; ctx.fillRect(0,0,W2,H2);
+    // stim-on shade
+    const onFrame = parseInt(inOn.value);
+    ctx.fillStyle = "rgba(181, 137, 0, 0.10)";
+    ctx.fillRect(0, 0, W2 * onFrame/NFRAMES, H2);
+    // axes
+    ctx.strokeStyle = "#d8d6cf"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, H2-12); ctx.lineTo(W2, H2-12); ctx.stroke();
+    // brightness curve (dark)
+    const maxB = Math.max(0.001, Math.max(...c.mean));
+    ctx.strokeStyle = "#1c1c1a"; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i=0; i<c.mean.length; i++){
+      const x = W2 * i/(NFRAMES-1);
+      const y = (H2-12) - (H2-20) * c.mean[i]/maxB;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // trace curve (amber, normalised to its own peak so we can see the shape)
+    const maxT = Math.max(1e-12, Math.max(...c.trc));
+    ctx.strokeStyle = "#b58900"; ctx.lineWidth = 1.2;
+    ctx.setLineDash([4,3]); ctx.beginPath();
+    for (let i=0; i<c.trc.length; i++){
+      const x = W2 * i/(NFRAMES-1);
+      const y = (H2-12) - (H2-20) * c.trc[i]/maxT;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+    // playhead
+    ctx.strokeStyle = "#8a3a1d"; ctx.lineWidth = 2;
+    const xH = W2 * currentFrame/(NFRAMES-1);
+    ctx.beginPath(); ctx.moveTo(xH, 0); ctx.lineTo(xH, H2-12); ctx.stroke();
+    // legend
+    ctx.font = "10px JetBrains Mono, monospace";
+    ctx.fillStyle = "#1c1c1a"; ctx.fillText("— brightness", 6, 10);
+    ctx.fillStyle = "#b58900"; ctx.fillText("- - trace (norm.)", 90, 10);
+  }
+
+  function render(frame){
+    if (!cache) cache = buildCache();
+    renderBases(cv, elecs, cache.sig_arr, cache.trace[frame], true);
+    drawPlot(cache, frame);
+    readout.textContent =
+      `t = ${(frame/FPS).toFixed(2)} s | brightness = ${cache.mean[frame].toFixed(3)} | trace = ${cache.trc[frame].toExponential(2)} A`;
+  }
+
+  function rebuild(){ cache = null; render(parseInt(inFrame.value)); }
+
+  inFrame.addEventListener("input", () => { valFrame.textContent = inFrame.value; render(parseInt(inFrame.value)); });
+  inCur.addEventListener("input",   rebuild);
+  inDecay.addEventListener("input", rebuild);
+  inOn.addEventListener("input",    rebuild);
+  selMode.addEventListener("input", rebuild);
+  btnReset.addEventListener("click", () => { inFrame.value = 0; valFrame.textContent = 0; render(0); });
+  btnPlay.addEventListener("click", () => {
+    playing = !playing;
+    btnPlay.textContent = playing ? "pause" : "play";
+    btnPlay.classList.toggle("primary", !playing);
+    const tick = () => {
+      if (!playing) return;
+      let f = parseInt(inFrame.value);
+      f = (f + 1) % NFRAMES;
+      inFrame.value = f; valFrame.textContent = f;
+      render(f);
+      raf = setTimeout(tick, 1000/FPS);
+    };
+    if (playing) tick();
+    else if (raf) { clearTimeout(raf); raf = null; }
+  });
+  rebuild();
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NTH Bootcamp - Gaze &amp; DeepGaze (interactive)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1c1c1a; --ink-2:#3a3a36; --muted:#6c6c66; --muted-2:#9a9a93;
+  --rule:#d8d6cf; --rule-2:#ebe9e2; --paper:#fbfaf6; --paper-2:#f4f2eb;
+  --accent:#b58900; --accent-2:#8a6700; --accent-wash:#f3e9c8;
+  --danger:#8a3a1d; --code-bg:#f1efe7;
+  --hot:#c0392b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  font-size:16px;line-height:1.55}
+.page{max-width:1180px;margin:0 auto;padding:48px 36px 100px}
+header.masthead{border-bottom:1px solid var(--rule);padding-bottom:28px;margin-bottom:32px}
+header.masthead .eyebrow{font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);font-weight:500}
+header.masthead h1{font-size:34px;font-weight:600;letter-spacing:-0.02em;line-height:1.1;margin:12px 0 14px}
+header.masthead p.lede{color:var(--ink-2);font-size:16px;max-width:760px;margin:0}
+header.masthead .meta{display:flex;gap:24px;flex-wrap:wrap;margin-top:20px;font-size:12px;
+  color:var(--muted);font-family:'JetBrains Mono',monospace}
+header.masthead .meta strong{color:var(--ink);font-weight:600}
+
+h2{font-size:22px;font-weight:600;letter-spacing:-0.01em;margin:52px 0 12px;color:var(--ink)}
+h2 .num{color:var(--muted-2);font-variant-numeric:tabular-nums;margin-right:12px;font-weight:500}
+h3{font-size:13px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);margin:24px 0 8px}
+p{margin:0 0 12px;color:var(--ink-2)}
+p.kicker{color:var(--ink);font-size:16px;margin-bottom:14px}
+code,.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:0.92em}
+code{background:var(--code-bg);padding:1px 5px;border-radius:3px;color:var(--ink)}
+em.term{font-style:normal;font-weight:600;color:var(--ink);border-bottom:1px dotted var(--muted-2)}
+hr.div{border:0;border-top:1px solid var(--rule);margin:42px 0}
+ul.tight{margin:6px 0 12px;padding-left:22px}
+ul.tight li{margin:3px 0;color:var(--ink-2)}
+
+/* Pipeline progress strip */
+.pipeline{display:flex;align-items:stretch;gap:0;margin:14px 0 28px;flex-wrap:wrap;max-width:920px}
+.pipeline .step{flex:1 1 0;min-width:120px;background:#fff;border:1px solid var(--rule);
+  padding:12px 14px;border-radius:5px;font-size:13px;color:var(--ink-2);position:relative}
+.pipeline .step .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+.pipeline .step .name{color:var(--ink);font-weight:600;margin-top:2px}
+.pipeline .arr{display:flex;align-items:center;justify-content:center;width:20px;color:var(--muted-2);font-family:'JetBrains Mono',monospace}
+.pipeline .step.active{border-color:var(--accent);background:var(--accent-wash)}
+
+nav.toc{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);padding:16px 0;margin-bottom:36px}
+nav.toc a{padding:4px 18px 4px 0;font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--muted);text-decoration:none;display:flex;gap:8px;align-items:baseline}
+nav.toc a:hover{color:var(--accent)}
+nav.toc a .n{color:var(--muted-2);font-variant-numeric:tabular-nums}
+
+.lab{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;
+  border:1px solid var(--rule);background:#fff;border-radius:6px;
+  padding:18px;margin:18px 0}
+.lab .controls h4{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:0.05em;
+  text-transform:uppercase;color:var(--ink)}
+.lab .controls p{font-size:13.5px;margin:0 0 12px;color:var(--ink-2)}
+.lab .controls .btnrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.lab .controls button{font-family:'JetBrains Mono',monospace;font-size:12px;
+  padding:6px 12px;border:1px solid var(--rule);background:#fff;color:var(--ink);
+  border-radius:4px;cursor:pointer}
+.lab .controls button:hover{border-color:var(--accent);color:var(--accent-2)}
+.lab .controls button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.lab .controls button.primary:hover{background:var(--accent-2);color:#fff;border-color:var(--accent-2)}
+.lab .controls .spec{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);
+  background:var(--paper-2);padding:8px 12px;border-radius:4px;margin-top:10px}
+.lab .controls .spec strong{color:var(--ink)}
+.lab .stage{display:flex;flex-direction:column;gap:8px;align-items:center}
+.lab canvas{background:#000;border:1px solid var(--rule);border-radius:4px;display:block;max-width:100%}
+.lab .caption{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:center}
+.lab .twin{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
+.lab .twin > div{display:flex;flex-direction:column;align-items:center;gap:6px}
+
+aside.callout{border-left:3px solid var(--accent);background:var(--paper-2);
+  padding:12px 16px;margin:18px 0;font-size:14px;color:var(--ink-2);border-radius:0 4px 4px 0}
+aside.callout strong{color:var(--ink)}
+
+details.prompt{border:1px solid var(--rule);background:#fff;border-radius:6px;
+  padding:10px 14px;margin:14px 0;font-size:14px}
+details.prompt summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:13.5px;
+  letter-spacing:0.02em;list-style:none;outline:none}
+details.prompt summary::before{content:"?  ";color:var(--accent);font-weight:600;
+  font-family:'JetBrains Mono',monospace}
+details.prompt[open] summary::before{content:"\2713  ";color:var(--accent-2)}
+details.prompt p{margin:10px 0 4px;color:var(--ink-2);font-size:13.5px}
+details.prompt code{font-size:12.5px}
+
+.diagram{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0 18px}
+.dbox{border:1px solid var(--rule);background:#fff;padding:10px 14px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink);text-align:center;min-width:130px}
+.dbox .lbl{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.06em;margin-bottom:4px}
+.dbox.accent{background:var(--accent-wash);border-color:var(--accent)}
+.darrow{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:16px}
+
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0}
+.card{border:1px solid var(--rule);background:#fff;border-radius:6px;padding:14px}
+.card h4{margin:0 0 8px;font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--ink)}
+.card p{font-size:13.5px;margin:0 0 8px}
+
+.hist{display:block;width:100%;height:100px}
+.hist rect{fill:var(--hot)}
+.hist .axis{stroke:var(--rule);stroke-width:1}
+.hist .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;fill:var(--muted)}
+.hist .tick{font-family:'JetBrains Mono',monospace;font-size:9.5px;fill:var(--muted)}
+
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);
+  font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+footer a{color:var(--muted);border-bottom:1px solid var(--rule-2);text-decoration:none}
+footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+@media (max-width:880px){
+  .lab{grid-template-columns:1fr}
+  .lab .twin{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <div class="eyebrow">NTH / M2 - Interactive companion</div>
+  <h1>Gaze &amp; DeepGaze</h1>
+  <p class="lede">A live, no-Python playground for the ideas behind <code>deepgaze_pytorch</code>.
+  We will see why a visual prosthesis cares where the user is looking, what a scanpath is, and
+  how a model like DeepGaze III predicts the next place the eye will land. Use this to build
+  intuition before (or alongside) the notebook.</p>
+  <div class="meta">
+    <span><strong>Module:</strong> Gaze &amp; DeepGaze</span>
+    <span><strong>Companion:</strong> <code>gaze_workshop.ipynb</code></span>
+  </div>
+</header>
+
+<h3 style="margin-top:0">Where this fits in the bootcamp pipeline</h3>
+<div class="pipeline">
+  <div class="step"><div class="lbl">M1</div><div class="name">Camera + CV</div></div>
+  <div class="arr">&rarr;</div>
+  <div class="step active"><div class="lbl">M2 &middot; here</div><div class="name">Gaze</div></div>
+  <div class="arr">&rarr;</div>
+  <div class="step"><div class="lbl">M3</div><div class="name">Stimulation</div></div>
+  <div class="arr">&rarr;</div>
+  <div class="step"><div class="lbl">M4</div><div class="name">Phosphenes</div></div>
+  <div class="arr">&rarr;</div>
+  <div class="step"><div class="lbl">M5</div><div class="name">Decoding</div></div>
+</div>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#why"><span class="n">01</span>Why gaze matters</a>
+  <a href="#saliency"><span class="n">02</span>Heatmap vs scanpath</a>
+  <a href="#history"><span class="n">03</span>History matters</a>
+  <a href="#deepgaze"><span class="n">04</span>DeepGaze III</a>
+  <a href="#trajectory"><span class="n">05</span>Sampling a trajectory</a>
+  <a href="#stats"><span class="n">06</span>What can you measure?</a>
+  <a href="#self-check"><span class="n">07</span>Self-check</a>
+  <a href="#next"><span class="n">08</span>Next: open the notebook</a>
+</nav>
+
+<!-- ============================================================ 01 -->
+<section id="why">
+<h2><span class="num">01</span>Why a prosthesis cares where you look</h2>
+<p class="kicker">A visual prosthesis is a very low-bandwidth display wired into the visual
+system. It can only render a small budget of bright spots at a time. Where in the scene should
+those spots go?</p>
+
+<p>The answer is: <strong>wherever the user is currently looking</strong>. Three reasons.</p>
+
+<ul class="tight">
+  <li><strong>The eye still moves.</strong> Even a prosthesis user moves their eyes around the
+  scene. The implant cannot magically know what they are interested in - but their <em class="term">gaze</em>
+  reveals it. Where they fixate is, by definition, where they want to see.</li>
+  <li><strong>The fovea is tiny.</strong> Human vision is extremely non-uniform: the central
+  ~2 degrees of the visual field carry most of the detail. A smart prosthesis spends most of
+  its electrode budget at the current gaze direction and downsamples the rest of the scene.
+  Without knowing where the user is looking, you cannot do this.</li>
+  <li><strong>Phosphenes follow the eye.</strong> Cortical electrodes are implanted at fixed
+  positions in visual cortex, so the phosphenes they evoke are anchored in <em class="term">retinotopic</em>
+  coordinates: when the eye rotates, the entire phosphene image rotates with it. A scene
+  rendered from a head-mounted camera will appear to slide around as the user moves their
+  eyes - unless the rendering is made <em class="term">gaze-contingent</em>, i.e. compensated
+  using the current gaze direction. This is one of the reasons gaze tracking (or, when no
+  tracker is available, gaze simulation) is built into modern phosphene simulators like
+  <code>dynaphos</code> (de Ruyter van Steveninck et al., eLife 2024).</li>
+</ul>
+
+<p>So a working prosthesis pipeline needs an answer to: <em>given this scene, where is the user
+likely to look right now, and where next?</em> If you do not have a real eye-tracker on every
+test subject (and you usually do not, especially in simulation), you need to <em class="term">simulate
+gaze</em>. That is what DeepGaze III is for.</p>
+
+<aside class="callout"><strong>The whole module in one sentence.</strong> We use a pretrained
+gaze model as a stand-in for human eye movements, sample plausible <em class="term">scanpaths</em>
+through a scene, and use those as the input to downstream prosthesis pipelines (foveated
+rendering, phosphene placement, evaluation).</aside>
+
+<aside class="callout"><strong>But the prosthesis user doesn't see the whole scene — does gaze still apply?</strong>
+Yes, for a subtle reason. The head-mounted camera <em>does</em> see the full scene; the prosthesis chooses
+a small patch of it to render. DeepGaze tells us which patch a sighted human would attend to in that
+scene, so the pipeline can aim the rendered patch there. The user's eyes still move (vestibulo-ocular
+reflex, fixational drift, voluntary saccades) regardless of what they perceive, and the phosphenes
+they see are anchored in retinotopic coordinates — so eye movements <em>do</em> shift the percept. If the
+rendered patch and the actual gaze direction disagree, the perceived scene moves in a way the brain's
+efference copy did not predict: the result is exactly the "scene swimming around" the reviewer worried
+about, and it's why real systems use eye-tracking and why gaze-contingent rendering is an active
+research topic (Caspi et al., 2018; Beauchamp/Bosking lab).</aside>
+
+<details class="prompt">
+  <summary>Why not just render the entire scene at the highest resolution the implant allows?</summary>
+  <p>Two reasons. First, real implants have far too few electrodes to cover the whole visual
+  field at useful detail - you have to choose. Second, even if you could, biology will not
+  cooperate: the user's brain only processes the foveated region in detail anyway. Spreading
+  the budget uniformly wastes most of it on regions the user is not attending.</p>
+</details>
+
+<details class="prompt">
+  <summary>If we had a real eye-tracker on the user, would we still need DeepGaze?</summary>
+  <p>Yes, for two purposes. (1) <em>Offline simulation</em>: when you are developing a
+  prosthesis pipeline you do not have a user, so you simulate one. DeepGaze gives you
+  plausible gaze patterns to test against. (2) <em>Prediction</em>: even with a real eye-tracker
+  you only know where the user is looking <em>now</em>. To pre-render or pre-stimulate, you
+  often want to predict the next fixation a few hundred ms ahead. That is also gaze modeling.</p>
+</details>
+</section>
+
+
+<!-- ============================================================ 02 -->
+<section id="saliency">
+<h2><span class="num">02</span>Heatmap vs scanpath</h2>
+<p class="kicker">Two different things people mean by "where the eye looks." A heatmap is
+static: "how interesting is each pixel?" A scanpath is dynamic: "where does the eye actually
+go, and in what order?" Same scene, very different signals.</p>
+
+<div class="lab">
+  <div class="controls">
+    <h4>Compare the two views</h4>
+    <p>Left: the heatmap. Every pixel gets a score, all at once. No time, no order.</p>
+    <p>Right: a scanpath. A sequence of stops (<em class="term">fixations</em>) connected by
+    jumps (<em class="term">saccades</em>). Press <strong>play</strong> to watch one unfold.</p>
+    <div class="btnrow">
+      <button id="scan-play" class="primary">play</button>
+      <button id="scan-reset">reset</button>
+    </div>
+    <div class="spec">step <strong id="scan-step">0</strong> / 12</div>
+  </div>
+  <div class="stage">
+    <div class="twin">
+      <div>
+        <canvas id="cv-sal" width="420" height="280"></canvas>
+        <div class="caption">Heatmap (static)</div>
+      </div>
+      <div>
+        <canvas id="cv-scan" width="420" height="280"></canvas>
+        <div class="caption">Scanpath (sequence)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<aside class="callout"><strong>For a prosthesis:</strong> the heatmap tells you "which regions
+matter at all." The scanpath tells you "which region matters <em>right now</em>" - and that
+is what you need when you only have a few electrodes to spend per moment.</aside>
+
+<details class="prompt">
+  <summary>Both views start from the same model. What information does the scanpath carry that the heatmap throws away?</summary>
+  <p>Order and time. The heatmap is a sum over all possible looks. The scanpath is one
+  specific sequence, and it captures the fact that the eye does not jump to its second-favourite
+  region right after its favourite - it explores. The next fixation depends on the recent
+  ones. The heatmap cannot express that.</p>
+</details>
+</section>
+
+
+<!-- ============================================================ 03 -->
+<section id="history">
+<h2><span class="num">03</span>History matters</h2>
+<p class="kicker">Past fixations bend the probability of the next one. Eyes do not loop on
+the same spot - they suppress recently-visited regions and explore. This is called
+<em class="term">inhibition of return</em>.</p>
+
+<div class="lab">
+  <div class="controls">
+    <h4>Click to drop fixations</h4>
+    <p>Click anywhere on the scene to add a fixation. The red shading is a <em class="term">probability
+    map</em>: bright red = the eye is very likely to land there next, dim = unlikely. Watch how
+    each click pushes a "hole" into the map around the clicked point.</p>
+    <p>That hole is inhibition of return: the model has learned that humans, having just
+    looked there, will probably look elsewhere next.</p>
+    <div class="btnrow">
+      <button id="ior-clear">clear history</button>
+    </div>
+    <div class="spec">fixations placed: <strong id="ior-count">0</strong></div>
+  </div>
+  <div class="stage">
+    <canvas id="cv-ior" width="560" height="380"></canvas>
+    <div class="caption">Red = next-fixation probability. Cream dots = your clicks (latest is darkest).</div>
+  </div>
+</div>
+
+<details class="prompt">
+  <summary>Click the same spot ten times in a row. What happens to the map there?</summary>
+  <p>It darkens. Every click multiplies in another suppression bump at that location, so the
+  region effectively becomes a probability hole. Real DeepGaze III only sees the last four
+  fixations, so it cannot keep darkening forever - but the qualitative effect is the same.</p>
+</details>
+
+<details class="prompt">
+  <summary>Why is "inhibition of return" useful for a prosthesis pipeline?</summary>
+  <p>It tells you the user will not stare at the same point forever. If your pipeline only
+  re-renders when the gaze moves, you need a realistic model of when it moves and where it
+  goes. Without inhibition of return, simulated gaze would just camp on the most salient
+  point and never explore the scene - which is the opposite of what real users do.</p>
+</details>
+</section>
+
+
+<!-- ============================================================ 04 -->
+<section id="deepgaze">
+<h2><span class="num">04</span>DeepGaze III in three boxes</h2>
+<p class="kicker">A pretrained neural network trained on real human eye-tracking data
+(MIT1003, COCO-Freeview). It takes three inputs and returns one probability map over the image.</p>
+
+<div class="diagram">
+  <div class="dbox"><span class="lbl">input 1</span>image<br><span style="color:var(--muted);font-size:10px">the scene</span></div>
+  <span class="darrow">+</span>
+  <div class="dbox"><span class="lbl">input 2</span>Center Bias<br><span style="color:var(--muted);font-size:10px">where humans look<br>by default</span></div>
+  <span class="darrow">+</span>
+  <div class="dbox"><span class="lbl">input 3</span>fixation history<br><span style="color:var(--muted);font-size:10px">last 4 fixations</span></div>
+  <span class="darrow">&rarr;</span>
+  <div class="dbox accent"><span class="lbl">DeepGaze III</span>probability map<br><span style="color:var(--accent-2);font-size:10px">where to look next</span></div>
+  <span class="darrow">&rarr;</span>
+  <div class="dbox"><span class="lbl">sample</span>next fixation<br><span style="color:var(--muted);font-size:10px">one (x, y) point</span></div>
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h4>Center Bias</h4>
+    <p>Humans fixate near the centre of an image more often than the edges - even before
+    content matters. The Center Bias captures this. It is a fixed prior that gets added to
+    every prediction, regardless of what is in the scene.</p>
+    <p>The default Center Bias was fit on the MIT1003 dataset of human eye-tracking.
+    Replacing it lets you simulate non-typical users (e.g. someone with central vision loss
+    who fixates off-centre).</p>
+  </div>
+  <div class="card">
+    <h4>Fixation history</h4>
+    <p>The last 4 fixation locations are passed in as (x, y) coordinates. The model has
+    learned from data <em>where humans look given they just looked there</em>. From this
+    alone, the model recovers inhibition of return, typical saccade lengths, and scanning
+    patterns - no explicit rules needed.</p>
+  </div>
+  <div class="card">
+    <h4>Probability map</h4>
+    <p>The output is a map the same size as the image. Each pixel says how likely it is that
+    the next fixation lands there. Bright = likely. Dim = unlikely.</p>
+    <p>To pick the next fixation you either take the brightest pixel (deterministic) or
+    sample randomly from the map (stochastic, what we do here - it gives the variability you
+    see between real human viewers).</p>
+  </div>
+</div>
+
+<aside class="callout"><strong>A note on the term <em>"log-density"</em>.</strong> If you read
+the DeepGaze code you will see the model actually returns the <em>logarithm</em> of the
+probability map, not the probability map itself. This is a numerical trick - very small
+probabilities are easier to handle in log space. You exponentiate to get back to a regular
+probability map. The notebook does this with one line: <code>p = np.exp(log_density)</code>.</aside>
+
+<details class="prompt">
+  <summary>If DeepGaze sees a face in the image, where does the probability map peak?</summary>
+  <p>On the face - especially the eyes. DeepGaze was trained on humans looking at natural
+  images and humans look at faces. The model picks that up directly from the data, no
+  hand-coded "face detector" needed.</p>
+</details>
+
+<details class="prompt">
+  <summary>What is the Center Bias actually doing, in plain words?</summary>
+  <p>It is a fudge factor that says "if you have no idea what is in the image, guess that the
+  user will look near the middle, because that is what people usually do." It improves
+  predictions on average and lets the rest of the model focus on learning content-driven
+  attention.</p>
+</details>
+</section>
+
+
+<!-- ============================================================ 05 -->
+<section id="trajectory">
+<h2><span class="num">05</span>Sampling a trajectory</h2>
+<p class="kicker">One fixation is not a scanpath. To get a sequence you sample, update the
+history, and run the model again. Repeat as many times as you want fixations.</p>
+
+<div class="lab">
+  <div class="controls">
+    <h4>Step through a scanpath</h4>
+    <p>The loop, in words:</p>
+    <ul class="tight" style="font-size:13.5px">
+      <li>Start with the eye at the centre of the image (no real history yet).</li>
+      <li>Ask the model: given the image, the Center Bias, and the recent history, what is
+      the probability map?</li>
+      <li>Pick one (x, y) point by sampling from that map: each pixel's chance of being chosen is
+      <em>proportional to its value</em>. Bright spots are likelier; dim spots are still possible.</li>
+      <li>Add that point to the history; drop the oldest one so we keep the last four.</li>
+      <li>Repeat for as many fixations as you want.</li>
+    </ul>
+    <div class="btnrow">
+      <button id="walk-step">step</button>
+      <button id="walk-play" class="primary">play</button>
+      <button id="walk-reset">reset</button>
+    </div>
+    <div class="spec">fixations: <strong id="walk-count">0</strong><br>total path length: <strong id="walk-len">0</strong> px</div>
+  </div>
+  <div class="stage">
+    <canvas id="cv-walk" width="560" height="380"></canvas>
+    <div class="caption">Red shading = current probability map. Numbered cream dots = the scanpath so far.</div>
+  </div>
+</div>
+
+<details class="prompt">
+  <summary>Run "play" twice. Do you get the same scanpath both times? Why?</summary>
+  <p>No - the sampling step is random. The same probability map can produce many different
+  scanpaths. This is realistic: two humans looking at the same image do not produce identical
+  scanpaths either. The model gives you a <em>distribution</em> over plausible behaviours.</p>
+</details>
+
+<details class="prompt">
+  <summary>Reset and step manually. After the first fixation, does the probability map change shape?</summary>
+  <p>Yes. The first fixation enters the history; the model is then asked "given that the user
+  just looked at (x, y), where would they look next?" - and the map shifts. That shift is the
+  model expressing inhibition of return and natural saccade lengths.</p>
+</details>
+</section>
+
+
+<!-- ============================================================ 06 -->
+<section id="stats">
+<h2><span class="num">06</span>What can you measure?</h2>
+<p class="kicker">Once you have a scanpath - or many - the interesting statistics begin.
+These are the numbers a prosthesis engineer cares about: how far does the eye jump? How fast?
+How long does it linger?</p>
+
+<div class="lab">
+  <div class="controls">
+    <h4>Generate &amp; measure</h4>
+    <p>Press <strong>resample</strong> to sample several scanpaths and accumulate their
+    statistics. The histograms on the right fill in. Press <strong>reset</strong> to clear
+    them and start fresh.</p>
+    <p><strong>Saccade length</strong>: how far the eye jumps between two fixations. Real
+    humans show many short jumps and occasional long ones.</p>
+    <p><strong>Saccade angle</strong>: direction relative to the previous jump. Tells you if
+    the eye prefers to keep going forward or to double back.</p>
+    <p><strong>Dwell time</strong>: how long the eye stays at each fixation, in milliseconds.</p>
+    <div class="btnrow">
+      <button id="stats-resample" class="primary">resample</button>
+      <button id="stats-reset">reset</button>
+    </div>
+    <div class="spec">samples collected: <strong id="stats-n">0</strong></div>
+  </div>
+  <div class="stage">
+    <div class="twin" style="grid-template-columns:1fr;width:100%">
+      <div style="width:100%">
+        <h3 style="margin:0 0 6px">Saccade length (pixels)</h3>
+        <svg id="hist-len" class="hist" viewBox="0 0 240 80"></svg>
+      </div>
+      <div style="width:100%">
+        <h3 style="margin:0 0 6px">Saccade angle (radians)</h3>
+        <svg id="hist-ang" class="hist" viewBox="0 0 240 80"></svg>
+      </div>
+      <div style="width:100%">
+        <h3 style="margin:0 0 6px">Dwell time (milliseconds)</h3>
+        <svg id="hist-dwell" class="hist" viewBox="0 0 240 80"></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<aside class="callout"><strong>For a prosthesis pipeline:</strong> these distributions tell
+you what to budget for. How many regions of interest per second? How fast does the
+foveated render have to update? Can the implant keep up with the saccade rate, or will it
+always show stale content?</aside>
+
+<details class="prompt">
+  <summary>Saccade length distribution is skewed - most jumps are short. Why does that matter for the implant?</summary>
+  <p>Because most of the time the next region of interest is near the current one. The
+  implant does not have to re-render the whole field; it can update mostly the local area.
+  This is what makes foveated rendering with limited bandwidth feasible at all.</p>
+</details>
+
+<details class="prompt">
+  <summary>Dwell time averages a few hundred milliseconds. How often does the implant need to refresh?</summary>
+  <p>At least as fast as the dwell time - say, every 100-200 ms - or the user will saccade
+  away before the new region is ever rendered. In practice you want headroom: ~60 Hz refresh
+  is comfortable, well below the saccade rate.</p>
+</details>
+</section>
+
+
+<!-- ============================================================ 07 -->
+<section id="self-check">
+<h2><span class="num">07</span>Self-check</h2>
+<p class="kicker">Predict the answer first, then verify with the demos above (or the notebook).</p>
+
+<details class="prompt">
+  <summary>Q1. Two pages: saliency heatmap vs scanpath sequence. Which one do you feed a prosthesis pipeline, and why?</summary>
+  <p>The scanpath. A prosthesis only stimulates a small patch of cortex at a time, so at every fixation it has to pick <em>one</em> next location — that is a sequence of decisions, not a set. A heatmap is a sum across many viewers and many looks; it tells you where attention pools on average but not the order in which a single user would visit those points.</p>
+</details>
+
+<details class="prompt">
+  <summary>Q2. Inhibition of return: why does it help, and what's the failure mode if you crank it too high?</summary>
+  <p>It pushes the model to explore: without it, the most salient point wins every sample and the gaze camps there forever (this is the failure mode of §03). Cranked too high, the suppression around recent fixations becomes so strong that the gaze is pushed into low-saliency regions just to avoid where it has been — exploration without any content guiding it.</p>
+</details>
+
+<details class="prompt">
+  <summary>Q3. DeepGaze III takes image, Center Bias, AND fixation history. What does removing the fixation history give you?</summary>
+  <p>You're back to a per-frame saliency model: the same image always produces the same map. The first sampled fixation is unchanged, but every later fixation ignores where the eyes have already been. The scanpath becomes a sequence of independent draws from the same map — no inhibition of return, no exploration, no temporal structure.</p>
+</details>
+
+<details class="prompt">
+  <summary>Q4. The saccade-length histogram from sampled scanpaths is heavy-tailed (the long-jump tail is exactly the lognormal shape mentioned in §06). Where does that shape come from in the model?</summary>
+  <p>The probability map is peaky: a few bright regions, a wide dim background. Sampling proportionally to the map means most picks come from a peak near the current fixation (short saccade), occasionally a far peak wins (long saccade), and once in a while the dim background scores a hit (very long, rare). Multiplying those independent probabilities yields a long right tail — no explicit length distribution was assumed.</p>
+</details>
+</section>
+
+<hr class="div">
+
+<!-- ============================================================ 08 -->
+<section id="next">
+<h2><span class="num">08</span>Next: open the notebook</h2>
+<p class="kicker">This page was the warm-up. The real exercises live in the notebook -
+running the actual DeepGaze III model, on a real image, with four parts of exercises.</p>
+
+<div class="grid-3">
+  <div class="card">
+    <h4>Part A - warm-up</h4>
+    <p>Load image, build Center Bias, run DeepGaze once, sample a single fixation.</p>
+  </div>
+  <div class="card">
+    <h4>Part B - trajectories</h4>
+    <p>Add fixation to history, re-run. Write <code>sample_scanpath</code>. Compare across
+    random seeds.</p>
+  </div>
+  <div class="card">
+    <h4>Part C - statistics</h4>
+    <p>Saccade lengths and angles. A simple dwell-time model. Fraction of time on the most
+    interesting regions.</p>
+  </div>
+  <div class="card">
+    <h4>Part D - challenges</h4>
+    <p>Build a peripheral Center Bias. Add motor jitter. Continue a real eye-tracking
+    prefix.</p>
+  </div>
+</div>
+
+<aside class="callout">
+  <strong>Files:</strong> <code>gaze_workshop.ipynb</code> (with TODOs), <code>gaze_workshop_solutions.ipynb</code> (full).
+  The first cell installs <code>deepgaze_pytorch</code> from GitHub - allow ~2 min on CPU.
+</aside>
+</section>
+
+<footer>
+  NTH bootcamp · M2 · <a href="../bootcamp-plan.html">back to plan</a> ·
+  demos on this page use a synthetic scene + hand-built probability model;
+  the real DeepGaze III lives in the notebook.
+</footer>
+
+</main>
+
+<script>
+// ============================================================
+// Synthetic scene + toy density model (shared across sections)
+// ============================================================
+const REF_W = 560, REF_H = 380;
+const SCENE = [
+  {cx:180, cy:180, sx:22, sy:55, w:1.6, color:'#d9b48a', kind:'person'},
+  {cx:295, cy:265, sx:34, sy:20, w:0.9, color:'#7a5a3a', kind:'dog'},
+  {cx:430, cy:260, sx:50, sy:14, w:0.6, color:'#5a4a3a', kind:'bench'},
+  {cx:90,  cy:130, sx:38, sy:75, w:0.3, color:'#3e5c3a', kind:'tree'},
+  {cx:475, cy:140, sx:18, sy:24, w:0.7, color:'#b58900', kind:'sign'},
+];
+
+function drawScene(ctx, W, H){
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#b8ccd9'); g.addColorStop(0.55,'#cfd6c8'); g.addColorStop(1,'#8a8470');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#7a8270'; ctx.fillRect(0, H*0.62, W, 2);
+  const sx = W/REF_W, sy = H/REF_H;
+  for(const obj of SCENE){
+    ctx.save();
+    ctx.translate(obj.cx*sx, obj.cy*sy);
+    ctx.fillStyle = obj.color;
+    if(obj.kind==='person'){
+      ctx.beginPath(); ctx.ellipse(0,8,obj.sx*sx,obj.sy*sy,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#f0d0a8';
+      ctx.beginPath(); ctx.ellipse(0,-obj.sy*sy*0.85,obj.sx*sx*0.85,obj.sx*sx*0.85,0,0,Math.PI*2); ctx.fill();
+    } else if(obj.kind==='dog'){
+      ctx.beginPath(); ctx.ellipse(0,0,obj.sx*sx,obj.sy*sy,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-obj.sx*sx*0.8,-obj.sy*sy*0.3,obj.sy*sy*0.9,obj.sy*sy*0.9,0,0,Math.PI*2); ctx.fill();
+    } else if(obj.kind==='bench'){
+      ctx.fillRect(-obj.sx*sx, -obj.sy*sy, obj.sx*sx*2, obj.sy*sy*2);
+      ctx.fillRect(-obj.sx*sx*0.9, obj.sy*sy, 4, 12);
+      ctx.fillRect(obj.sx*sx*0.7, obj.sy*sy, 4, 12);
+    } else if(obj.kind==='tree'){
+      ctx.beginPath(); ctx.ellipse(0,0,obj.sx*sx,obj.sy*sy,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#3a2a1a'; ctx.fillRect(-3, obj.sy*sy*0.85, 6, obj.sy*sy*0.3);
+    } else if(obj.kind==='sign'){
+      ctx.fillRect(-obj.sx*sx, -obj.sy*sy, obj.sx*sx*2, obj.sy*sy*2);
+      ctx.fillStyle='#3a2a1a'; ctx.fillRect(-2, obj.sy*sy, 4, 18);
+    }
+    ctx.restore();
+  }
+}
+
+function saliencyAt(x, y){
+  let s = 0.05;
+  for(const o of SCENE){
+    const dx=(x-o.cx)/o.sx, dy=(y-o.cy)/o.sy;
+    s += o.w * Math.exp(-0.5*(dx*dx+dy*dy));
+  }
+  return s;
+}
+function centerbiasAt(x, y){
+  const dx=(x-REF_W/2)/180, dy=(y-REF_H/2)/130;
+  return Math.exp(-0.5*(dx*dx+dy*dy));
+}
+function iorAt(x, y, history, sigma){
+  let f = 1;
+  for(const h of history){
+    const dx=(x-h.x)/sigma, dy=(y-h.y)/sigma;
+    f *= (1 - 0.85*Math.exp(-0.5*(dx*dx+dy*dy)));
+  }
+  return Math.max(f, 0.01);
+}
+function computeDensity(history, opts={}){
+  const STEP = opts.step || 8;
+  const sigmaIOR = opts.sigmaIOR || 45;
+  const W = Math.floor(REF_W/STEP), H = Math.floor(REF_H/STEP);
+  const g = new Float32Array(W*H);
+  let max=0, sum=0;
+  for(let j=0;j<H;j++){
+    for(let i=0;i<W;i++){
+      const x=i*STEP+STEP/2, y=j*STEP+STEP/2;
+      const v = saliencyAt(x,y) * centerbiasAt(x,y) * iorAt(x,y,history,sigmaIOR);
+      g[j*W+i]=v;
+      if(v>max) max=v;
+      sum+=v;
+    }
+  }
+  return {grid:g, W, H, step:STEP, max, sum};
+}
+
+// Red heatmap overlay
+function drawHeatmap(ctx, dens, alpha){
+  const {grid, W:gW, H:gH, max} = dens;
+  const cW = ctx.canvas.width, cH = ctx.canvas.height;
+  const off = document.createElement('canvas');
+  off.width = gW; off.height = gH;
+  const offCtx = off.getContext('2d');
+  const img = offCtx.createImageData(gW, gH);
+  for(let k=0;k<grid.length;k++){
+    const v = grid[k]/max;
+    // Red gradient: a soft warm red, more saturated at higher density.
+    // R: 220 always; G,B drop with intensity for a deeper red.
+    img.data[4*k]   = 220;
+    img.data[4*k+1] = Math.round(60 * (1 - v));
+    img.data[4*k+2] = Math.round(50 * (1 - v));
+    img.data[4*k+3] = Math.round(255 * Math.pow(v, 0.55) * alpha);
+  }
+  offCtx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(off, 0, 0, cW, cH);
+}
+
+function sampleFromDensity(dens){
+  const {grid, W:gW, step, sum} = dens;
+  let r = Math.random()*sum, acc=0;
+  for(let k=0;k<grid.length;k++){
+    acc += grid[k];
+    if(acc>=r){
+      const i = k%gW, j = Math.floor(k/gW);
+      return {x: i*step + Math.random()*step, y: j*step + Math.random()*step};
+    }
+  }
+  return {x:REF_W/2, y:REF_H/2};
+}
+
+// Scanpath drawn in cream/white for contrast with red heatmap
+function drawScanpath(ctx, history, opts={}){
+  const cW=ctx.canvas.width, cH=ctx.canvas.height;
+  const sx=cW/REF_W, sy=cH/REF_H;
+  ctx.lineWidth = 1.8;
+  for(let i=1;i<history.length;i++){
+    const a = history[i-1], b = history[i];
+    ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath();
+    ctx.moveTo(a.x*sx, a.y*sy);
+    ctx.lineTo(b.x*sx, b.y*sy);
+    ctx.stroke();
+  }
+  for(let i=0;i<history.length;i++){
+    const h = history[i];
+    const recent = i/(Math.max(history.length-1,1));
+    const r = 6 + 3*recent;
+    ctx.fillStyle = i===history.length-1 ? '#fffceb' : 'rgba(255,250,220,'+(0.5+0.4*recent)+')';
+    ctx.strokeStyle = '#1c1c1a';
+    ctx.beginPath(); ctx.arc(h.x*sx, h.y*sy, r, 0, Math.PI*2); ctx.fill();
+    ctx.lineWidth=1.4; ctx.stroke();
+    if(opts.labels){
+      ctx.fillStyle = '#1c1c1a';
+      ctx.font = 'bold 10px JetBrains Mono';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(i+1, h.x*sx, h.y*sy);
+    }
+  }
+}
+
+// ============================================================
+// Section 02: heatmap vs scanpath
+// ============================================================
+(function(){
+  const cvSal = document.getElementById('cv-sal');
+  const cvScan = document.getElementById('cv-scan');
+  const ctxSal = cvSal.getContext('2d');
+  const ctxScan = cvScan.getContext('2d');
+
+  function drawSal(){
+    drawScene(ctxSal, cvSal.width, cvSal.height);
+    drawHeatmap(ctxSal, computeDensity([]), 0.85);
+  }
+
+  let scanHistory = [];
+  let scanTimer = null;
+  const stepEl = document.getElementById('scan-step');
+  function drawScan(){
+    drawScene(ctxScan, cvScan.width, cvScan.height);
+    drawScanpath(ctxScan, scanHistory, {labels:true});
+    stepEl.textContent = scanHistory.length;
+  }
+  function scanStep(){
+    if(scanHistory.length>=12){ stopScan(); return; }
+    scanHistory.push(sampleFromDensity(computeDensity(scanHistory.slice(-4))));
+    drawScan();
+  }
+  function playScan(){ if(scanTimer) return; scanTimer = setInterval(scanStep, 380); }
+  function stopScan(){ if(scanTimer){ clearInterval(scanTimer); scanTimer=null; } }
+
+  document.getElementById('scan-play').onclick = ()=> scanTimer ? stopScan() : playScan();
+  document.getElementById('scan-reset').onclick = ()=>{ stopScan(); scanHistory=[]; drawScan(); };
+
+  drawSal(); drawScan();
+})();
+
+// ============================================================
+// Section 03: inhibition of return (click demo)
+// ============================================================
+(function(){
+  const cv = document.getElementById('cv-ior');
+  const ctx = cv.getContext('2d');
+  let history = [];
+  const countEl = document.getElementById('ior-count');
+  function render(){
+    drawScene(ctx, cv.width, cv.height);
+    drawHeatmap(ctx, computeDensity(history.slice(-4)), 0.8);
+    drawScanpath(ctx, history);
+    countEl.textContent = history.length;
+  }
+  cv.addEventListener('click', e=>{
+    const r = cv.getBoundingClientRect();
+    const x = (e.clientX - r.left) * cv.width/r.width;
+    const y = (e.clientY - r.top)  * cv.height/r.height;
+    history.push({x: x*REF_W/cv.width, y: y*REF_H/cv.height});
+    render();
+  });
+  document.getElementById('ior-clear').onclick = ()=>{ history=[]; render(); };
+  render();
+})();
+
+// ============================================================
+// Section 05: scanpath sampler
+// ============================================================
+(function(){
+  const cv = document.getElementById('cv-walk');
+  const ctx = cv.getContext('2d');
+  let history = [];
+  let totalLen = 0;
+  let timer = null;
+  const countEl = document.getElementById('walk-count');
+  const lenEl = document.getElementById('walk-len');
+
+  function render(){
+    drawScene(ctx, cv.width, cv.height);
+    drawHeatmap(ctx, computeDensity(history.slice(-4)), 0.55);
+    drawScanpath(ctx, history, {labels:true});
+    countEl.textContent = history.length;
+    lenEl.textContent = Math.round(totalLen);
+  }
+  function step(){
+    const fix = sampleFromDensity(computeDensity(history.slice(-4)));
+    if(history.length>0){
+      const prev = history[history.length-1];
+      totalLen += Math.hypot(fix.x-prev.x, fix.y-prev.y);
+    }
+    history.push(fix);
+    render();
+  }
+  document.getElementById('walk-step').onclick = step;
+  document.getElementById('walk-play').onclick = ()=>{
+    if(timer){ clearInterval(timer); timer=null; return; }
+    timer = setInterval(()=>{ step(); if(history.length>=20){ clearInterval(timer); timer=null; } }, 350);
+  };
+  document.getElementById('walk-reset').onclick = ()=>{
+    if(timer){ clearInterval(timer); timer=null; }
+    history=[]; totalLen=0; render();
+  };
+  render();
+})();
+
+// ============================================================
+// Section 06: statistics with reset
+// ============================================================
+(function(){
+  let allLens=[], allAngs=[], allDwells=[];
+  const nEl = document.getElementById('stats-n');
+
+  function sampleOneScanpath(T=15){
+    const hist=[];
+    for(let t=0;t<T;t++){
+      hist.push(sampleFromDensity(computeDensity(hist.slice(-4))));
+    }
+    return hist;
+  }
+  function lognormalSample(mu, sigma){
+    const u1=Math.random(), u2=Math.random();
+    const z = Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
+    return Math.exp(mu + sigma*z);
+  }
+  function accumulate(hist){
+    for(let i=1;i<hist.length;i++){
+      const dx = hist[i].x - hist[i-1].x;
+      const dy = hist[i].y - hist[i-1].y;
+      allLens.push(Math.hypot(dx,dy));
+      if(i>1){
+        const pdx = hist[i-1].x - hist[i-2].x;
+        const pdy = hist[i-1].y - hist[i-2].y;
+        const a = Math.atan2(dy,dx) - Math.atan2(pdy,pdx);
+        const na = ((a + Math.PI) % (2*Math.PI)) - Math.PI;
+        allAngs.push(na);
+      }
+      allDwells.push(lognormalSample(Math.log(220), 0.45));
+    }
+  }
+  function histBins(arr, lo, hi, B){
+    const bins = new Array(B).fill(0);
+    for(const v of arr){
+      const i = Math.floor((v-lo)/(hi-lo)*B);
+      if(i<0||i>=B) continue;
+      bins[i]++;
+    }
+    return bins;
+  }
+  function drawHist(svgId, bins, lo, hi, fmt){
+    const svg = document.getElementById(svgId);
+    const W=240, H=100, P=4, AXIS_Y = H - 18;
+    const max = Math.max(1, ...bins);
+    const bw = (W-2*P)/bins.length;
+    let html = `<line class="axis" x1="${P}" y1="${AXIS_Y}" x2="${W-P}" y2="${AXIS_Y}"/>`;
+    bins.forEach((v,i)=>{
+      const h = (AXIS_Y-P) * v/max;
+      html += `<rect x="${P+i*bw+0.5}" y="${AXIS_Y-h}" width="${bw-1}" height="${h}"/>`;
+    });
+    // Tick labels (min, mid, max) under the axis line + tick marks.
+    const mid = (lo+hi)/2;
+    const ticks = [[P, lo], [W/2, mid], [W-P, hi]];
+    for(const [x, val] of ticks){
+      html += `<line class="axis" x1="${x}" y1="${AXIS_Y}" x2="${x}" y2="${AXIS_Y+3}"/>`;
+      html += `<text class="tick" x="${x}" y="${AXIS_Y+12}" text-anchor="${x===P?'start':x===W-P?'end':'middle'}">${fmt(val)}</text>`;
+    }
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.innerHTML = html;
+  }
+  function render(){
+    drawHist('hist-len', histBins(allLens, 0, 400, 18), 0, 400, v => v.toFixed(0));
+    drawHist('hist-ang', histBins(allAngs, -Math.PI, Math.PI, 18), -Math.PI, Math.PI, v => (v/Math.PI).toFixed(1)+'π');
+    drawHist('hist-dwell', histBins(allDwells, 0, 800, 18), 0, 800, v => v.toFixed(0));
+    nEl.textContent = allLens.length;
+  }
+  function resample(){
+    for(let k=0;k<6;k++){ accumulate(sampleOneScanpath()); }
+    render();
+  }
+  function reset(){
+    allLens=[]; allAngs=[]; allDwells=[];
+    render();
+  }
+  document.getElementById('stats-resample').onclick = resample;
+  document.getElementById('stats-reset').onclick = reset;
+  // Start empty so user actively triggers it
+  render();
+})();
+</script>
+</body>
+</html>

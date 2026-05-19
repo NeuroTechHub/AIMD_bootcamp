@@ -1,0 +1,44 @@
+# --- OS junk ----------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# --- editors ----------------------------------------------------------------
+# Keep .vscode/settings.json (pins live-server port for everyone), ignore the rest.
+.vscode/*
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# --- python (build/_build_bootcamp.py) --------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.python-version
+
+# --- node (in case any module pulls in JS tooling) --------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- logs / scratch ---------------------------------------------------------
+*.log
+.cache/
+tmp/
+
+# --- archived / reference-only material -------------------------------------
+# `old/` keeps style references and superseded drafts out of the repo.
+old/
+
+# --- secrets ----------------------------------------------------------------
+.env
+.env.local
+*.pem
