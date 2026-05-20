@@ -111,6 +111,29 @@ SHARED_CSS = dedent("""
     color:var(--muted-2);font-family:'JetBrains Mono',monospace}
   .pipeline .step.active{border-color:var(--accent);background:var(--accent-wash)}
   .pipeline .step.active .lbl{color:var(--accent-2)}
+  a.step{text-decoration:none;color:inherit;transition:border-color .15s}
+  a.step:hover{border-color:var(--accent)}
+  a.step:hover .name{color:var(--accent)}
+
+  /* module navigation (prev / next) */
+  .module-nav{display:flex;gap:12px;margin:0 0 24px;flex-wrap:wrap}
+  .module-nav a{display:flex;flex-direction:column;gap:2px;padding:10px 16px;
+    border:1px solid var(--rule);border-radius:6px;background:#fff;text-decoration:none;
+    font-family:'JetBrains Mono',monospace;transition:border-color .15s}
+  .module-nav a:hover{border-color:var(--accent)}
+  .module-nav .mn-dir{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-2)}
+  .module-nav .mn-name{font-size:13px;color:var(--ink)}
+  .module-nav a:hover .mn-name{color:var(--accent)}
+  .module-nav .mn-next{margin-left:auto;text-align:right}
+
+  /* tools & references block */
+  .refs{margin-top:40px;font-size:13px}
+  .refs h2{font-size:15px;margin-bottom:8px}
+  .refs ul{list-style:none;padding:0;margin:0}
+  .refs li{padding:6px 0;border-bottom:1px solid var(--rule-2);line-height:1.5}
+  .refs li:last-child{border-bottom:none}
+  .refs .rk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.05em}
 
   /* numbered self-check prompts (Lefteris idiom) */
   details.prompt{background:#fff;border:1px solid var(--rule);border-radius:5px;
@@ -548,9 +571,12 @@ SHARED_CSS = dedent("""
   .fd-metric.over{background:#faf2ee;border-color:var(--danger)}
   .fd-metric.over .fd-metric-v{color:var(--danger)}
   .fd-metric.over .fd-metric-h{color:var(--danger)}
+  .fd-metric.caution{background:#faf6ec;border-color:var(--accent-2)}
+  .fd-metric.caution .fd-metric-v{color:var(--accent-2)}
+  .fd-metric.caution .fd-metric-h{color:var(--accent-2)}
   .fd-metric.live .fd-metric-v{color:var(--accent-2)}
   .fd-safety-warn{margin-top:10px;font-family:'JetBrains Mono',monospace;
-    font-size:10.5px;color:var(--danger);line-height:1.5;display:none}
+    font-size:10.5px;color:var(--accent-2);line-height:1.5;display:none}
   .fd-safety-warn.on{display:block}
   .fd-safety-warn .chip{display:inline-block;background:#fff;border:1px solid var(--danger);
     color:var(--danger);padding:1px 6px;border-radius:3px;margin:2px 4px 2px 0;
@@ -646,8 +672,26 @@ def esc(s: str) -> str:
     return html.escape(s)
 
 
+# module index -> (file, short pipeline label, full nav title)
+MODULE_FILES = {
+    1: "computer-vision.html",
+    2: "deepgaze-and-gaze.html",
+    3: "neuromod-and-stim.html",
+    4: "phosphene-simulation.html",
+    5: "decoding-and-closed-loop.html",
+}
+MODULE_NAV_TITLES = {
+    1: "M1 &middot; Computer vision",
+    2: "M2 &middot; Gaze &amp; DeepGaze",
+    3: "M3 &middot; Neuromodulation &amp; stim",
+    4: "M4 &middot; Phosphenes",
+    5: "M5 &middot; Decoding &amp; closed loop",
+}
+
+
 def pipeline_strip(here_idx: int) -> str:
-    """Renders the 5-module pipeline strip; `here_idx` is 1..5 marking the active one."""
+    """Renders the 5-module pipeline strip; `here_idx` is 1..5 marking the active one.
+    Every non-active step links to its module page."""
     steps = [
         (1, "Camera + CV"),
         (2, "Gaze"),
@@ -659,17 +703,42 @@ def pipeline_strip(here_idx: int) -> str:
     for j, (n, name) in enumerate(steps):
         active = (n == here_idx)
         lbl = f"M{n}" + (" &middot; here" if active else "")
-        cls = "step active" if active else "step"
-        out.append(f"<div class='{cls}'><div class='lbl'>{lbl}</div><div class='name'>{name}</div></div>")
+        inner = f"<div class='lbl'>{lbl}</div><div class='name'>{name}</div>"
+        if active:
+            out.append(f"<div class='step active'>{inner}</div>")
+        else:
+            out.append(f"<a class='step' href='{MODULE_FILES[n]}'>{inner}</a>")
         if j < len(steps) - 1:
             out.append("<div class='arr'>&rarr;</div>")
     out.append("</div>")
     return "".join(out)
 
 
+def module_nav(here_idx: int) -> str:
+    """Prev / next navigation bar for module page `here_idx` (1..5).
+    Module 1's prev and module 5's next point at the bootcamp plan."""
+    if here_idx <= 1:
+        prev_href, prev_name = "../bootcamp-plan.html", "Bootcamp plan"
+    else:
+        prev_href, prev_name = MODULE_FILES[here_idx - 1], MODULE_NAV_TITLES[here_idx - 1]
+    if here_idx >= 5:
+        next_href, next_name = "../bootcamp-plan.html", "Bootcamp plan"
+    else:
+        next_href, next_name = MODULE_FILES[here_idx + 1], MODULE_NAV_TITLES[here_idx + 1]
+    return (
+        "<nav class='module-nav' aria-label='Module navigation'>"
+        f"<a class='mn-prev' href='{prev_href}'>"
+        f"<span class='mn-dir'>&larr; prev</span><span class='mn-name'>{prev_name}</span></a>"
+        f"<a class='mn-next' href='{next_href}'>"
+        f"<span class='mn-dir'>next &rarr;</span><span class='mn-name'>{next_name}</span></a>"
+        "</nav>"
+    )
+
+
 def page(title: str, eyebrow: str, h1_html: str, lede: str,
          meta_html: str, toc_html: str, body_html: str,
-         pipeline_html: str = "", footer_html: str = "") -> str:
+         pipeline_html: str = "", footer_html: str = "",
+         nav_html: str = "") -> str:
     default_footer = (
         'Internal planning document. '
         'Web to update once content is final: '
@@ -697,11 +766,15 @@ def page(title: str, eyebrow: str, h1_html: str, lede: str,
   <div class="meta">{meta_html}</div>
 </header>
 
+{nav_html}
+
 {pipeline_html}
 
 {toc_html}
 
 {body_html}
+
+{nav_html}
 
 <footer>
   {footer_html or default_footer}
@@ -1135,14 +1208,17 @@ MODULE_CONTENT = {
              "All four can be read at a glance: <em>where</em> firing is happening (array), <em>when</em> it happens (carousel), <em>how safe</em> the parameters are (current limit + Shannon-k), and <em>how much</em> charge has been delivered so far (peak current per channel + cumulative charge trace)."),
             ("05", "self-check",  "Self-check",
              "Predict the answer first, then verify with the sliders or the live panels above."),
-            ("06", "next",        "Next: open the notebook",
-             "Open the notebook to drive the same parameters from code, push them to the Neurolight API, and inspect the actual stimulation matrices."),
+            ("06", "next",        "Where to next",
+             "On to M4 &mdash; phosphenes &mdash; where these stimulation parameters become a perceived image. The notebook is an optional, self-guided way to revisit this material in Python."),
+            ("07", "refs",        "Tools &amp; references",
+             "The tools, papers, and APIs this module is built on."),
         ],
         extras={"concept": "M3_CONCEPT", "params": "STIM_DEMO", "array": "ARRAY_DEMO",
                 "neurolight": "STIM_FLOW", "self-check": "M3_SELFCHECK",
-                "next": "M3_NEXT"},
+                "next": "M3_NEXT", "refs": "M3_REFS"},
         footer=("NTH bootcamp &middot; M3 &middot; "
-                '<a href="../bootcamp-plan.html">back to plan</a> '
+                '<a href="../bootcamp-plan.html">back to plan</a> &middot; '
+                '<a href="phosphene-simulation.html">next: M4 &rarr;</a> '
                 "&middot; safety helpers implemented in vanilla JS below, no Python required."),
     ),
     "phosphene-simulation.html": dict(
@@ -1974,6 +2050,19 @@ STIM_FLOW_HTML = r"""
     const pulseMs = (2*v.pw + v.ip) / 1000;
     return Math.max(pulseMs, (v.np - 1) * periodMs + pulseMs);
   }
+  // Longest train across all configured channels. Train length is per-channel,
+  // but the repetition period must be global so trains stay phase-locked.
+  function maxTrainMs(){
+    let m = 0;
+    channels.forEach(ch => { const d = trainDurationMs(ch.params); if(d > m) m = d; });
+    return m;
+  }
+  // The effective train period: one global start-to-start interval, never
+  // shorter than the longest train, so every train finishes before the next
+  // repetition begins on any channel.
+  function effectiveTrainPeriodMs(){
+    return Math.max(+iti.value, maxTrainMs());
+  }
   function fmtTime(ms){
     const m = Math.floor(ms / 60000);
     const s = Math.floor((ms % 60000) / 1000);
@@ -2072,11 +2161,18 @@ STIM_FLOW_HTML = r"""
     } else if(phase === 3){
       summaryEl.innerHTML = 'disconnected &middot; idle';
     }
+    fmtSliders();
   }
 
   // ----- slider readouts -----
   function fmtSliders(){
-    itiV.textContent = (+iti.value) + ' ms';
+    const set = +iti.value, eff = effectiveTrainPeriodMs();
+    if(eff > set + 0.5){
+      itiV.innerHTML = set + ' ms &middot; <span style="color:var(--accent)">' +
+        'clamped to ' + Math.ceil(eff) + ' ms (longest train)</span>';
+    } else {
+      itiV.textContent = set + ' ms';
+    }
     repsV.textContent = (+reps.value);
     winV.textContent  = ((+win.value)/1000).toFixed(1) + ' s';
   }
@@ -2105,7 +2201,7 @@ STIM_FLOW_HTML = r"""
       mx.Q.textContent = '—'; mx.Qd.textContent = '—';
       mx.K.textContent = '—'; mx.D.textContent  = '—';
       mx.I.textContent = '—';
-      Object.values(mx).forEach(el => el.parentElement.classList.remove('over'));
+      Object.values(mx).forEach(el => el.parentElement.classList.remove('over', 'caution'));
       safetyWarn.classList.remove('on');
       safetyWarn.innerHTML = '';
       return;
@@ -2142,17 +2238,18 @@ STIM_FLOW_HTML = r"""
     mx.K.textContent  = rng(kMin, kMax, 2, '');
     mx.D.textContent  = rng(dMin * 100, dMax * 100, 1, '%');
     mx.I.innerHTML    = rng(iMin, iMax, 1, 'µA') + ' <span style="color:var(--muted);font-size:11px;font-weight:500">&middot; sum ' + fmtFix(iSum,1) + ' µA</span>';
-    // over-threshold styling on Shannon
-    mx.K.parentElement.classList.toggle('over', kMax > SHANNON_K_LIMIT);
+    // caution styling on Shannon (amber, not red — k is a flag, not a verdict)
+    mx.K.parentElement.classList.toggle('caution', kMax > SHANNON_K_LIMIT);
 
     if(overK.length){
       const chips = overK.slice(0, 8).map(o =>
         '<span class="chip">'+ eLabel(o.i) +' &middot; k='+ fmtFix(o.k,2) +'</span>'
       ).join('');
-      safetyWarn.innerHTML = '<strong>Shannon limit exceeded (k &gt; 1.85)</strong> on ' +
+      safetyWarn.innerHTML = '<strong>Above the classic Shannon line (k &gt; 1.85)</strong> on ' +
         overK.length + ' channel'+(overK.length>1?'s':'')+': ' + chips +
         (overK.length > 8 ? ' <span class="chip">+'+(overK.length-8)+' more</span>' : '') +
-        '. simulation continues; in vivo this would be considered unsafe.';
+        '. The 1.85 cutoff is a conservative surface-electrode rule (Shannon 1992); ' +
+        'for intracortical microelectrodes treat this as a caution flag, not a verdict — see references.';
       safetyWarn.classList.add('on');
     } else {
       safetyWarn.classList.remove('on');
@@ -2172,7 +2269,7 @@ STIM_FLOW_HTML = r"""
     if(runStartMs == null) return 0;
     const p = ch.params;
     const trainMs = trainDurationMs(p);
-    const trainPeriodMs = Math.max(+iti.value, trainMs);
+    const trainPeriodMs = effectiveTrainPeriodMs();
     const n = +reps.value;
     const pulsePeriodMs = 1000 / p.fr;
     const runLen = (n - 1) * trainPeriodMs + trainMs;
@@ -2206,6 +2303,18 @@ STIM_FLOW_HTML = r"""
   // historical buffer for the cumulative-charge trace
   const traceBuf = []; // [{t, q}]   q in uC
   const TRACE_HISTORY_MS = 12000;
+  // Fixed y-scale for the charge chart. Set once at stim start to the projected
+  // end-of-run total so the trace climbs visibly instead of the axis rescaling
+  // every frame as charge accumulates.
+  let chartYMaxUc = 0.01;
+  function niceCeil(x){
+    if(x <= 0) return 1;
+    const exp  = Math.floor(Math.log10(x));
+    const base = Math.pow(10, exp);
+    const f    = x / base;
+    const nf   = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+    return nf * base;
+  }
 
   function renderChargeChart(nowMs){
     const W = 1000, H = 180;
@@ -2217,9 +2326,8 @@ STIM_FLOW_HTML = r"""
     const tStart = tEnd - windowMs;
     function xs(t){ return padL + ((t - tStart) / windowMs) * plotW; }
 
-    // dynamic y-scale; charge is monotonic, so peak is most recent.
-    const qNow = traceBuf.length ? traceBuf[traceBuf.length - 1].q : 0;
-    const yMax = Math.max(0.001, qNow * 1.15);
+    // fixed y-scale, locked at stim start to the projected end-of-run total.
+    const yMax = chartYMaxUc;
     function ys(q){ return padT + plotH - (q / yMax) * plotH; }
 
     let out = '';
@@ -2255,8 +2363,8 @@ STIM_FLOW_HTML = r"""
     traceBuf.push({t: nowMs, q: qNow});
     const cutoff = nowMs - TRACE_HISTORY_MS;
     while(traceBuf.length && traceBuf[0].t < cutoff) traceBuf.shift();
-    mx.P.textContent = fmtFix(qNow, 3) + ' &#xB5;C';
-    powerNowEl.textContent = fmtFix(qNow, 3) + ' &#xB5;C';
+    mx.P.innerHTML = fmtFix(qNow, 3) + ' &micro;C';
+    powerNowEl.innerHTML = fmtFix(qNow, 3) + ' &micro;C';
     renderChargeChart(nowMs);
   }
 
@@ -2306,7 +2414,7 @@ STIM_FLOW_HTML = r"""
         const p = ch.params;
         const trainMs = trainDurationMs(p);
         const pulsePeriodMs = 1000 / p.fr;
-        const trainPeriodMs = Math.max(+iti.value, trainMs);
+        const trainPeriodMs = effectiveTrainPeriodMs();
         const runLen = (n - 1) * trainPeriodMs + trainMs;
         const chFinish = (runEndMs != null && !stimRunning)
           ? Math.min(runEndMs, runStartMs + runLen)
@@ -2466,7 +2574,7 @@ STIM_FLOW_HTML = r"""
       if(runStartMs != null){
         const p = ch.params;
         const trainMs = trainDurationMs(p);
-        const trainPeriodMs = Math.max(+iti.value, trainMs);
+        const trainPeriodMs = effectiveTrainPeriodMs();
         const n = +reps.value;
         const tickH = (rowH/2) * 0.82;
         const pulsePeriodMs = 1000 / p.fr;
@@ -2550,8 +2658,8 @@ STIM_FLOW_HTML = r"""
     // safety pass
     const overK = chs.filter(ch => shannonK(ch.params) > SHANNON_K_LIMIT);
     if(overK.length){
-      logLine('safety warning &middot; ' + overK.length + ' channel' +
-              (overK.length>1?'s':'') + ' over Shannon limit (k > 1.85)', 'warn');
+      logLine('caution &middot; ' + overK.length + ' channel' +
+              (overK.length>1?'s':'') + ' above the classic Shannon line (k > 1.85)', 'warn');
       overK.slice(0,4).forEach(ch => {
         logLine('  ' + eLabel(ch.i) + ' &middot; k=' + fmtFix(shannonK(ch.params),2), 'warn');
       });
@@ -2573,7 +2681,7 @@ STIM_FLOW_HTML = r"""
   }
   function trialDurationFor(p){
     const trainMs = trainDurationMs(p);
-    const trainPeriodMs = Math.max(+iti.value, trainMs);
+    const trainPeriodMs = effectiveTrainPeriodMs();
     const n = +reps.value;
     return (n - 1) * trainPeriodMs + trainMs;
   }
@@ -2595,7 +2703,10 @@ STIM_FLOW_HTML = r"""
     stimRunning = true;
     runStartMs = performance.now() + 50;
     runEndMs = runStartMs + dur;
-    const n = +reps.value, trainPeriodMs = +iti.value;
+    // lock the charge-chart y-scale to the projected end-of-run total
+    traceBuf.length = 0;
+    chartYMaxUc = niceCeil(Math.max(1e-3, cumulativeChargeUc(runEndMs)));
+    const n = +reps.value, trainPeriodMs = effectiveTrainPeriodMs();
     logLine('stim ' + stimRunCount + ' start &middot; ' + n + ' train' + (n>1?'s':'') +
             ' &middot; period ' + trainPeriodMs + ' ms &middot; duration ' +
             (dur/1000).toFixed(2) + ' s', 'ok');
@@ -2672,9 +2783,18 @@ keeping an eye on safety while doing it.</aside>
 We compute <code>k = log10(Q) + log10(Qd)</code> per channel, where <code>Q</code> is charge per phase
 in <strong>microcoulombs</strong> (uA &times; us / 10<sup>6</sup>) and <code>Qd</code> is charge density in
 &micro;C/cm&sup2; (Q divided by the electrode area). Both terms must use the same charge unit for this formula
-to make sense &mdash; Shannon (1992) and Cogan (2008) both report it with Q in &micro;C. Values of <code>k</code>
-above ~1.85 have been associated with cortical damage in chronic primate work; we flag those channels in
-red but let you stim anyway &mdash; this is a simulator, not a regulator.</aside>
+to make sense &mdash; Shannon (1992) reports it with Q in &micro;C.</aside>
+
+<aside class="callout"><strong>...but read the fine print.</strong>
+The <code>k &le; 1.85</code> rule comes from Shannon's 1992 fit to <em>large surface electrodes</em> in chronic
+animal work &mdash; areas orders of magnitude bigger than the 2000&nbsp;&micro;m&sup2; intracortical site simulated
+here. Applied to microelectrodes the line is widely understood to be <em>conservative and not directly
+transferable</em>: penetrating microelectrodes routinely operate at charge densities well above it, and
+modern reviews (Cogan 2008; Cogan, Ludwig, Welle &amp; Takmakov 2016) treat tissue-damage thresholds as
+electrode-, waveform-, and duty-cycle-dependent rather than a single universal cutoff. So in this module
+<code>k</code> is a <strong>caution flag, not a safety verdict</strong> &mdash; useful for spotting which
+channels sit in the aggressive corner of the parameter space, not a pass/fail gate. See the references at
+the foot of the page.</aside>
 """
 
 M3_SELFCHECK_HTML = r"""
@@ -2709,17 +2829,45 @@ M3_SELFCHECK_HTML = r"""
   in the Safety panel header). Is that channel inside the Shannon limit?</summary>
   <p><code>Q = 150 &micro;A &times; 300 &micro;s = 45000 &micro;A&middot;&micro;s = 0.045 &micro;C</code> (recall <code>1 &micro;A&middot;&micro;s = 1 pC</code>,
   so 45000 pC = 0.045 &micro;C). <code>Qd = 0.045 &micro;C / 2&times;10<sup>&minus;5</sup> cm&sup2; = 2250 &micro;C/cm&sup2;</code>.
-  <code>k = log10(0.045) + log10(2250) &approx; &minus;1.347 + 3.352 = 2.005</code>. Above the 1.85 limit &mdash;
-  in vivo, this is considered unsafe. In the live carousel above, this electrode's ticks render in red.</p>
+  <code>k = log10(0.045) + log10(2250) &approx; &minus;1.347 + 3.352 = 2.005</code>. That is above the classic
+  1.85 line, so the simulator flags it. But read that as a <em>caution</em>, not a verdict: the 1.85 cutoff
+  is Shannon's conservative fit to large surface electrodes (see the callout in &sect;01), and a
+  2000&nbsp;&micro;m&sup2; intracortical site is a very different regime. The honest answer is
+  &ldquo;k&nbsp;&asymp;&nbsp;2.0 &mdash; in the aggressive corner of the space, worth a second look.&rdquo;</p>
 </details>
 """
 
 M3_NEXT_HTML = r"""
-<p>Open <a href="neuromod-and-stim.ipynb"><code>neuromod-and-stim.ipynb</code></a>
-in Jupyter (or Colab) to drive the same parameters from Python, push them through the
-Neurolight API, and inspect the actual <code>(channels &times; time)</code> stimulation matrices.
-The notebook also exposes the charge-balance and Shannon checks as importable functions
-so you can reuse them in your own pipelines.</p>
+<p>Next module: <strong><a href="phosphene-simulation.html">M4 &mdash; Phosphene simulation</a></strong>,
+where the stimulation parameters you just tuned become a perceived image.</p>
+<aside class="callout"><strong>Going deeper (optional).</strong>
+The companion notebook <a href="neuromod-and-stim.ipynb"><code>neuromod-and-stim.ipynb</code></a>
+revisits this material in Python &mdash; driving the same parameters from code, pushing them through
+the stimulator API, and inspecting the actual <code>(channels &times; time)</code> stimulation matrices,
+with the charge-balance and Shannon checks exposed as importable functions. It is a self-guided
+resource, not a workshop step: open it whenever you want the hands-on version.</aside>
+"""
+
+M3_REFS_HTML = r"""
+<div class="refs">
+<ul>
+  <li><span class="rk">paper</span> Shannon, R.V. (1992), <em>A model of safe levels for electrical
+  stimulation</em>, IEEE Transactions on Biomedical Engineering 39(4):424&ndash;426.
+  <a href="https://doi.org/10.1109/10.126616" target="_blank" rel="noopener">doi:10.1109/10.126616</a>
+  &mdash; origin of the <code>k &le; 1.85</code> charge / charge-density rule.</li>
+  <li><span class="rk">review</span> Cogan, S.F. (2008), <em>Neural stimulation and recording
+  electrodes</em>, Annual Review of Biomedical Engineering 10:275&ndash;309.
+  <a href="https://doi.org/10.1146/annurev.bioeng.10.061807.160518" target="_blank" rel="noopener">doi:10.1146/annurev.bioeng.10.061807.160518</a>.</li>
+  <li><span class="rk">review</span> Cogan, Ludwig, Welle &amp; Takmakov (2016), <em>Tissue damage
+  thresholds during therapeutic electrical stimulation</em>, Journal of Neural Engineering
+  13(2):021001 &mdash; why microelectrode safety limits are electrode-, waveform-, and
+  duty-cycle-dependent rather than a single universal cutoff.</li>
+  <li><span class="rk">tool</span> The stimulator panel is a mock modelled on real research
+  stimulation APIs (e.g. <a href="https://rippleneuro.com/" target="_blank" rel="noopener">Ripple
+  Neuro</a> systems); the parameters and the configure &rarr; connect &rarr; stim &rarr; disconnect
+  lifecycle mirror a real device manual.</li>
+</ul>
+</div>
 """
 
 
@@ -3058,6 +3206,9 @@ def build_module(filename: str, spec: dict) -> None:
         elif extra_key == "M3_NEXT":
             extra_html = M3_NEXT_HTML
             todo_html = ""
+        elif extra_key == "M3_REFS":
+            extra_html = M3_REFS_HTML
+            todo_html = ""
         elif extra_key == "M3_CONCEPT":
             extra_html = M3_CONCEPT_HTML
             todo_html = ""
@@ -3098,7 +3249,9 @@ def build_module(filename: str, spec: dict) -> None:
     # eyebrow looks like "NTH / M3" — parse the module index for the pipeline strip
     import re as _re
     m = _re.search(r"M(\d+)", spec["eyebrow"])
-    pipe = pipeline_strip(int(m.group(1))) if m else ""
+    idx = int(m.group(1)) if m else 0
+    pipe = pipeline_strip(idx) if idx else ""
+    nav = module_nav(idx) if idx else ""
 
     html_text = page(
         title=f"NTH Bootcamp - {spec['eyebrow']}",
@@ -3110,6 +3263,7 @@ def build_module(filename: str, spec: dict) -> None:
         body_html=body,
         pipeline_html=pipe,
         footer_html=spec.get("footer", ""),
+        nav_html=nav,
     )
     (MODULES_DIR / filename).write_text(html_text, encoding="utf-8")
 

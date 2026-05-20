@@ -101,6 +101,29 @@ aside.todo strong{color:var(--ink)}
   color:var(--muted-2);font-family:'JetBrains Mono',monospace}
 .pipeline .step.active{border-color:var(--accent);background:var(--accent-wash)}
 .pipeline .step.active .lbl{color:var(--accent-2)}
+a.step{text-decoration:none;color:inherit;transition:border-color .15s}
+a.step:hover{border-color:var(--accent)}
+a.step:hover .name{color:var(--accent)}
+
+/* module navigation (prev / next) */
+.module-nav{display:flex;gap:12px;margin:0 0 24px;flex-wrap:wrap}
+.module-nav a{display:flex;flex-direction:column;gap:2px;padding:10px 16px;
+  border:1px solid var(--rule);border-radius:6px;background:#fff;text-decoration:none;
+  font-family:'JetBrains Mono',monospace;transition:border-color .15s}
+.module-nav a:hover{border-color:var(--accent)}
+.module-nav .mn-dir{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-2)}
+.module-nav .mn-name{font-size:13px;color:var(--ink)}
+.module-nav a:hover .mn-name{color:var(--accent)}
+.module-nav .mn-next{margin-left:auto;text-align:right}
+
+/* tools & references block */
+.refs{margin-top:40px;font-size:13px}
+.refs h2{font-size:15px;margin-bottom:8px}
+.refs ul{list-style:none;padding:0;margin:0}
+.refs li{padding:6px 0;border-bottom:1px solid var(--rule-2);line-height:1.5}
+.refs li:last-child{border-bottom:none}
+.refs .rk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em}
 
 /* numbered self-check prompts (Lefteris idiom) */
 details.prompt{background:#fff;border:1px solid var(--rule);border-radius:5px;
@@ -538,9 +561,12 @@ details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code
 .fd-metric.over{background:#faf2ee;border-color:var(--danger)}
 .fd-metric.over .fd-metric-v{color:var(--danger)}
 .fd-metric.over .fd-metric-h{color:var(--danger)}
+.fd-metric.caution{background:#faf6ec;border-color:var(--accent-2)}
+.fd-metric.caution .fd-metric-v{color:var(--accent-2)}
+.fd-metric.caution .fd-metric-h{color:var(--accent-2)}
 .fd-metric.live .fd-metric-v{color:var(--accent-2)}
 .fd-safety-warn{margin-top:10px;font-family:'JetBrains Mono',monospace;
-  font-size:10.5px;color:var(--danger);line-height:1.5;display:none}
+  font-size:10.5px;color:var(--accent-2);line-height:1.5;display:none}
 .fd-safety-warn.on{display:block}
 .fd-safety-warn .chip{display:inline-block;background:#fff;border:1px solid var(--danger);
   color:var(--danger);padding:1px 6px;border-radius:3px;margin:2px 4px 2px 0;
@@ -640,6 +666,8 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   <p class="lede">Internal plan for the leads. Five modules from camera to closed loop, one open hour, one demo upload.</p>
   <div class="meta"><span><strong>Date:</strong> 04 May 2026</span><span><strong>Status:</strong> Draft</span><span><strong>Contributors:</strong> Antonio, Lefteris, Jorge, Patricija, Cesc, Stijn, Samantha, Radovan</span></div>
 </header>
+
+
 
 
 
@@ -847,6 +875,8 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 <aside class='todo'><strong>OpenAI tokens.</strong> Confirm whether we get them. If yes, distribute via the development repo to the vibe-coding track.</aside>
 <aside class='todo'><strong>Development repo.</strong> Set up the dev repo for the developer track. Same five modules, full code, deployable to Colab too.</aside>
 </section>
+
+
 
 
 <footer>

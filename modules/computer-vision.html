@@ -158,6 +158,30 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);font-si
 footer a{color:var(--muted);border-bottom:1px solid var(--rule-2)}
 footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 
+/* Module navigation (prev / next) */
+.module-nav{display:flex;gap:12px;margin:28px 0;flex-wrap:wrap}
+.module-nav a{display:flex;flex-direction:column;gap:2px;padding:10px 16px;
+  border:1px solid var(--rule);border-radius:6px;background:#fff;text-decoration:none;
+  font-family:'JetBrains Mono',monospace;transition:border-color .15s}
+.module-nav a:hover{border-color:var(--accent)}
+.module-nav .mn-dir{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-2)}
+.module-nav .mn-name{font-size:13px;color:var(--ink)}
+.module-nav a:hover .mn-name{color:var(--accent)}
+.module-nav .mn-next{margin-left:auto;text-align:right}
+/* clickable pipeline steps */
+a.step{text-decoration:none;color:inherit}
+a.step:hover{border-color:var(--accent)}
+a.step:hover .name{color:var(--accent)}
+
+/* Tools & references block */
+.refs{margin-top:40px;font-size:13px}
+.refs h2{font-size:15px;margin-bottom:8px}
+.refs ul{list-style:none;padding:0;margin:0}
+.refs li{padding:6px 0;border-bottom:1px solid var(--rule-2);line-height:1.5}
+.refs li:last-child{border-bottom:none}
+.refs .rk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em}
+
 @media (max-width:900px){
   .canvas-row,.cam-row{grid-template-columns:1fr}
   .page{padding:32px 20px 64px}
@@ -207,13 +231,18 @@ details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code
   </div>
 </header>
 
+<nav class="module-nav" aria-label="Module navigation">
+  <a class="mn-prev" href="../bootcamp-plan.html"><span class="mn-dir">← back</span><span class="mn-name">Bootcamp plan</span></a>
+  <a class="mn-next" href="deepgaze-and-gaze.html"><span class="mn-dir">next →</span><span class="mn-name">M2 · Gaze &amp; DeepGaze</span></a>
+</nav>
+
 <nav class="toc" aria-label="Sections">
   <a href="#pipeline"><span class="n">01</span>Where this fits</a>
   <a href="#playground"><span class="n">02</span>Pixel-level operators</a>
   <a href="#yolo"><span class="n">03</span>YOLO — finding the objects</a>
   <a href="#webcam"><span class="n">04</span>Try it live</a>
   <a href="#self-check"><span class="n">05</span>Self-check</a>
-  <a href="#next"><span class="n">06</span>Next: open the notebook</a>
+  <a href="#next"><span class="n">06</span>Where to next</a>
 </nav>
 
 <!-- =============== 01 PIPELINE =============== -->
@@ -225,13 +254,13 @@ details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code
 <div class="pipeline">
   <div class="step active"><div class="lbl">M1 · here</div><div class="name">Camera + CV</div></div>
   <div class="arr">→</div>
-  <div class="step"><div class="lbl">M2</div><div class="name">Gaze</div></div>
+  <a class="step" href="deepgaze-and-gaze.html"><div class="lbl">M2</div><div class="name">Gaze</div></a>
   <div class="arr">→</div>
-  <div class="step"><div class="lbl">M3</div><div class="name">Stimulation</div></div>
+  <a class="step" href="neuromod-and-stim.html"><div class="lbl">M3</div><div class="name">Stimulation</div></a>
   <div class="arr">→</div>
-  <div class="step"><div class="lbl">M4</div><div class="name">Phosphenes</div></div>
+  <a class="step" href="phosphene-simulation.html"><div class="lbl">M4</div><div class="name">Phosphenes</div></a>
   <div class="arr">→</div>
-  <div class="step"><div class="lbl">M5</div><div class="name">Decoding</div></div>
+  <a class="step" href="decoding-and-closed-loop.html"><div class="lbl">M5</div><div class="name">Decoding</div></a>
 </div>
 
 <h3>End-to-end overview</h3>
@@ -439,19 +468,39 @@ details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code
 
 <details class="prompt">
   <summary>Q4. Webcam stream at 30 fps × Sobel = how much data per second arrives at the activation map?</summary>
-  <p>At 640×480 grayscale Sobel output, 30 fps: <code>640 × 480 × 30 ≈ 9.2 M values/sec</code>. A 100-channel prosthesis stimulates at ~300 Hz, so it accepts roughly <code>100 × 300 = 30 K values/sec</code>. The CV stage discards ~99.7% of the data before stimulation — that's why <em>which</em> data survives matters.</p>
+  <p>At 640×480 grayscale Sobel output, 30 fps: <code>640 × 480 × 30 ≈ 9.2 M values/sec</code>. Take a cortical prosthesis with, say, ~100 channels stimulating at ~300 Hz (one plausible design point — real arrays vary widely): it accepts roughly <code>100 × 300 = 30 K values/sec</code>. The CV stage discards the overwhelming majority of the data before stimulation — that's why <em>which</em> data survives matters.</p>
 </details>
 </section>
 
 <hr class="div">
 
 <section id="next">
-<h2><span class="num">06</span>Next: open the notebook</h2>
-<p>Open <a href="computer-vision.ipynb"><code>computer-vision.ipynb</code></a> in Jupyter to do the real exercises — write your own edge detector, run YOLO, build the activation maps that drive the rest of the prosthesis pipeline.</p>
+<h2><span class="num">06</span>Where to next</h2>
+<p>Next module: <strong><a href="deepgaze-and-gaze.html">M2 — Gaze &amp; DeepGaze</a></strong>, where the camera feed meets a model of <em>where a person looks</em>.</p>
+<aside class="callout"><strong>Going deeper (optional).</strong> The companion notebook
+<a href="computer-vision.ipynb"><code>computer-vision.ipynb</code></a> revisits this material in Python with
+runnable code — your own edge detector, YOLO end-to-end, and the activation maps that feed the rest
+of the pipeline. It is a self-guided resource, not a step in the workshop: open it whenever you want
+the hands-on version.</aside>
 </section>
 
+<section class="refs" aria-label="Tools and references">
+<h2>Tools &amp; references</h2>
+<ul>
+  <li><span class="rk">tool</span> <a href="https://docs.opencv.org/4.x/d5/d10/tutorial_js_root.html" target="_blank" rel="noopener">OpenCV.js</a> — the in-browser build of OpenCV behind the Sobel / Canny / threshold operators in §02.</li>
+  <li><span class="rk">tool</span> <a href="https://www.tensorflow.org/js" target="_blank" rel="noopener">TensorFlow.js</a> with the <a href="https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd" target="_blank" rel="noopener">COCO-SSD</a> model — the in-browser object detector used in §03 and the live webcam.</li>
+  <li><span class="rk">paper</span> Redmon, Divvala, Girshick &amp; Farhadi (2016), <em>You Only Look Once: Unified, Real-Time Object Detection</em>. <a href="https://doi.org/10.1109/CVPR.2016.91" target="_blank" rel="noopener">doi:10.1109/CVPR.2016.91</a> — the YOLO family this module borrows its framing from.</li>
+  <li><span class="rk">figure</span> de Ruyter van Steveninck et al. (2022), <em>End-to-end optimization of prosthetic vision</em>, Journal of Vision 22(2):20. <a href="https://doi.org/10.1167/jov.22.2.20" target="_blank" rel="noopener">doi:10.1167/jov.22.2.20</a> (CC BY 4.0) — source of the pipeline figure in §01.</li>
+</ul>
+</section>
+
+<nav class="module-nav" aria-label="Module navigation">
+  <a class="mn-prev" href="../bootcamp-plan.html"><span class="mn-dir">← back</span><span class="mn-name">Bootcamp plan</span></a>
+  <a class="mn-next" href="deepgaze-and-gaze.html"><span class="mn-dir">next →</span><span class="mn-name">M2 · Gaze &amp; DeepGaze</span></a>
+</nav>
+
 <footer>
-  NTH bootcamp · M1 · <a href="../bootcamp-plan.html">back to plan</a>
+  NTH bootcamp · M1 · <a href="../bootcamp-plan.html">back to plan</a> · <a href="deepgaze-and-gaze.html">next: M2 →</a>
 </footer>
 
 </main>

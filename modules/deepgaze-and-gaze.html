@@ -117,6 +117,29 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);
 footer a{color:var(--muted);border-bottom:1px solid var(--rule-2);text-decoration:none}
 footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 
+/* Module navigation (prev / next) */
+.module-nav{display:flex;gap:12px;margin:28px 0;flex-wrap:wrap}
+.module-nav a{display:flex;flex-direction:column;gap:2px;padding:10px 16px;
+  border:1px solid var(--rule);border-radius:6px;background:#fff;text-decoration:none;
+  font-family:'JetBrains Mono',monospace;transition:border-color .15s}
+.module-nav a:hover{border-color:var(--accent)}
+.module-nav .mn-dir{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-2)}
+.module-nav .mn-name{font-size:13px;color:var(--ink)}
+.module-nav a:hover .mn-name{color:var(--accent)}
+.module-nav .mn-next{margin-left:auto;text-align:right}
+/* clickable pipeline steps */
+a.step{text-decoration:none;color:inherit}
+a.step:hover{border-color:var(--accent)}
+a.step:hover .name{color:var(--accent)}
+/* Tools & references block */
+.refs{margin-top:40px;font-size:13px}
+.refs h2{font-size:15px;margin-bottom:8px}
+.refs ul{list-style:none;padding:0;margin:0}
+.refs li{padding:6px 0;border-bottom:1px solid var(--rule-2);line-height:1.5}
+.refs li:last-child{border-bottom:none}
+.refs .rk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em}
+
 @media (max-width:880px){
   .lab{grid-template-columns:1fr}
   .lab .twin{grid-template-columns:1fr}
@@ -140,17 +163,22 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   </div>
 </header>
 
+<nav class="module-nav" aria-label="Module navigation">
+  <a class="mn-prev" href="computer-vision.html"><span class="mn-dir">&larr; prev</span><span class="mn-name">M1 &middot; Computer vision</span></a>
+  <a class="mn-next" href="neuromod-and-stim.html"><span class="mn-dir">next &rarr;</span><span class="mn-name">M3 &middot; Neuromodulation &amp; stim</span></a>
+</nav>
+
 <h3 style="margin-top:0">Where this fits in the bootcamp pipeline</h3>
 <div class="pipeline">
-  <div class="step"><div class="lbl">M1</div><div class="name">Camera + CV</div></div>
+  <a class="step" href="computer-vision.html"><div class="lbl">M1</div><div class="name">Camera + CV</div></a>
   <div class="arr">&rarr;</div>
   <div class="step active"><div class="lbl">M2 &middot; here</div><div class="name">Gaze</div></div>
   <div class="arr">&rarr;</div>
-  <div class="step"><div class="lbl">M3</div><div class="name">Stimulation</div></div>
+  <a class="step" href="neuromod-and-stim.html"><div class="lbl">M3</div><div class="name">Stimulation</div></a>
   <div class="arr">&rarr;</div>
-  <div class="step"><div class="lbl">M4</div><div class="name">Phosphenes</div></div>
+  <a class="step" href="phosphene-simulation.html"><div class="lbl">M4</div><div class="name">Phosphenes</div></a>
   <div class="arr">&rarr;</div>
-  <div class="step"><div class="lbl">M5</div><div class="name">Decoding</div></div>
+  <a class="step" href="decoding-and-closed-loop.html"><div class="lbl">M5</div><div class="name">Decoding</div></a>
 </div>
 
 <nav class="toc" aria-label="Sections">
@@ -530,9 +558,12 @@ always show stale content?</aside>
 
 <!-- ============================================================ 08 -->
 <section id="next">
-<h2><span class="num">08</span>Next: open the notebook</h2>
-<p class="kicker">This page was the warm-up. The real exercises live in the notebook -
-running the actual DeepGaze III model, on a real image, with four parts of exercises.</p>
+<h2><span class="num">08</span>Where to next</h2>
+<p class="kicker">Next module: <strong><a href="neuromod-and-stim.html">M3 &mdash; Neuromodulation &amp; stimulation</a></strong>,
+where the patch of scene you decided to look at becomes an actual pattern of electrical pulses.</p>
+<p>Going deeper is optional. The companion notebook revisits this material in Python &mdash;
+running the actual DeepGaze III model on a real image, in four parts &mdash; as a self-guided
+resource, not a workshop step.</p>
 
 <div class="grid-3">
   <div class="card">
@@ -562,8 +593,24 @@ running the actual DeepGaze III model, on a real image, with four parts of exerc
 </aside>
 </section>
 
+<section class="refs" aria-label="Tools and references">
+<h2>Tools &amp; references</h2>
+<ul>
+  <li><span class="rk">tool</span> <a href="https://github.com/matthias-k/DeepGaze" target="_blank" rel="noopener">DeepGaze (deepgaze_pytorch)</a>, by Matthias K&uuml;mmerer and colleagues — the saliency / scanpath model this module is built around. This page uses a synthetic toy model for speed; the notebook runs the real DeepGaze III.</li>
+  <li><span class="rk">paper</span> K&uuml;mmerer, Bethge &amp; Wallis (2022), <em>DeepGaze III: Modeling free-viewing human scanpaths with deep learning</em>, Journal of Vision 22(5):7. <a href="https://doi.org/10.1167/jov.22.5.7" target="_blank" rel="noopener">doi:10.1167/jov.22.5.7</a>.</li>
+  <li><span class="rk">paper</span> Itti, Koch &amp; Niebur (1998), <em>A model of saliency-based visual attention for rapid scene analysis</em>, IEEE TPAMI 20(11):1254-1259. <a href="https://doi.org/10.1109/34.730558" target="_blank" rel="noopener">doi:10.1109/34.730558</a> — origin of the saliency-map and inhibition-of-return ideas used in §02–§03.</li>
+  <li><span class="rk">benchmark</span> <a href="https://saliency.tuebingen.ai/" target="_blank" rel="noopener">MIT/Tübingen Saliency Benchmark</a> — where DeepGaze models are evaluated against human fixation data.</li>
+</ul>
+</section>
+
+<nav class="module-nav" aria-label="Module navigation">
+  <a class="mn-prev" href="computer-vision.html"><span class="mn-dir">&larr; prev</span><span class="mn-name">M1 &middot; Computer vision</span></a>
+  <a class="mn-next" href="neuromod-and-stim.html"><span class="mn-dir">next &rarr;</span><span class="mn-name">M3 &middot; Neuromodulation &amp; stim</span></a>
+</nav>
+
 <footer>
   NTH bootcamp · M2 · <a href="../bootcamp-plan.html">back to plan</a> ·
+  <a href="neuromod-and-stim.html">next: M3 &rarr;</a> ·
   demos on this page use a synthetic scene + hand-built probability model;
   the real DeepGaze III lives in the notebook.
 </footer>

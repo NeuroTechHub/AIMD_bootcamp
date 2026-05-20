@@ -83,17 +83,47 @@ needed.
   stay phase-locked. Surprise-me button populates random stim configs;
   Configure / Connect / Stim to run.
 - **M4 Phosphene simulation** — single-phosphene basis explorer, electrode-
-  population viewer with layout selector, image-to-phosphenes forward demo,
-  temporal-dynamics player with leaky integrator and adaptation trace.
-  Self-check + Next pointing at `phosphene-simulation.ipynb`.
+  population viewer with layout selector, image-to-phosphenes forward demo
+  with an animate-drift option (dynamic stimulus), temporal-dynamics player
+  with leaky integrator and adaptation trace. Self-check, Tools & references,
+  and a deeper-dive pointer to `phosphene-simulation.ipynb`.
 - **M5 Decoding & closed loop** — stub. Antonio to write.
 
 ## Shared visual idiom
 
 All five modules use the same palette (`--ink/--paper/--accent`), Inter +
-JetBrains Mono fonts, pipeline strip (M1→M5 with current marked `here`),
-numbered TOC, callout asides, Self-check section with `<details class='prompt'>`
-blocks, and a `NTH bootcamp · Mn · back to plan` footer.
+JetBrains Mono fonts, a clickable pipeline strip (M1→M5 with current marked
+`here`), numbered TOC, callout asides, Self-check section with
+`<details class='prompt'>` blocks, prev/next module navigation (`.module-nav`)
+at the top and bottom of every page, a `Tools & references` block, and a
+`NTH bootcamp · Mn · back to plan` footer.
+
+## Acknowledgements & references
+
+The modules build on open tools and published work. Each module page carries
+its own clickable `Tools & references` block; the full list:
+
+- **OpenCV.js** — in-browser computer vision (M1 edge/threshold operators).
+  <https://docs.opencv.org/4.x/d5/d10/tutorial_js_root.html>
+- **TensorFlow.js + COCO-SSD** — in-browser object detection (M1 YOLO demo +
+  webcam). <https://www.tensorflow.org/js> ·
+  <https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd>
+- **YOLO** — Redmon, Divvala, Girshick & Farhadi (2016), *You Only Look Once*.
+  doi:10.1109/CVPR.2016.91
+- **DeepGaze** (`deepgaze_pytorch`) — Kümmerer et al. saliency/scanpath models
+  (M2). <https://github.com/matthias-k/DeepGaze> · DeepGaze III:
+  doi:10.1167/jov.22.5.7
+- **Shannon limit** — Shannon (1992), doi:10.1109/10.126616; Cogan (2008),
+  doi:10.1146/annurev.bioeng.10.061807.160518; Cogan, Ludwig, Welle & Takmakov
+  (2016), *Tissue damage thresholds*, J. Neural Eng. 13(2):021001 (M3 safety).
+- **Ripple Neuro** — research stimulation systems; the M3 mock stimulator API
+  mirrors a real device manual. <https://rippleneuro.com/>
+- **dynaphos** — van der Grinten et al. (2024), *Towards biologically plausible
+  phosphene simulation*, eLife 13:e85812, doi:10.7554/eLife.85812 (M4 forward
+  model). <https://github.com/neuralcodinglab/dynaphos>
+- **Phosphene figure / clinical evidence** — de Ruyter van Steveninck et al.
+  (2022), doi:10.1167/jov.22.2.20 (CC BY 4.0); Fernández et al. (2021),
+  doi:10.1172/JCI151331.
 
 ## Web to update
 

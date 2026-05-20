@@ -88,6 +88,29 @@ details.prompt p{margin:10px 0 4px;color:var(--ink-2);font-size:13.5px}
 
 footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);
   font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+footer a{color:var(--muted);border-bottom:1px solid var(--rule-2);text-decoration:none}
+footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Module navigation (prev / next) */
+.module-nav{display:flex;gap:12px;margin:28px 0;flex-wrap:wrap}
+.module-nav a{display:flex;flex-direction:column;gap:2px;padding:10px 16px;
+  border:1px solid var(--rule);border-radius:6px;background:#fff;text-decoration:none;
+  font-family:'JetBrains Mono',monospace;transition:border-color .15s}
+.module-nav a:hover{border-color:var(--accent)}
+.module-nav .mn-dir{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-2)}
+.module-nav .mn-name{font-size:13px;color:var(--ink)}
+.module-nav a:hover .mn-name{color:var(--accent)}
+.module-nav .mn-next{margin-left:auto;text-align:right}
+a.step{text-decoration:none;color:inherit}
+a.step:hover{border-color:var(--accent)}
+a.step:hover .name{color:var(--accent)}
+.refs{margin-top:40px;font-size:13px}
+.refs h2{font-size:15px;margin-bottom:8px}
+.refs ul{list-style:none;padding:0;margin:0}
+.refs li{padding:6px 0;border-bottom:1px solid var(--rule-2);line-height:1.5}
+.refs li:last-child{border-bottom:none}
+.refs .rk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em}
 @media (max-width:880px){
   .lab{grid-template-columns:1fr}
   .lab .twin{grid-template-columns:1fr}
@@ -119,18 +142,28 @@ what the user sees, through a short pipeline you'll meet section by section:
 per-phosphene <strong>brightness</strong> (mapped from current activation) and
 <strong>shape</strong> (a Gaussian whose &sigma; comes from <strong>current spread K</strong> and
 the eccentricity-dependent <strong>cortical magnification M(r)</strong>).
-Vocabulary defined here will be re-used inline whenever a term first re-appears below.</aside>
+Vocabulary defined here will be re-used inline whenever a term first re-appears below.
+<br><br><em>Keep in mind:</em> dynaphos is a deliberately simplified, phenomenological model &mdash;
+it captures the dominant effects (threshold, current spread, magnification, adaptation) but real
+phosphene perception is noisier, more variable between people, and shaped by factors this model
+leaves out. It is a strong intuition-builder, not a clinical predictor. See the paper linked in
+the references at the foot of the page.</aside>
+
+<nav class="module-nav" aria-label="Module navigation">
+  <a class="mn-prev" href="neuromod-and-stim.html"><span class="mn-dir">&larr; prev</span><span class="mn-name">M3 &middot; Neuromodulation &amp; stim</span></a>
+  <a class="mn-next" href="decoding-and-closed-loop.html"><span class="mn-dir">next &rarr;</span><span class="mn-name">M5 &middot; Decoding &amp; closed loop</span></a>
+</nav>
 
 <div class="pipeline" aria-label="Bootcamp pipeline progress">
-  <div class="step"><div class="lbl">M1</div><div class="name">Camera + CV</div></div>
+  <a class="step" href="computer-vision.html"><div class="lbl">M1</div><div class="name">Camera + CV</div></a>
   <div class="arr">&rarr;</div>
-  <div class="step"><div class="lbl">M2</div><div class="name">Gaze</div></div>
+  <a class="step" href="deepgaze-and-gaze.html"><div class="lbl">M2</div><div class="name">Gaze</div></a>
   <div class="arr">&rarr;</div>
-  <div class="step"><div class="lbl">M3</div><div class="name">Stimulation</div></div>
+  <a class="step" href="neuromod-and-stim.html"><div class="lbl">M3</div><div class="name">Stimulation</div></a>
   <div class="arr">&rarr;</div>
   <div class="step active"><div class="lbl">M4 &middot; here</div><div class="name">Phosphenes</div></div>
   <div class="arr">&rarr;</div>
-  <div class="step"><div class="lbl">M5</div><div class="name">Decoding</div></div>
+  <a class="step" href="decoding-and-closed-loop.html"><div class="lbl">M5</div><div class="name">Decoding</div></a>
 </div>
 
 <nav class="toc" aria-label="Sections">
@@ -313,6 +346,13 @@ have to choose which image features survive the bottleneck.</aside>
     <input type="range" id="f-rts" min="0.3" max="4" step="0.05" value="1.00">
 
     <div class="spec" id="f-readout">- electrodes active</div>
+
+    <div class="btnrow">
+      <button id="f-animate">animate drift &#9656;</button>
+    </div>
+    <p class="spec" style="margin-top:6px">Drift slides the scene across the phosphene
+    field. A moving stimulus is far easier to recognise than a still one &mdash; motion
+    survives the bottleneck even when fine spatial detail does not.</p>
   </div>
   <div class="stage">
     <div class="twin">
@@ -474,27 +514,47 @@ sliders above.</p>
 
 <details class="prompt">
   <summary>Q4. Rheobase is 23.9 &micro;A. What does setting stim to 24 &micro;A do?</summary>
-  <p>Almost nothing. <code>charge_per_s = (I - rheobase) &times; pw &times; freq</code>
-  with <code>I - rheobase = 0.1 &micro;A</code> gives an essentially zero
-  effective current. Below the activation threshold (9.14e-8) you get
-  zero brightness. Useful current range starts around 30 &micro;A and
-  saturates near 100 &micro;A.</p>
+  <p>Almost nothing. <code>charge_per_s = (I &minus; rheobase) &times; pw &times; freq</code>,
+  and with <code>I &minus; rheobase = 0.1 &micro;A</code> the effective current is essentially zero
+  &mdash; so the leaky integrator (&sect;04) never accumulates enough activation to cross into
+  visible brightness. There are <em>two</em> thresholds in series: rheobase (no effective charge
+  below it) and then the activation level the integrator must build up to. That is why phosphenes
+  only really emerge around 35&ndash;40 &micro;A, not right at rheobase, and saturate near
+  100 &micro;A.</p>
 </details>
 </section>
 
 <hr class="div">
 
 <section id="next">
-<h2><span class="num">06</span>Next: open the notebook</h2>
-<p>Open <a href="phosphene-simulation.ipynb"><code>phosphene-simulation.ipynb</code></a>
-in Jupyter (or Colab) to run the same equations against real <code>dynaphos</code>,
-swap in your own electrode layouts, and chain phosphenes into the full
-camera &rarr; gaze &rarr; stim &rarr; percept pipeline.</p>
+<h2><span class="num">06</span>Where to next</h2>
+<p>Next module: <strong><a href="decoding-and-closed-loop.html">M5 &mdash; Decoding &amp; closed loop</a></strong>
+(optional, advanced) &mdash; closing the loop from a target percept back to the stimulation that produces it.</p>
+<p>Going deeper is optional. The companion notebook
+<a href="phosphene-simulation.ipynb"><code>phosphene-simulation.ipynb</code></a> revisits this material
+in Python against the real <code>dynaphos</code> package &mdash; swap in your own electrode layouts and
+chain phosphenes into the full camera &rarr; gaze &rarr; stim &rarr; percept pipeline. It is a
+self-guided resource, not a workshop step.</p>
 </section>
+
+<section class="refs" aria-label="Tools and references">
+<h2>Tools &amp; references</h2>
+<ul>
+  <li><span class="rk">tool</span> <a href="https://github.com/neuralcodinglab/dynaphos" target="_blank" rel="noopener">dynaphos</a>, by the Neural Coding Lab (Donders Institute) — the open, differentiable phosphene forward model this module re-implements in vanilla JS.</li>
+  <li><span class="rk">paper</span> van der Grinten et al. (2024), <em>Towards biologically plausible phosphene simulation for the differentiable optimization of visual cortical prostheses</em>, eLife 13:e85812. <a href="https://doi.org/10.7554/eLife.85812" target="_blank" rel="noopener">doi:10.7554/eLife.85812</a> — the model, its parameters, and the rheobase / leaky-integrator / adaptation chain.</li>
+  <li><span class="rk">paper</span> Fern&aacute;ndez et al. (2021), <em>Visual percepts evoked with an intracortical 96-channel microelectrode array inserted in human occipital cortex</em>, Journal of Clinical Investigation 131(23):e151331. <a href="https://doi.org/10.1172/JCI151331" target="_blank" rel="noopener">doi:10.1172/JCI151331</a> — human evidence behind the temporal-dynamics behaviour in §04.</li>
+</ul>
+</section>
+
+<nav class="module-nav" aria-label="Module navigation">
+  <a class="mn-prev" href="neuromod-and-stim.html"><span class="mn-dir">&larr; prev</span><span class="mn-name">M3 &middot; Neuromodulation &amp; stim</span></a>
+  <a class="mn-next" href="decoding-and-closed-loop.html"><span class="mn-dir">next &rarr;</span><span class="mn-name">M5 &middot; Decoding &amp; closed loop</span></a>
+</nav>
 
 <hr class="div">
 <footer>
   NTH bootcamp · M4 · <a href="../bootcamp-plan.html">back to plan</a> ·
+  <a href="decoding-and-closed-loop.html">next: M5 &rarr;</a> ·
   all physics implemented in <code>~400 lines of vanilla JS</code> below ·
   built against <code>dynaphos 0.1.3</code>.
 </footer>
@@ -739,6 +799,17 @@ function targetImage(name, W, H){
   return out;
 }
 
+// Horizontally drift an image buffer by dx pixels, wrapping at the edge.
+// Used by the §03 forward demo to turn any static target into a moving stimulus.
+function shiftImageX(buf, W, H, dx){
+  const out = new Float32Array(W*H);
+  dx = ((dx % W) + W) % W;
+  for (let y=0; y<H; y++)
+    for (let x=0; x<W; x++)
+      out[y*W + ((x+dx) % W)] = buf[y*W + x];
+  return out;
+}
+
 function drawGrayscale(canvas, buf, W, H){
   const ctx = canvas.getContext("2d");
   // map source buf to canvas (canvas may not equal W,H)
@@ -866,15 +937,18 @@ function bindRange(id, valId, fmt = x => x){
   const inRts  = bindRange("f-rts", "v-f-rts", x => x.toFixed(2));
   const selTgt = document.getElementById("f-target");
   const readout = document.getElementById("f-readout");
+  const btnAnim = document.getElementById("f-animate");
 
   const W = 96, H = 96;   // internal target buffer (lo-res, fast)
+  let driftPhase = 0, animating = false, raf = null, lastT = 0;
 
   function update(){
     const N = parseInt(inN.value);
     const peak_uA = parseFloat(inScl.value);
     const rts = parseFloat(inRts.value);
 
-    const img = targetImage(selTgt.value, W, H);
+    let img = targetImage(selTgt.value, W, H);
+    if (driftPhase) img = shiftImageX(img, W, H, driftPhase);
     drawGrayscale(cvTgt, img, W, H);
 
     const rng = makeRng(7);
@@ -894,6 +968,30 @@ function bindRange(id, valId, fmt = x => x){
     readout.textContent = `${active} above-threshold / ${elecs.length} | peak charge ~ `
       + (chargePerSec(peak_uA*1e-6)*1e6).toFixed(2) + " &mu;C/s";
   }
+  function frame(t){
+    if (!animating) return;
+    if (t - lastT >= 45){            // ~22 fps — dynamic but light on the CPU
+      lastT = t;
+      driftPhase = (driftPhase + 2) % W;
+      update();
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function setAnimating(on){
+    animating = on;
+    btnAnim.innerHTML = on ? "stop drift &#9642;" : "animate drift &#9656;";
+    btnAnim.classList.toggle("primary", on);
+    if (on){
+      lastT = 0;
+      raf = requestAnimationFrame(frame);
+    } else {
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+      driftPhase = 0;
+      update();
+    }
+  }
+  btnAnim.addEventListener("click", () => setAnimating(!animating));
   [inN, inScl, inRts, selTgt].forEach(i => i.addEventListener("input", update));
   update();
 })();

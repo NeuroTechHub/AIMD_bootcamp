@@ -101,6 +101,29 @@ aside.todo strong{color:var(--ink)}
   color:var(--muted-2);font-family:'JetBrains Mono',monospace}
 .pipeline .step.active{border-color:var(--accent);background:var(--accent-wash)}
 .pipeline .step.active .lbl{color:var(--accent-2)}
+a.step{text-decoration:none;color:inherit;transition:border-color .15s}
+a.step:hover{border-color:var(--accent)}
+a.step:hover .name{color:var(--accent)}
+
+/* module navigation (prev / next) */
+.module-nav{display:flex;gap:12px;margin:0 0 24px;flex-wrap:wrap}
+.module-nav a{display:flex;flex-direction:column;gap:2px;padding:10px 16px;
+  border:1px solid var(--rule);border-radius:6px;background:#fff;text-decoration:none;
+  font-family:'JetBrains Mono',monospace;transition:border-color .15s}
+.module-nav a:hover{border-color:var(--accent)}
+.module-nav .mn-dir{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-2)}
+.module-nav .mn-name{font-size:13px;color:var(--ink)}
+.module-nav a:hover .mn-name{color:var(--accent)}
+.module-nav .mn-next{margin-left:auto;text-align:right}
+
+/* tools & references block */
+.refs{margin-top:40px;font-size:13px}
+.refs h2{font-size:15px;margin-bottom:8px}
+.refs ul{list-style:none;padding:0;margin:0}
+.refs li{padding:6px 0;border-bottom:1px solid var(--rule-2);line-height:1.5}
+.refs li:last-child{border-bottom:none}
+.refs .rk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em}
 
 /* numbered self-check prompts (Lefteris idiom) */
 details.prompt{background:#fff;border:1px solid var(--rule);border-radius:5px;
@@ -538,9 +561,12 @@ details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code
 .fd-metric.over{background:#faf2ee;border-color:var(--danger)}
 .fd-metric.over .fd-metric-v{color:var(--danger)}
 .fd-metric.over .fd-metric-h{color:var(--danger)}
+.fd-metric.caution{background:#faf6ec;border-color:var(--accent-2)}
+.fd-metric.caution .fd-metric-v{color:var(--accent-2)}
+.fd-metric.caution .fd-metric-h{color:var(--accent-2)}
 .fd-metric.live .fd-metric-v{color:var(--accent-2)}
 .fd-safety-warn{margin-top:10px;font-family:'JetBrains Mono',monospace;
-  font-size:10.5px;color:var(--danger);line-height:1.5;display:none}
+  font-size:10.5px;color:var(--accent-2);line-height:1.5;display:none}
 .fd-safety-warn.on{display:block}
 .fd-safety-warn .chip{display:inline-block;background:#fff;border:1px solid var(--danger);
   color:var(--danger);padding:1px 6px;border-radius:3px;margin:2px 4px 2px 0;
@@ -641,7 +667,9 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   <div class="meta"><span><strong>Lead:</strong> <span class="role">Antonio</span></span><span><strong>Status:</strong> stub</span><span>part of the <a href="../bootcamp-plan.html">NTH bootcamp plan</a></span></div>
 </header>
 
-<div class='pipeline' aria-label='Bootcamp pipeline progress'><div class='step'><div class='lbl'>M1</div><div class='name'>Camera + CV</div></div><div class='arr'>&rarr;</div><div class='step'><div class='lbl'>M2</div><div class='name'>Gaze</div></div><div class='arr'>&rarr;</div><div class='step'><div class='lbl'>M3</div><div class='name'>Stimulation</div></div><div class='arr'>&rarr;</div><div class='step'><div class='lbl'>M4</div><div class='name'>Phosphenes</div></div><div class='arr'>&rarr;</div><div class='step active'><div class='lbl'>M5 &middot; here</div><div class='name'>Decoding</div></div></div>
+<nav class='module-nav' aria-label='Module navigation'><a class='mn-prev' href='phosphene-simulation.html'><span class='mn-dir'>&larr; prev</span><span class='mn-name'>M4 &middot; Phosphenes</span></a><a class='mn-next' href='../bootcamp-plan.html'><span class='mn-dir'>next &rarr;</span><span class='mn-name'>Bootcamp plan</span></a></nav>
+
+<div class='pipeline' aria-label='Bootcamp pipeline progress'><a class='step' href='computer-vision.html'><div class='lbl'>M1</div><div class='name'>Camera + CV</div></a><div class='arr'>&rarr;</div><a class='step' href='deepgaze-and-gaze.html'><div class='lbl'>M2</div><div class='name'>Gaze</div></a><div class='arr'>&rarr;</div><a class='step' href='neuromod-and-stim.html'><div class='lbl'>M3</div><div class='name'>Stimulation</div></a><div class='arr'>&rarr;</div><a class='step' href='phosphene-simulation.html'><div class='lbl'>M4</div><div class='name'>Phosphenes</div></a><div class='arr'>&rarr;</div><div class='step active'><div class='lbl'>M5 &middot; here</div><div class='name'>Decoding</div></div></div>
 
 <nav class='toc' aria-label='Sections'><a href='#concept'><span class='n'>01</span> Concept</a><a href='#pretrained'><span class='n'>02</span> Pretrained decoder</a><a href='#train'><span class='n'>03</span> Train your own decoder</a><a href='#e2e'><span class='n'>04</span> End-to-end co-optimization</a><a href='#closed'><span class='n'>05</span> Minimal closed-loop demo</a><a href='#exercise'><span class='n'>06</span> Guided exercise</a></nav>
 
@@ -699,6 +727,8 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 <p><span class="role">Antonio</span> write this module. Edit this file directly; keep the section IDs stable so links from the plan don't break.</p>
 </section>
 
+
+<nav class='module-nav' aria-label='Module navigation'><a class='mn-prev' href='phosphene-simulation.html'><span class='mn-dir'>&larr; prev</span><span class='mn-name'>M4 &middot; Phosphenes</span></a><a class='mn-next' href='../bootcamp-plan.html'><span class='mn-dir'>next &rarr;</span><span class='mn-name'>Bootcamp plan</span></a></nav>
 
 <footer>
   Internal planning document. Web to update once content is final: <a href="https://www.aanmelder.nl/aimdworkshop2026/bootcamp">aanmelder.nl/aimdworkshop2026/bootcamp</a>.
