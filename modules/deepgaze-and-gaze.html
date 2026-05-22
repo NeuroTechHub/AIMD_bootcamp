@@ -194,68 +194,40 @@ a.step:hover .name{color:var(--accent)}
 
 <!-- ============================================================ 01 -->
 <section id="why">
-<h2><span class="num">01</span>Why a prosthesis cares where you look</h2>
-<p class="kicker">A visual prosthesis is a very low-bandwidth display wired into the visual
-system. It can only render a small budget of bright spots at a time. Where in the scene should
-those spots go?</p>
+<h2><span class="num">01</span>Why gaze matters for a phosphene prosthesis</h2>
+<p class="kicker">Each phosphene a user sees lives at a fixed location in their visual field
+&mdash; not in the world. Because the brain's map of the visual field rotates with the eye,
+the entire phosphene image rotates with it too. When the user's eye moves, the whole perceived
+scene moves with it.</p>
 
-<p>The answer is: <strong>wherever the user is currently looking</strong>. Three reasons.</p>
+<p>If the prosthesis ignores this and streams the camera feed straight to the implant, every
+saccade or fixational drift drags the rendered scene across the user's visual field. The brain
+expects the world to stay put when it commands an eye movement; the prosthesis breaks that
+expectation. The result is unstable, swimming vision &mdash; the "sliding effect".</p>
 
-<ul class="tight">
-  <li><strong>The eye still moves.</strong> Even a prosthesis user moves their eyes around the
-  scene. The implant cannot magically know what they are interested in - but their <em class="term">gaze</em>
-  reveals it. Where they fixate is, by definition, where they want to see.</li>
-  <li><strong>The fovea is tiny.</strong> Human vision is extremely non-uniform: the central
-  ~2 degrees of the visual field carry most of the detail. A smart prosthesis spends most of
-  its electrode budget at the current gaze direction and downsamples the rest of the scene.
-  Without knowing where the user is looking, you cannot do this.</li>
-  <li><strong>Phosphenes follow the eye.</strong> Cortical electrodes are implanted at fixed
-  positions in visual cortex, so the phosphenes they evoke are anchored in <em class="term">retinotopic</em>
-  coordinates: when the eye rotates, the entire phosphene image rotates with it. A scene
-  rendered from a head-mounted camera will appear to slide around as the user moves their
-  eyes - unless the rendering is made <em class="term">gaze-contingent</em>, i.e. compensated
-  using the current gaze direction. This is one of the reasons gaze tracking (or, when no
-  tracker is available, gaze simulation) is built into modern phosphene simulators like
-  <code>dynaphos</code> (de Ruyter van Steveninck et al., eLife 2024).</li>
-</ul>
+<p>To avoid this, the pipeline has to know <strong>where the user is currently looking</strong>
+and compensate, so the same patch of the world stays anchored to the same point in the world
+even as the eye moves. This is called <em class="term">gaze-contingent rendering</em>, and it
+is the main practical reason a prosthesis needs an answer to "where is the user looking right
+now?"</p>
 
-<p>So a working prosthesis pipeline needs an answer to: <em>given this scene, where is the user
-likely to look right now, and where next?</em> If you do not have a real eye-tracker on every
-test subject (and you usually do not, especially in simulation), you need to <em class="term">simulate
-gaze</em>. That is what DeepGaze III is for.</p>
+<p>There are two further reasons gaze matters, especially in research:</p>
 
-<aside class="callout"><strong>The whole module in one sentence.</strong> We use a pretrained
-gaze model as a stand-in for human eye movements, sample plausible <em class="term">scanpaths</em>
-through a scene, and use those as the input to downstream prosthesis pipelines (foveated
-rendering, phosphene placement, evaluation).</aside>
+<ol class="tight">
+  <li><strong>Computational experiments without participants.</strong> You cannot recruit a
+  patient every time you want to test a new algorithm. A gaze model lets you simulate plausible
+  eye movements over still images or video and run the whole prosthesis pipeline end-to-end on
+  a laptop &mdash; fast, repeatable, and consistent across conditions.</li>
+  <li><strong>Anticipating where the user will look next.</strong> The implant has only a few
+  hundred electrodes &mdash; far too few to render the whole scene in detail. If you can
+  predict which region of the scene the user is about to attend to, you can spend that limited
+  bandwidth on richer features (edges, faces, text) in exactly that region, and leave the rest
+  as a sparse outline.</li>
+</ol>
 
-<aside class="callout"><strong>But the prosthesis user doesn't see the whole scene — does gaze still apply?</strong>
-Yes, for a subtle reason. The head-mounted camera <em>does</em> see the full scene; the prosthesis chooses
-a small patch of it to render. DeepGaze tells us which patch a sighted human would attend to in that
-scene, so the pipeline can aim the rendered patch there. The user's eyes still move (vestibulo-ocular
-reflex, fixational drift, voluntary saccades) regardless of what they perceive, and the phosphenes
-they see are anchored in retinotopic coordinates — so eye movements <em>do</em> shift the percept. If the
-rendered patch and the actual gaze direction disagree, the perceived scene moves in a way the brain's
-efference copy did not predict: the result is exactly the "scene swimming around" the reviewer worried
-about, and it's why real systems use eye-tracking and why gaze-contingent rendering is an active
-research topic (Caspi et al., 2018; Beauchamp/Bosking lab).</aside>
-
-<details class="prompt">
-  <summary>Why not just render the entire scene at the highest resolution the implant allows?</summary>
-  <p>Two reasons. First, real implants have far too few electrodes to cover the whole visual
-  field at useful detail - you have to choose. Second, even if you could, biology will not
-  cooperate: the user's brain only processes the foveated region in detail anyway. Spreading
-  the budget uniformly wastes most of it on regions the user is not attending.</p>
-</details>
-
-<details class="prompt">
-  <summary>If we had a real eye-tracker on the user, would we still need DeepGaze?</summary>
-  <p>Yes, for two purposes. (1) <em>Offline simulation</em>: when you are developing a
-  prosthesis pipeline you do not have a user, so you simulate one. DeepGaze gives you
-  plausible gaze patterns to test against. (2) <em>Prediction</em>: even with a real eye-tracker
-  you only know where the user is looking <em>now</em>. To pre-render or pre-stimulate, you
-  often want to predict the next fixation a few hundred ms ahead. That is also gaze modeling.</p>
-</details>
+<p>This module is about that prediction step. We use DeepGaze III, a pretrained model that has
+learned where human eyes land on natural images, as a stand-in for the actual user's eye
+movements.</p>
 </section>
 
 
@@ -353,7 +325,8 @@ the same spot - they suppress recently-visited regions and explore. This is call
 <section id="deepgaze">
 <h2><span class="num">04</span>DeepGaze III in three boxes</h2>
 <p class="kicker">A pretrained neural network trained on real human eye-tracking data
-(MIT1003, COCO-Freeview). It takes three inputs and returns one probability map over the image.</p>
+(MIT1003 scanpaths, plus SALICON for the saliency backbone). It takes three inputs and
+returns one probability map over the image.</p>
 
 <div class="diagram">
   <div class="dbox"><span class="lbl">input 1</span>image<br><span style="color:var(--muted);font-size:10px">the scene</span></div>
@@ -402,9 +375,8 @@ probability map. The notebook does this with one line: <code>p = np.exp(log_dens
 
 <details class="prompt">
   <summary>If DeepGaze sees a face in the image, where does the probability map peak?</summary>
-  <p>On the face - especially the eyes. DeepGaze was trained on humans looking at natural
-  images and humans look at faces. The model picks that up directly from the data, no
-  hand-coded "face detector" needed.</p>
+  <p>On the face - especially the eyes. We usually find faces to be very important in a scene and we tend to fixate our gaze initially onto them .DeepGaze was trained on humans looking at natural
+  images and so it captures this behavioural pattern.</p>
 </details>
 
 <details class="prompt">
@@ -525,6 +497,18 @@ always show stale content?</aside>
   away before the new region is ever rendered. In practice you want headroom: ~60 Hz refresh
   is comfortable, well below the saccade rate.</p>
 </details>
+
+<aside class="callout" style="border-left-color:var(--danger);background:#f7ece5">
+  <strong>Disclaimer.</strong> The histograms above are <em>not</em> computed by running the toy
+  probability model on this page, nor by running DeepGaze III. They are synthetic draws from
+  distributions taken from the eye-tracking literature on free viewing of natural scenes:
+  saccade amplitudes from a lognormal (right-skewed) distribution, relative saccade angles
+  from a bimodal distribution with peaks at 0 (forward continuation) and ±π (return), and
+  fixation durations from a lognormal with median ~250 ms and mean ~290 ms. They illustrate
+  what real eye-tracking data <em>looks like</em>; the toy model on this page would not
+  reproduce these shapes on its own. Run the companion notebook with the real DeepGaze III on
+  a natural image to see how well a trained model recovers them.
+</aside>
 </section>
 
 
@@ -549,8 +533,8 @@ always show stale content?</aside>
 </details>
 
 <details class="prompt">
-  <summary>Q4. The saccade-length histogram from sampled scanpaths is heavy-tailed (the long-jump tail is exactly the lognormal shape mentioned in §06). Where does that shape come from in the model?</summary>
-  <p>The probability map is peaky: a few bright regions, a wide dim background. Sampling proportionally to the map means most picks come from a peak near the current fixation (short saccade), occasionally a far peak wins (long saccade), and once in a while the dim background scores a hit (very long, rare). Multiplying those independent probabilities yields a long right tail — no explicit length distribution was assumed.</p>
+  <summary>Q4. The saccade-length histogram in §06 is heavy-tailed (lognormal — see the disclaimer there). What about real eye movements produces that shape, and would running the real DeepGaze III on a natural image reproduce it?</summary>
+  <p>Two contributions. (a) Real saliency maps are <em>peaky</em>: a few bright regions on a wide dim background. Sampling proportional to the map gives mostly short jumps to the dominant peak near the current fixation, occasional medium jumps to a secondary peak, and rare long jumps when the background scores a hit — that mixture has a long right tail. (b) Biology layers in short corrective saccades within an object and longer between-object saccades. The combination is approximately lognormal. Real DeepGaze III on natural images does recover this shape; the toy model on this page does not, because its &ldquo;scene&rdquo; has only five Gaussian blobs, so the peaks-vs-tails geometry is too uniform — which is exactly why §06 substitutes literature-derived draws.</p>
 </details>
 </section>
 
@@ -868,36 +852,51 @@ function drawScanpath(ctx, history, opts={}){
 
 // ============================================================
 // Section 06: statistics with reset
+// Histograms here are NOT computed from the toy scanpath model on this
+// page — they are synthetic draws from research-derived distributions:
+//   - Saccade amplitude: lognormal, right-skewed (Tatler et al.; scene
+//     viewing literature). Median ~75 px in this toy pixel space.
+//   - Relative saccade angle: bimodal with peaks at 0 (continuation)
+//     and ±π (return). Wilming et al.; Tatler & Vincent (2009).
+//   - Fixation duration: lognormal, median ~250 ms, mean ~290 ms
+//     (Henderson; Rayner; scene-viewing free-viewing meta-statistics).
 // ============================================================
 (function(){
   let allLens=[], allAngs=[], allDwells=[];
   const nEl = document.getElementById('stats-n');
 
-  function sampleOneScanpath(T=15){
-    const hist=[];
-    for(let t=0;t<T;t++){
-      hist.push(sampleFromDensity(computeDensity(hist.slice(-4))));
-    }
-    return hist;
-  }
-  function lognormalSample(mu, sigma){
+  function normalSample(mu, sigma){
     const u1=Math.random(), u2=Math.random();
     const z = Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
-    return Math.exp(mu + sigma*z);
+    return mu + sigma*z;
   }
-  function accumulate(hist){
-    for(let i=1;i<hist.length;i++){
-      const dx = hist[i].x - hist[i-1].x;
-      const dy = hist[i].y - hist[i-1].y;
-      allLens.push(Math.hypot(dx,dy));
-      if(i>1){
-        const pdx = hist[i-1].x - hist[i-2].x;
-        const pdy = hist[i-1].y - hist[i-2].y;
-        const a = Math.atan2(dy,dx) - Math.atan2(pdy,pdx);
-        const na = ((a + Math.PI) % (2*Math.PI)) - Math.PI;
-        allAngs.push(na);
-      }
-      allDwells.push(lognormalSample(Math.log(220), 0.45));
+  function lognormalSample(mu, sigma){
+    return Math.exp(normalSample(mu, sigma));
+  }
+  function wrapAngle(a){
+    while(a >  Math.PI) a -= 2*Math.PI;
+    while(a < -Math.PI) a += 2*Math.PI;
+    return a;
+  }
+  function saccadeAngleSample(){
+    // ~65% continue forward (peak at 0), ~35% return (peak at ±π).
+    // Return peak is split symmetrically across +π and -π in the wrapped histogram.
+    const r = Math.random();
+    if(r < 0.65){
+      return wrapAngle(normalSample(0, 0.55));
+    } else {
+      const sign = Math.random() < 0.5 ? -1 : 1;
+      return wrapAngle(sign*Math.PI + normalSample(0, 0.5));
+    }
+  }
+  function accumulate(n=14){
+    for(let i=0;i<n;i++){
+      // Saccade amplitude: lognormal, heavy right tail.
+      allLens.push(lognormalSample(Math.log(75), 0.7));
+      // Relative angle: only defined from the 2nd saccade onward, so n-1 samples.
+      if(i>0) allAngs.push(saccadeAngleSample());
+      // Fixation duration: lognormal matching scene-viewing literature.
+      allDwells.push(lognormalSample(Math.log(250), 0.55));
     }
   }
   function histBins(arr, lo, hi, B){
@@ -936,7 +935,7 @@ function drawScanpath(ctx, history, opts={}){
     nEl.textContent = allLens.length;
   }
   function resample(){
-    for(let k=0;k<6;k++){ accumulate(sampleOneScanpath()); }
+    for(let k=0;k<6;k++){ accumulate(); }
     render();
   }
   function reset(){
