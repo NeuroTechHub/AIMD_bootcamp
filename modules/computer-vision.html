@@ -10,9 +10,9 @@
 <style>
 :root{
   --ink:#1c1c1a; --ink-2:#3a3a36; --muted:#6c6c66; --muted-2:#9a9a93;
-  --rule:#d8d6cf; --rule-2:#ebe9e2; --paper:#fbfaf6; --paper-2:#f4f2eb;
-  --accent:#b58900; --accent-2:#8a6700; --accent-wash:#f3e9c8;
-  --danger:#8a3a1d; --code-bg:#f1efe7;
+  --rule:#d8d6cf; --rule-2:#ebe9e2; --paper:#ffffff; --paper-2:#f8f8f6;
+  --accent:#d86f91; --accent-2:#a83f63; --accent-wash:#fde7ef;
+  --danger:#8a3a1d; --code-bg:#f7f7f4;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
@@ -532,7 +532,7 @@ function makeCheckerboard(){
     ctx.fillStyle=((x+y)%2===0)?'#fff':'#111';
     ctx.fillRect(x*40,y*40,40,40);
   }
-  ctx.fillStyle='#b58900'; ctx.beginPath(); ctx.arc(160,160,42,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#d86f91'; ctx.beginPath(); ctx.arc(160,160,42,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#1c1c1a'; ctx.fillRect(60,260,200,30);
   return c.toDataURL('image/png');
 }
@@ -542,7 +542,7 @@ function makeGradient(){
   const g=ctx.createLinearGradient(0,0,320,320);
   g.addColorStop(0,'#000'); g.addColorStop(1,'#fff');
   ctx.fillStyle=g; ctx.fillRect(0,0,320,320);
-  ctx.fillStyle='#b58900'; ctx.fillRect(120,80,80,160);
+  ctx.fillStyle='#d86f91'; ctx.fillRect(120,80,80,160);
   return c.toDataURL('image/png');
 }
 

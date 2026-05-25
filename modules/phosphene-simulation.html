@@ -44,9 +44,9 @@ details.eqcallout > *:not(summary){margin-top:10px}
 <style>
 :root{
   --ink:#1c1c1a; --ink-2:#3a3a36; --muted:#6c6c66; --muted-2:#9a9a93;
-  --rule:#d8d6cf; --rule-2:#ebe9e2; --paper:#fbfaf6; --paper-2:#f4f2eb;
-  --accent:#b58900; --accent-2:#8a6700; --accent-wash:#f3e9c8;
-  --danger:#8a3a1d; --code-bg:#f1efe7;
+  --rule:#d8d6cf; --rule-2:#ebe9e2; --paper:#ffffff; --paper-2:#f8f8f6;
+  --accent:#d86f91; --accent-2:#a83f63; --accent-wash:#fde7ef;
+  --danger:#8a3a1d; --code-bg:#f7f7f4;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
@@ -1549,7 +1549,7 @@ function bindRange(id, valId, fmt = x => x){
     renderBases(cvBases, elecs, sigs, brs, false);
 
     // centers panel
-    clearCanvas(cvCenters, "#fbfaf6");
+    clearCanvas(cvCenters, "#ffffff");
     const ctx = cvCenters.getContext("2d");
     ctx.fillStyle = "#1c1c1a";
     for (const e of elecs){
@@ -1733,10 +1733,10 @@ function bindRange(id, valId, fmt = x => x){
   function drawPlot(c, currentFrame){
     const ctx = cvPlot.getContext("2d");
     const W2 = cvPlot.width, H2 = cvPlot.height;
-    ctx.fillStyle = "#fbfaf6"; ctx.fillRect(0,0,W2,H2);
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,W2,H2);
     // stim-on shade
     const onFrame = parseInt(inOn.value);
-    ctx.fillStyle = "rgba(181, 137, 0, 0.10)";
+    ctx.fillStyle = "rgba(216, 111, 145, 0.10)";
     ctx.fillRect(0, 0, W2 * onFrame/NFRAMES, H2);
     // axes
     ctx.strokeStyle = "#d8d6cf"; ctx.lineWidth = 1;
@@ -1751,9 +1751,9 @@ function bindRange(id, valId, fmt = x => x){
       if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     }
     ctx.stroke();
-    // trace curve (amber, normalised to its own peak so we can see the shape)
+    // trace curve (sakura, normalised to its own peak so we can see the shape)
     const maxT = Math.max(1e-12, Math.max(...c.trc));
-    ctx.strokeStyle = "#b58900"; ctx.lineWidth = 1.2;
+    ctx.strokeStyle = "#d86f91"; ctx.lineWidth = 1.2;
     ctx.setLineDash([4,3]); ctx.beginPath();
     for (let i=0; i<c.trc.length; i++){
       const x = W2 * i/(NFRAMES-1);
@@ -1768,7 +1768,7 @@ function bindRange(id, valId, fmt = x => x){
     // legend
     ctx.font = "10px JetBrains Mono, monospace";
     ctx.fillStyle = "#1c1c1a"; ctx.fillText("— brightness", 6, 10);
-    ctx.fillStyle = "#b58900"; ctx.fillText("- - trace (norm.)", 90, 10);
+    ctx.fillStyle = "#d86f91"; ctx.fillText("- - trace (norm.)", 90, 10);
   }
 
   function render(frame){

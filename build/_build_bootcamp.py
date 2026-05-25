@@ -25,13 +25,13 @@ SHARED_CSS = dedent("""
     --muted-2:    #9a9a93;
     --rule:       #d8d6cf;
     --rule-2:     #ebe9e2;
-    --paper:      #fbfaf6;
-    --paper-2:    #f4f2eb;
-    --accent:     #b58900;
-    --accent-2:   #8a6700;
-    --accent-wash:#f3e9c8;
+    --paper:      #ffffff;
+    --paper-2:    #f8f8f6;
+    --accent:     #d86f91;
+    --accent-2:   #a83f63;
+    --accent-wash:#fde7ef;
     --danger:     #8a3a1d;
-    --code-bg:    #f1efe7;
+    --code-bg:    #f7f7f4;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
@@ -481,7 +481,7 @@ SHARED_CSS = dedent("""
     padding:3px 8px;border-radius:3px;border:1px solid var(--rule)}
 
   /* log panel: wider, shorter, sits below everything */
-  .fd-log{background:#fbfaf6;border:1px solid var(--rule);border-radius:4px;
+  .fd-log{background:#ffffff;border:1px solid var(--rule);border-radius:4px;
     height:220px;overflow:auto;padding:8px 0;
     font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.45}
   .fd-log-row{display:grid;grid-template-columns:84px 1fr;gap:10px;
@@ -571,7 +571,7 @@ SHARED_CSS = dedent("""
   .fd-metric.over{background:#faf2ee;border-color:var(--danger)}
   .fd-metric.over .fd-metric-v{color:var(--danger)}
   .fd-metric.over .fd-metric-h{color:var(--danger)}
-  .fd-metric.caution{background:#faf6ec;border-color:var(--accent-2)}
+  .fd-metric.caution{background:var(--accent-wash);border-color:var(--accent-2)}
   .fd-metric.caution .fd-metric-v{color:var(--accent-2)}
   .fd-metric.caution .fd-metric-h{color:var(--accent-2)}
   .fd-metric.live .fd-metric-v{color:var(--accent-2)}
@@ -1461,15 +1461,15 @@ ARRAY_DEMO_HTML = r"""
       const isSel = selected.has(i);
       const isOn  = committed[i] != null;
       if(isSel && isOn){
-        d.setAttribute('fill', '#b58900');
-        d.setAttribute('stroke', '#8a6700');
+        d.setAttribute('fill', '#d86f91');
+        d.setAttribute('stroke', '#a83f63');
         d.setAttribute('stroke-width','1.4');
         labels[i].setAttribute('fill', '#fff');
       } else if(isSel){
-        d.setAttribute('fill', '#f3e9c8');
-        d.setAttribute('stroke', '#8a6700');
+        d.setAttribute('fill', '#fde7ef');
+        d.setAttribute('stroke', '#a83f63');
         d.setAttribute('stroke-width','1.4');
-        labels[i].setAttribute('fill', '#8a6700');
+        labels[i].setAttribute('fill', '#a83f63');
       } else if(isOn){
         d.setAttribute('fill', '#1c1c1a');
         d.setAttribute('stroke', '#1c1c1a');
@@ -1582,7 +1582,7 @@ ARRAY_DEMO_HTML = r"""
       let s = '';
       // panel border
       s += '<rect x="'+padL+'" y="'+innerTop+'" width="'+plotW+'" height="'+plotH+
-           '" fill="#fbfaf6" stroke="#ebe9e2"/>';
+           '" fill="#ffffff" stroke="#ebe9e2"/>';
       // baseline
       s += '<line x1="'+padL+'" x2="'+(padL+plotW)+'" y1="'+midY+'" y2="'+midY+
            '" stroke="#9a9a93" stroke-width="0.6" stroke-dasharray="2 3"/>';
@@ -1592,7 +1592,7 @@ ARRAY_DEMO_HTML = r"""
            xMaxMs.toFixed(2)+' ms</text>';
       // small panel label top-left
       s += '<text x="'+(padL+4)+'" y="'+(innerTop+11)+'" '+
-           'font-family="JetBrains Mono, monospace" font-size="9" fill="#8a6700" '+
+           'font-family="JetBrains Mono, monospace" font-size="9" fill="#a83f63" '+
            'letter-spacing="0.04em">'+label+'</text>';
 
       const periodMs = 1000 / v.fr;
@@ -1618,7 +1618,7 @@ ARRAY_DEMO_HTML = r"""
           s += '<rect x="'+xs(as)+'" y="'+ys(v.amp)+
                '" width="'+(xs(Math.min(ae,xMaxMs)) - xs(as))+
                '" height="'+(midY - ys(v.amp))+
-               '" fill="#b58900" stroke="#8a6700" stroke-width="0.6"/>';
+               '" fill="#d86f91" stroke="#a83f63" stroke-width="0.6"/>';
         }
       }
       return s;
@@ -1755,7 +1755,7 @@ ARRAY_DEMO_HTML = r"""
       out += '<rect x="' + xs(as) + '" y="' + ys(v.amp) +
              '" width="' + (xs(ae) - xs(as)) +
              '" height="' + (midY - ys(v.amp)) +
-             '" fill="#b58900" stroke="#8a6700" stroke-width="0.5"/>';
+             '" fill="#d86f91" stroke="#a83f63" stroke-width="0.5"/>';
     }
     out += '</svg>';
     return out;
@@ -2238,7 +2238,7 @@ STIM_FLOW_HTML = r"""
     mx.K.textContent  = rng(kMin, kMax, 2, '');
     mx.D.textContent  = rng(dMin * 100, dMax * 100, 1, '%');
     mx.I.innerHTML    = rng(iMin, iMax, 1, 'µA') + ' <span style="color:var(--muted);font-size:11px;font-weight:500">&middot; sum ' + fmtFix(iSum,1) + ' µA</span>';
-    // caution styling on Shannon (amber, not red — k is a flag, not a verdict)
+    // caution styling on Shannon (sakura, not red — k is a flag, not a verdict)
     mx.K.parentElement.classList.toggle('caution', kMax > SHANNON_K_LIMIT);
 
     if(overK.length){
@@ -2331,7 +2331,7 @@ STIM_FLOW_HTML = r"""
     function ys(q){ return padT + plotH - (q / yMax) * plotH; }
 
     let out = '';
-    out += '<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+plotH+'" fill="#fbfaf6" stroke="#d8d6cf"/>';
+    out += '<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+plotH+'" fill="#ffffff" stroke="#d8d6cf"/>';
     out += '<text x="'+(padL-8)+'" y="'+(padT+10)+'" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#6c6c66">'+ fmtFix(yMax,3) +' &#xB5;C</text>';
     out += '<text x="'+(padL-8)+'" y="'+(padT+plotH-2)+'" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#6c6c66">0</text>';
 
@@ -2344,7 +2344,7 @@ STIM_FLOW_HTML = r"""
       pts += xs(s.t).toFixed(1) + ',' + ys(s.q).toFixed(1) + ' ';
     }
     if(pts){
-      out += '<polyline points="'+pts+'" fill="none" stroke="#b58900" stroke-width="2"/>';
+      out += '<polyline points="'+pts+'" fill="none" stroke="#d86f91" stroke-width="2"/>';
     }
 
     // now line
@@ -2456,13 +2456,13 @@ STIM_FLOW_HTML = r"""
           fill = '#8a3a1d';
           stroke = '#8a3a1d';
         } else {
-          fill = '#b58900';
-          stroke = '#8a6700';
+          fill = '#d86f91';
+          stroke = '#a83f63';
         }
         sw = (0.6 + 1.4 * f).toFixed(2);
       } else if(configured){
-        fill = unsafe ? '#fadcd0' : '#f1e3b2';
-        stroke = unsafe ? '#8a3a1d' : '#8a6700';
+        fill = unsafe ? '#fadcd0' : '#fde7ef';
+        stroke = unsafe ? '#8a3a1d' : '#a83f63';
         sw = '0.8';
       } else {
         fill = '#ebe9e2';
@@ -2530,7 +2530,7 @@ STIM_FLOW_HTML = r"""
       const H = 260;
       stripSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       const plotH = H - padT - padB;
-      out += '<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+plotH+'" fill="#fbfaf6" stroke="#d8d6cf"/>';
+      out += '<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+plotH+'" fill="#ffffff" stroke="#d8d6cf"/>';
       out += '<text x="'+(padL+plotW/2)+'" y="'+(padT+plotH/2+4)+'" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#9a9a93">no channels configured</text>';
       // now line + time axis still render so the clock visibly moves
       const axisY = padT + plotH;
@@ -2556,7 +2556,7 @@ STIM_FLOW_HTML = r"""
     stripSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
 
     // outer frame
-    out += '<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+plotH+'" fill="#fbfaf6" stroke="#d8d6cf"/>';
+    out += '<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+plotH+'" fill="#ffffff" stroke="#d8d6cf"/>';
 
     sorted.forEach((ch, ri) => {
       const yTop = padT + ri * rowH;
@@ -2613,8 +2613,8 @@ STIM_FLOW_HTML = r"""
         if(t < tStart || t > tEnd) return;
         out += '<line x1="'+xs(t)+'" x2="'+xs(t)+
                '" y1="'+padT+'" y2="'+(padT+plotH)+
-               '" stroke="#b58900" stroke-width="0.6" stroke-dasharray="2 3" opacity="0.6"/>';
-        out += '<text x="'+(xs(t)+3)+'" y="'+(padT-4)+'" font-family="JetBrains Mono, monospace" font-size="9" fill="#8a6700">'+lbl+'</text>';
+               '" stroke="#d86f91" stroke-width="0.6" stroke-dasharray="2 3" opacity="0.6"/>';
+        out += '<text x="'+(xs(t)+3)+'" y="'+(padT-4)+'" font-family="JetBrains Mono, monospace" font-size="9" fill="#a83f63">'+lbl+'</text>';
       });
     }
 
@@ -3098,7 +3098,7 @@ STIM_DEMO_HTML = """
     const phaseMs  = v.pw / 1000;
     const ipMs     = v.ip / 1000;
     const cathColor = '#1c1c1a';
-    const anodColor = '#b58900';
+    const anodColor = '#d86f91';
 
     // determine how many pulses to draw given playMs progression
     const np = v.np;
@@ -3135,7 +3135,7 @@ STIM_DEMO_HTML = """
         y: ys(v.amp),
         width:  xs(anodEnd) - xs(anodStart),
         height: midY - ys(v.amp),
-        fill: anodColor, stroke: '#8a6700', 'stroke-width': 0.6
+        fill: anodColor, stroke: '#a83f63', 'stroke-width': 0.6
       }));
     }
 
@@ -3144,7 +3144,7 @@ STIM_DEMO_HTML = """
       const xh = xs(Math.min(playMs, xMaxMs));
       svg.appendChild(el('line', {
         x1: xh, x2: xh, y1: padT, y2: padT+plotH,
-        stroke: '#b58900', 'stroke-width': 1, 'stroke-dasharray': '2 2'
+        stroke: '#d86f91', 'stroke-width': 1, 'stroke-dasharray': '2 2'
       }));
     }
   }
