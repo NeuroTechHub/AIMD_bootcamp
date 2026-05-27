@@ -36,6 +36,8 @@ p{margin:0 0 12px;color:var(--ink-2)}
 p.kicker{color:var(--ink);font-size:16px;margin-bottom:14px}
 code,.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:0.92em}
 code{background:var(--code-bg);padding:1px 5px;border-radius:3px;color:var(--ink)}
+a{color:var(--accent-2);text-decoration:none;border-bottom:1px solid var(--rule)}
+a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 em.term{font-style:normal;font-weight:600;color:var(--ink);border-bottom:1px dotted var(--muted-2)}
 hr.div{border:0;border-top:1px solid var(--rule);margin:42px 0}
 ul.tight{margin:6px 0 12px;padding-left:22px}
@@ -83,6 +85,15 @@ aside.callout{border-left:3px solid var(--accent);background:var(--paper-2);
   padding:12px 16px;margin:18px 0;font-size:14px;color:var(--ink-2);border-radius:0 4px 4px 0}
 aside.callout strong{color:var(--ink)}
 
+/* Disclaimer callout (amber/honey) — sits above module-nav on every module */
+aside.disclaimer{border-left:3px solid #c89a3a;background:#fbf3df;
+  padding:12px 16px;margin:0 0 24px;font-size:13.5px;color:#5a4513;
+  border-radius:0 4px 4px 0;max-width:820px;line-height:1.5}
+aside.disclaimer strong{color:#3a2c0d}
+aside.disclaimer .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;
+  text-transform:uppercase;letter-spacing:0.08em;color:#8a6a1c;
+  display:inline-block;margin-right:8px;font-weight:600}
+
 details.prompt{border:1px solid var(--rule);background:#fff;border-radius:6px;
   padding:10px 14px;margin:14px 0;font-size:14px}
 details.prompt summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:13.5px;
@@ -118,7 +129,7 @@ footer a{color:var(--muted);border-bottom:1px solid var(--rule-2);text-decoratio
 footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* Module navigation (prev / next) */
-.module-nav{display:flex;gap:12px;margin:28px 0;flex-wrap:wrap}
+.module-nav{display:flex;gap:12px;margin:0 0 22px;flex-wrap:wrap}
 .module-nav a{display:flex;flex-direction:column;gap:2px;padding:10px 16px;
   border:1px solid var(--rule);border-radius:6px;background:#fff;text-decoration:none;
   font-family:'JetBrains Mono',monospace;transition:border-color .15s}
@@ -158,17 +169,26 @@ a.step:hover .name{color:var(--accent)}
   how a model like DeepGaze III predicts the next place the eye will land. Use this to build
   intuition before (or alongside) the notebook.</p>
   <div class="meta">
-    <span><strong>Module:</strong> Gaze &amp; DeepGaze</span>
-    <span><strong>Companion:</strong> <code>gaze_workshop.ipynb</code></span>
+    <span><strong>Module:</strong> M2</span>
+    <span><strong>Pair with:</strong>
+      <code>gaze_workshop.ipynb</code> &middot;
+      <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/deepgaze-and-gaze/gaze_workshop.ipynb" target="_blank" rel="noopener">Colab</a>
+      <span class="vscode-wrap"> &middot; <a class="vscode-link" data-path="deepgaze-and-gaze/gaze_workshop.ipynb" href="#">VS Code</a></span>
+    </span>
   </div>
 </header>
+
+<aside class="disclaimer">
+  <span class="lbl">Note</span>
+  Some modules show <strong>simplified versions</strong> of the underlying models so they can run live in the browser without Python. For the full implementation and exact behaviour, see the paired notebook.
+</aside>
 
 <nav class="module-nav" aria-label="Module navigation">
   <a class="mn-prev" href="computer-vision.html"><span class="mn-dir">&larr; prev</span><span class="mn-name">M1 &middot; Computer vision</span></a>
   <a class="mn-next" href="neuromod-and-stim.html"><span class="mn-dir">next &rarr;</span><span class="mn-name">M3 &middot; Neuromodulation &amp; stim</span></a>
 </nav>
 
-<h3 style="margin-top:0">Where this fits in the bootcamp pipeline</h3>
+<h3 style="margin-top:0">The pipeline at a glance</h3>
 <div class="pipeline">
   <a class="step" href="computer-vision.html"><div class="lbl">M1</div><div class="name">Camera + CV</div></a>
   <div class="arr">&rarr;</div>
@@ -218,11 +238,10 @@ now?"</p>
   patient every time you want to test a new algorithm. A gaze model lets you simulate plausible
   eye movements over still images or video and run the whole prosthesis pipeline end-to-end on
   a laptop &mdash; fast, repeatable, and consistent across conditions.</li>
-  <li><strong>Anticipating where the user will look next.</strong> The implant has only a few
+  <li><strong>Constructing an importance map from gaze data.</strong> The implant has only a few
   hundred electrodes &mdash; far too few to render the whole scene in detail. If you can
-  predict which region of the scene the user is about to attend to, you can spend that limited
-  bandwidth on richer features (edges, faces, text) in exactly that region, and leave the rest
-  as a sparse outline.</li>
+  predict which region of the scene the user is more likely to look at, you can try representing that part with more details, leaving the rest of the scene
+  represented with sparse outlines.</li>
 </ol>
 
 <p>This module is about that prediction step. We use DeepGaze III, a pretrained model that has
@@ -593,8 +612,7 @@ resource, not a workshop step.</p>
 </nav>
 
 <footer>
-  NTH bootcamp · M2 · <a href="../bootcamp-plan.html">back to plan</a> ·
-  <a href="neuromod-and-stim.html">next: M3 &rarr;</a> ·
+  NTH bootcamp · M2 · <a href="neuromod-and-stim.html">next: M3 &rarr;</a> ·
   demos on this page use a synthetic scene + hand-built probability model;
   the real DeepGaze III lives in the notebook.
 </footer>
@@ -947,6 +965,24 @@ function drawScanpath(ctx, history, opts={}){
   // Start empty so user actively triggers it
   render();
 })();
+</script>
+<script>
+/* Wire up "open in VS Code" links to vscode://file/<absolute path> at runtime. */
+document.addEventListener('DOMContentLoaded', function(){
+  var isFile = window.location.protocol === 'file:';
+  if (!isFile) {
+    document.querySelectorAll('.vscode-wrap').forEach(function(w){ w.style.display='none'; });
+    return;
+  }
+  document.querySelectorAll('a.vscode-link').forEach(function(a){
+    var rel = a.getAttribute('data-path');
+    if (!rel) return;
+    var pageUrl = window.location.href.split('#')[0].split('?')[0];
+    var baseDir = pageUrl.substring(0, pageUrl.lastIndexOf('/') + 1);
+    var abs = new URL(rel, baseDir).href.replace(/^file:\/\/\/?/, '');
+    a.href = 'vscode://file/' + abs;
+  });
+});
 </script>
 </body>
 </html>

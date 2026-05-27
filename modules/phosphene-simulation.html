@@ -58,6 +58,10 @@ header.masthead{border-bottom:1px solid var(--rule);padding-bottom:28px;margin-b
 header.masthead .eyebrow{font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);font-weight:500}
 header.masthead h1{font-size:34px;font-weight:600;letter-spacing:-0.02em;line-height:1.1;margin:12px 0 14px}
 header.masthead p.lede{color:var(--ink-2);font-size:16px;max-width:760px;margin:0}
+header.masthead .meta{display:flex;gap:24px;flex-wrap:wrap;margin-top:20px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+header.masthead .meta strong{color:var(--ink);font-weight:600}
+header.masthead .meta a{color:var(--accent-2);text-decoration:none;border-bottom:1px dotted var(--rule)}
+header.masthead .meta a:hover{color:var(--accent)}
 h2{font-size:22px;font-weight:600;letter-spacing:-0.01em;margin:52px 0 12px;color:var(--ink)}
 h2 .num{color:var(--muted-2);font-variant-numeric:tabular-nums;margin-right:12px;font-weight:500}
 h3{font-size:13px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);margin:24px 0 8px}
@@ -123,6 +127,15 @@ a.step:hover .name{color:var(--accent)}
 aside.callout{border-left:3px solid var(--accent);background:var(--paper-2);
   padding:12px 16px;margin:18px 0;font-size:14px;color:var(--ink-2);border-radius:0 4px 4px 0}
 aside.callout strong{color:var(--ink)}
+
+/* Disclaimer callout (amber/honey) — sits above module-nav on every module */
+aside.disclaimer{border-left:3px solid #c89a3a;background:#fbf3df;
+  padding:12px 16px;margin:0 0 24px;font-size:13.5px;color:#5a4513;
+  border-radius:0 4px 4px 0;max-width:820px;line-height:1.5}
+aside.disclaimer strong{color:#3a2c0d}
+aside.disclaimer .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;
+  text-transform:uppercase;letter-spacing:0.08em;color:#8a6a1c;
+  display:inline-block;margin-right:8px;font-weight:600}
 details.prompt{border:1px solid var(--rule);background:#fff;border-radius:6px;
   padding:10px 14px;margin:14px 0;font-size:14px}
 details.prompt summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:13.5px;
@@ -137,6 +150,8 @@ details.prompt p{margin:10px 0 4px;color:var(--ink-2);font-size:13.5px}
 
 footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);
   font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+footer a{color:var(--muted);border-bottom:1px solid var(--rule-2);text-decoration:none}
+footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 @media (max-width:880px){
   .lab{grid-template-columns:1fr}
   .lab .twin{grid-template-columns:1fr}
@@ -208,14 +223,29 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);
   <h1>Phosphene Simulator</h1>
   <p class="lede">A live, no-Python playground for the same equations as
     <code>dynaphos</code>. Move the sliders, watch the basis change. Use this
-    to build intuition before (or alongside) the notebook.</p>
+    to build intuition before (or alongside) the
+    <a href="phosphene-simulation/phosphene-simulation.ipynb">notebook</a>.</p>
+  <div class="meta">
+    <span><strong>Module:</strong> M4</span>
+    <span><strong>Pair with:</strong>
+      <code>phosphene-simulation.ipynb</code> &middot;
+      <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/phosphene-simulation/phosphene-simulation.ipynb" target="_blank" rel="noopener">Colab</a>
+      <span class="vscode-wrap"> &middot; <a class="vscode-link" data-path="phosphene-simulation/phosphene-simulation.ipynb" href="#">VS Code</a></span>
+    </span>
+  </div>
 </header>
+
+<aside class="disclaimer">
+  <span class="lbl">Note</span>
+  Some modules show <strong>simplified versions</strong> of the underlying models so they can run live in the browser without Python. For the full implementation and exact behaviour, see the paired notebook.
+</aside>
 
 <nav class="module-nav" aria-label="Module navigation">
   <a class="mn-prev" href="neuromod-and-stim.html"><span class="mn-dir">&larr; back</span><span class="mn-name">M3 &middot; Stimulation</span></a>
   <a class="mn-next" href="decoding-and-closed-loop.html"><span class="mn-dir">next &rarr;</span><span class="mn-name">M5 &middot; Decoding</span></a>
 </nav>
 
+<h3 style="margin-top:0">The pipeline at a glance</h3>
 <div class="pipeline" aria-label="Bootcamp pipeline progress">
   <a class="step" href="computer-vision.html"><div class="lbl">M1</div><div class="name">Camera + CV</div></a>
   <div class="arr">&rarr;</div>
@@ -229,7 +259,7 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);
 </div>
 
 <nav class="toc" aria-label="Sections">
-  <a href="#single"><span class="n">01</span>Single phosphene</a>
+  <a href="#single"><span class="n">01</span>How to simulate what the users see</a>
   <a href="#population"><span class="n">02</span>Phosphene population</a>
   <a href="#forward"><span class="n">03</span>Image to phosphenes</a>
   <a href="#temporal"><span class="n">04</span>Temporal dynamics</a>
@@ -240,7 +270,7 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);
 
 <!-- ============================================================ 01 -->
 <section id="single">
-<h2><span class="num">01</span>One phosphene</h2>
+<h2><span class="num">01</span>How to simulate what the users see</h2>
 <p class="kicker">A single electrode evokes a Gaussian-shaped bright spot.
 Its position is set by the retinotopic map; its size is set by current and
 local cortical magnification.</p>
@@ -662,7 +692,7 @@ the math behind both is in the panel just below.</p>
 <h2><span class="num">05</span>Paint with phosphenes</h2>
 <p class="kicker">Author the stimulus directly. Paint a binary mask, or seed
 it from edges / segmentation of a real image, and watch the prosthesis
-render it in real time. This is the "what would a prosthesis show <em>this</em>?" lab.</p>
+render it in real time.</p>
 
 <div class="paintlab">
   <div class="controlsbar">
@@ -726,14 +756,21 @@ render it in real time. This is the "what would a prosthesis show <em>this</em>?
 
   <div class="readout" id="pt-readout">mode = in-fill | brush = 14 px | mask = 0.0% white</div>
 </div>
+
+<aside class="callout"><strong>Going deeper (optional).</strong> The companion notebook
+<a href="phosphene-simulation/phosphene-simulation.ipynb"><code>phosphene-simulation.ipynb</code></a>
+revisits this material in Python against the real <code>dynaphos</code> library, and goes
+one step further: it drives the simulator from neural-network outputs &mdash; YOLO
+segmentation, monocular depth (MiDaS), saliency, and open-vocabulary detection
+(YOLO-World) &mdash; so you can see how the upstream representation shapes what a
+prosthesis user would perceive. It is a self-guided resource, not a step in the
+workshop: open it whenever you want the hands-on version.</aside>
 </section>
 
 <!-- ============================================================ 06 -->
 <section id="self-check">
 <h2><span class="num">06</span>Self-check</h2>
-<p>Try to answer each one from memory before opening it. The answers
-are all things the earlier sections of this page have already told you;
-nothing here needs a calculation.</p>
+<p>Try to answer each one from memory before opening it.</p>
 
 <details class="prompt">
   <summary>Q1. Two electrodes are stimulated with exactly the same current. One sits near the fovea, the other far in the periphery. Which one produces the larger, blobbier phosphene, and what is the reason?</summary>
@@ -917,7 +954,7 @@ treated separately below.</p>
 
 <hr class="div">
 <footer>
-  NTH bootcamp &middot; M4 &middot; <a href="../bootcamp-plan.html" style="color:inherit">back to plan</a> &middot;
+  NTH bootcamp &middot; M4 &middot;
   all physics implemented in <code>~400 lines of vanilla JS</code> below.
   Built against <code>dynaphos 0.1.3</code>
   (<a href="https://github.com/neuralcodinglab/dynaphos" style="color:inherit">github.com/neuralcodinglab/dynaphos</a>,
@@ -2264,6 +2301,24 @@ function bindRange(id, valId, fmt = x => x){
   loadDefault();
 })();
 
+</script>
+<script>
+/* Wire up "open in VS Code" links to vscode://file/<absolute path> at runtime. */
+document.addEventListener('DOMContentLoaded', function(){
+  var isFile = window.location.protocol === 'file:';
+  if (!isFile) {
+    document.querySelectorAll('.vscode-wrap').forEach(function(w){ w.style.display='none'; });
+    return;
+  }
+  document.querySelectorAll('a.vscode-link').forEach(function(a){
+    var rel = a.getAttribute('data-path');
+    if (!rel) return;
+    var pageUrl = window.location.href.split('#')[0].split('?')[0];
+    var baseDir = pageUrl.substring(0, pageUrl.lastIndexOf('/') + 1);
+    var abs = new URL(rel, baseDir).href.replace(/^file:\/\/\/?/, '');
+    a.href = 'vscode://file/' + abs;
+  });
+});
 </script>
 </body>
 </html>
