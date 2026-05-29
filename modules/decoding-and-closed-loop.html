@@ -711,7 +711,7 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 <p class='kicker'>The previous four modules ran open loop: image &rarr; stim &rarr; phosphenes, done. The loop closes when a decoder reads the phosphenes back out and that readout drives the next stim. Without it, a prosthesis can&rsquo;t cope with drift, adaptation, or a wearer who shifts their gaze mid-sentence.</p>
 
 <figure class='hero-loop'>
-<svg viewBox='0 0 720 280' role='img' aria-label='Closed-loop pipeline: camera, vision model, stim, phosphenes, decoder, with a feedback arrow returning to stim and the vision model.' xmlns='http://www.w3.org/2000/svg'>
+<svg id='hero-svg' viewBox='0 0 720 280' role='img' aria-label='Closed-loop pipeline: camera, vision model, stim, phosphenes, decoder, with a feedback arrow returning to stim and the vision model.' xmlns='http://www.w3.org/2000/svg'>
   <defs>
     <marker id='loop-arr' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'>
       <path d='M0,0 L10,5 L0,10 z' fill='#3a3a36'/>
@@ -720,40 +720,40 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
       <path d='M0,0 L10,5 L0,10 z' fill='#a83f63'/>
     </marker>
   </defs>
-  <!-- forward chain: camera -> CV -> gaze -> stim -> phosphenes -> decoder -->
+  <!-- forward chain: camera -> CV -> stim -> phosphenes -> decoder -> readout -->
   <g font-family='JetBrains Mono, monospace' font-size='10' text-anchor='middle'>
-    <g transform='translate(40,80)'>
+    <g class='hero-node' data-target='#loop' data-tip='CAMERA &middot; raw scene in. The whole loop has to keep up with whatever the wearer is looking at.' transform='translate(40,80)'>
       <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
       <text x='40' y='26' font-weight='600' fill='#1c1c1a'>CAMERA</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>scene in</text>
     </g>
-    <g transform='translate(150,80)'>
+    <g class='hero-node' data-target='#e2e' data-tip='VISION MODEL &middot; turns the scene into a stim plan. §05 trains its weights end-to-end through the simulator.' transform='translate(150,80)'>
       <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
       <text x='40' y='26' font-weight='600' fill='#1c1c1a'>VISION MODEL</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>edges / mask</text>
     </g>
-    <g transform='translate(260,80)'>
+    <g class='hero-node' data-target='#pid' data-tip='STIM &middot; current per channel. §03 lets a PID controller write this every frame to track a target.' transform='translate(260,80)'>
       <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
       <text x='40' y='26' font-weight='600' fill='#1c1c1a'>STIM</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>current per ch.</text>
     </g>
-    <g transform='translate(370,80)'>
+    <g class='hero-node' data-target='#read' data-tip='DYNAPHOS &middot; the differentiable phosphene simulator. §02 shows how brightness comes out per electrode.' transform='translate(370,80)'>
       <rect width='80' height='60' rx='4' fill='#fde7ef' stroke='#a83f63'/>
       <text x='40' y='26' font-weight='600' fill='#a83f63'>DYNAPHOS</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#a83f63' font-size='9'>phosphenes</text>
     </g>
-    <g transform='translate(480,80)'>
+    <g class='hero-node' data-target='#train' data-tip='DECODER &middot; reads phosphenes back to a number or label. §04 lets you train one in your browser.' transform='translate(480,80)'>
       <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
       <text x='40' y='26' font-weight='600' fill='#1c1c1a'>DECODER</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>readout</text>
     </g>
-    <g transform='translate(590,80)'>
+    <g class='hero-node' data-target='#loop' data-tip='READOUT &middot; one number per frame. The control signal that lets §06 close the whole loop.' transform='translate(590,80)'>
       <rect width='90' height='60' rx='4' fill='#f8f8f6' stroke='#d8d6cf' stroke-dasharray='3 3'/>
       <text x='45' y='26' font-weight='600' fill='#3a3a36'>READOUT</text>
       <text x='45' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>brightness / label</text>
     </g>
-    <!-- forward arrows -->
-    <g stroke='#3a3a36' stroke-width='1.2' fill='none' marker-end='url(#loop-arr)'>
+    <!-- forward arrows: animated dash flow -->
+    <g class='hero-fwd' stroke='#3a3a36' stroke-width='1.2' fill='none' marker-end='url(#loop-arr)'>
       <path d='M120 110 L150 110'/>
       <path d='M230 110 L260 110'/>
       <path d='M340 110 L370 110'/>
@@ -761,11 +761,16 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
       <path d='M560 110 L590 110'/>
     </g>
     <!-- feedback arrow: from decoder back to STIM and VISION MODEL -->
-    <g stroke='#a83f63' stroke-width='1.6' fill='none' marker-end='url(#loop-arr-pink)' stroke-dasharray='5 3'>
-      <path d='M525 140 Q525 220 300 220 L300 145' />
+    <g class='hero-fb' data-target='#pid' data-tip='FEEDBACK &middot; the loop. §03 closes it with a PID; §05 closes it with gradients during end-to-end training; §06 puts both together.'>
+      <!-- invisible hit area so the whole feedback region is hoverable -->
+      <rect class='hero-fb-hit' x='295' y='130' width='240' height='95' fill='rgba(0,0,0,0)'/>
+      <path class='hero-fb-line' d='M525 140 Q525 220 300 220 L300 145' stroke='#a83f63' stroke-width='1.6' fill='none' marker-end='url(#loop-arr-pink)' stroke-dasharray='5 3'/>
+      <g transform='translate(385,210)' class='hero-fb-pill'>
+        <rect x='-30' y='-11' width='60' height='22' rx='11' fill='#fff' stroke='#a83f63'/>
+        <text y='4' font-weight='700' fill='#a83f63' font-size='10'>PID &middot; &nabla;</text>
+      </g>
     </g>
-    <text x='415' y='240' font-family='Inter, sans-serif' fill='#a83f63' font-size='11' font-weight='600'>feedback: this is the loop</text>
-    <text x='415' y='256' font-family='Inter, sans-serif' fill='#6c6c66' font-size='10'>error &rarr; PID  &middot;  gradient &rarr; end-to-end training</text>
+    <text x='415' y='252' font-family='Inter, sans-serif' fill='#6c6c66' font-size='10'>error &rarr; PID  &middot;  gradient &rarr; end-to-end training</text>
     <!-- gaze tag above VISION MODEL -->
     <g transform='translate(150,40)'>
       <rect width='80' height='28' rx='3' fill='#f8f8f6' stroke='#d8d6cf' stroke-dasharray='2 2'/>
@@ -777,6 +782,7 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
     </g>
   </g>
 </svg>
+<p id='hero-tip' class='hero-tip' aria-live='polite'>Hover any node for a one-line tour &middot; click to jump to that section.</p>
 <figcaption>The first five blocks already ran end-to-end across M1&ndash;M4. This module wires the dashed pink arrow on the bottom: the decoder&rsquo;s readout flows back into the next stim command (§03 PID) or into the vision model&rsquo;s weights (§05 end-to-end). §06 puts the whole thing on one page.</figcaption>
 </figure>
 
@@ -808,7 +814,63 @@ Open-loop systems pick a stim, render a phosphene, and hope. Three things make h
   background:var(--paper-2);border:1px solid var(--rule);border-radius:6px;padding:8px}
 .hero-loop figcaption{font-size:12.5px;color:var(--muted);
   margin-top:8px;line-height:1.5;max-width:760px}
+.hero-tip{font-size:12.5px;color:var(--ink);background:var(--paper-2);
+  border:1px dashed var(--rule);border-radius:6px;padding:7px 11px;
+  margin:8px 0 4px;max-width:760px;min-height:32px;
+  font-family:'Inter',sans-serif;line-height:1.45}
+.hero-node{cursor:pointer;transition:filter 120ms ease}
+.hero-node rect{transition:fill 120ms ease,stroke-width 120ms ease}
+.hero-node:hover rect{stroke-width:2;filter:drop-shadow(0 1px 2px rgba(168,63,99,.25))}
+.hero-node.hero-pulse rect{fill:#fce6ee !important;stroke:#a83f63 !important}
+/* Forward-arrow dash flow */
+.hero-fwd path{stroke-dasharray:4 3;animation:heroflow 2s linear infinite}
+@keyframes heroflow{from{stroke-dashoffset:0}to{stroke-dashoffset:-14}}
+/* Feedback arrow: thicker, distinct, opposite-direction flow */
+.hero-fb{cursor:pointer}
+.hero-fb-line{stroke-dasharray:5 3;animation:herofb 2.4s linear infinite}
+@keyframes herofb{from{stroke-dashoffset:0}to{stroke-dashoffset:16}}
+.hero-fb:hover .hero-fb-line{stroke-width:2.4}
+.hero-fb:hover .hero-fb-pill rect{fill:#fce6ee}
 </style>
+
+<script>
+(function heroInteractive(){
+  const svg = document.getElementById('hero-svg');
+  if(!svg) return;
+  const tip = document.getElementById('hero-tip');
+  const defaultTip = tip ? tip.textContent : '';
+  const fbLinkedTargets = ['#train','#pid']; // decoder + stim get a pulse when hovering feedback
+  function clearPulse(){ svg.querySelectorAll('.hero-pulse').forEach(el=>el.classList.remove('hero-pulse')); }
+  svg.querySelectorAll('.hero-node').forEach(node=>{
+    const tgt = node.getAttribute('data-target');
+    const txt = node.getAttribute('data-tip') || '';
+    node.addEventListener('mouseenter', ()=>{ if(tip) tip.textContent = txt; });
+    node.addEventListener('mouseleave', ()=>{ if(tip) tip.textContent = defaultTip; });
+    node.addEventListener('click', ()=>{
+      if(!tgt) return;
+      const target = document.querySelector(tgt);
+      if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+  const fb = svg.querySelector('.hero-fb');
+  if(fb){
+    const fbTxt = fb.getAttribute('data-tip') || '';
+    const fbTgt = fb.getAttribute('data-target');
+    fb.addEventListener('mouseenter', ()=>{
+      if(tip) tip.textContent = fbTxt;
+      fbLinkedTargets.forEach(sel=>{
+        svg.querySelectorAll(`.hero-node[data-target="${sel}"]`).forEach(n=>n.classList.add('hero-pulse'));
+      });
+    });
+    fb.addEventListener('mouseleave', ()=>{ if(tip) tip.textContent = defaultTip; clearPulse(); });
+    fb.addEventListener('click', ()=>{
+      if(!fbTgt) return;
+      const target = document.querySelector(fbTgt);
+      if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  }
+})();
+</script>
 
 
 <section id='read'>
@@ -1085,6 +1147,15 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
     </div>
   </div>
 
+  <div class='pid-eq' id='pid-eq' aria-label='Live PID control law'>
+    <span class='lead'>u(t)&nbsp;=</span>
+    <span class='term' id='eq-p'><b><span id='eq-p-c'>100</span></b>&middot;e(t)<em>P</em></span>
+    <span class='op'>+</span>
+    <span class='term' id='eq-i'><b><span id='eq-i-c'>80</span></b>&middot;&int;e&thinsp;d&tau;<em>I</em></span>
+    <span class='op'>+</span>
+    <span class='term' id='eq-d'><b><span id='eq-d-c'>15</span></b>&middot;de/dt<em>D</em></span>
+  </div>
+
   <div class='pid-footer'>
     <span class='pid-stat' id='pid-stat'>err: <span id='pid-err'>&mdash;</span> &middot; overshoot: <span id='pid-over'>&mdash;</span></span>
     <button id='pid-reset' class='pid-reset'>reset trace</button>
@@ -1162,6 +1233,22 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
   background:var(--rule);border-radius:1px}
 .pid-knob input[type=range]::-moz-range-thumb{height:12px;width:12px;
   background:var(--accent);border-radius:50%;border:0}
+
+.pid-eq{display:flex;align-items:center;gap:10px;padding:9px 14px;
+  background:#fff;border-top:1px solid var(--rule-2);flex-wrap:wrap;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink)}
+.pid-eq .lead{color:var(--muted);font-weight:600;letter-spacing:.04em}
+.pid-eq .op{color:var(--muted);font-weight:600}
+.pid-eq .term{position:relative;padding:3px 9px 3px 9px;border-radius:4px;
+  border:1px solid transparent;background:transparent;
+  font-variant-numeric:tabular-nums;transition:background 240ms ease,border-color 240ms ease}
+.pid-eq .term b{font-weight:700;color:var(--ink)}
+.pid-eq .term em{display:inline-block;font-style:normal;margin-left:6px;
+  font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.pid-eq .term.active{background:var(--accent-wash);border-color:var(--accent);color:var(--accent-2)}
+.pid-eq .term.active b{color:var(--accent-2)}
+.pid-eq .term.active em{color:var(--accent-2)}
+@media (max-width:780px){ .pid-eq{font-size:11px} }
 
 .pid-footer{display:flex;align-items:center;gap:10px;padding:8px 14px;
   background:#fff;border-top:1px solid var(--rule-2);
@@ -1261,12 +1348,29 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
   const errOut  = document.getElementById('pid-err');
   const overOut = document.getElementById('pid-over');
 
-  function syncGains(){
-    Kp = parseFloat(kpEl.value); kpV.textContent = Kp;
-    Ki = parseFloat(kiEl.value); kiV.textContent = Ki;
-    Kd = parseFloat(kdEl.value); kdV.textContent = Kd;
+  // live-equation refs + a tiny timer per term so successive drags don't fight
+  const eqP = document.getElementById('eq-p');
+  const eqI = document.getElementById('eq-i');
+  const eqD = document.getElementById('eq-d');
+  const eqPc = document.getElementById('eq-p-c');
+  const eqIc = document.getElementById('eq-i-c');
+  const eqDc = document.getElementById('eq-d-c');
+  const eqTimers = {p:0, i:0, d:0};
+  function flashTerm(which){
+    const el = which==='p'?eqP:(which==='i'?eqI:eqD);
+    if(!el) return;
+    el.classList.add('active');
+    clearTimeout(eqTimers[which]);
+    eqTimers[which] = setTimeout(()=>el.classList.remove('active'), 800);
   }
-  [kpEl, kiEl, kdEl].forEach(el => el.addEventListener('input', syncGains));
+  function syncGains(){
+    Kp = parseFloat(kpEl.value); kpV.textContent = Kp; if(eqPc) eqPc.textContent = Kp;
+    Ki = parseFloat(kiEl.value); kiV.textContent = Ki; if(eqIc) eqIc.textContent = Ki;
+    Kd = parseFloat(kdEl.value); kdV.textContent = Kd; if(eqDc) eqDc.textContent = Kd;
+  }
+  kpEl.addEventListener('input', ()=>{ syncGains(); flashTerm('p'); });
+  kiEl.addEventListener('input', ()=>{ syncGains(); flashTerm('i'); });
+  kdEl.addEventListener('input', ()=>{ syncGains(); flashTerm('d'); });
   syncGains();
 
   function setPreset(p){
@@ -1359,6 +1463,42 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
     const xs = i => i * W / HISTORY;
     const yB = v => topH - v * topH;       // brightness 0..1 in top zone
     const yC = v => midY + 4 + (H - midY - 8) * (1 - v);
+
+    // trace zones: tracking band ±5% around target (soft sakura),
+    // overshoot region above (soft amber), lag region below (soft gray).
+    // Polygons follow the live target trace, so the zones bend with the
+    // setpoint instead of sitting at a fixed horizontal level.
+    const BAND = 0.05;
+    // overshoot: top of canvas down to (tgt+BAND)
+    ctx.fillStyle = 'rgba(232,176,72,0.14)';
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(W, 0);
+    for (let i=HISTORY-1; i>=0; i--){
+      const idx = (head + i) % HISTORY;
+      ctx.lineTo(xs(i), yB(Math.min(1, target[idx] + BAND)));
+    }
+    ctx.closePath(); ctx.fill();
+    // lag: bottom of top zone up to (tgt-BAND)
+    ctx.fillStyle = 'rgba(122,154,166,0.12)';
+    ctx.beginPath();
+    ctx.moveTo(0, topH); ctx.lineTo(W, topH);
+    for (let i=HISTORY-1; i>=0; i--){
+      const idx = (head + i) % HISTORY;
+      ctx.lineTo(xs(i), yB(Math.max(0, target[idx] - BAND)));
+    }
+    ctx.closePath(); ctx.fill();
+    // tracking: between (tgt+BAND) and (tgt-BAND)
+    ctx.fillStyle = 'rgba(216,111,145,0.16)';
+    ctx.beginPath();
+    for (let i=0; i<HISTORY; i++){
+      const idx = (head + i) % HISTORY;
+      ctx.lineTo(xs(i), yB(Math.min(1, target[idx] + BAND)));
+    }
+    for (let i=HISTORY-1; i>=0; i--){
+      const idx = (head + i) % HISTORY;
+      ctx.lineTo(xs(i), yB(Math.max(0, target[idx] - BAND)));
+    }
+    ctx.closePath(); ctx.fill();
 
     // error fill (between target and achieved, top zone)
     ctx.fillStyle = 'rgba(138,58,29,0.18)';
