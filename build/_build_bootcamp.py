@@ -3268,12 +3268,11 @@ def build_module(filename: str, spec: dict) -> None:
     (MODULES_DIR / filename).write_text(html_text, encoding="utf-8")
 
 
-# Modules this generator owns end-to-end. The other three (M1 CV, M2 Gaze, M4 Phosphene)
-# are Lefteris's hand-authored playgrounds and must NOT be regenerated; this script
-# refuses to overwrite them.
+# Modules this generator owns end-to-end. The other four
+# (M1 CV, M2 Gaze, M4 Phosphene, M5 Decoding) are hand-authored playgrounds
+# and must NOT be regenerated; this script refuses to overwrite them.
 OWNED_MODULES = {
     "neuromod-and-stim.html",         # M3 - ours
-    "decoding-and-closed-loop.html",  # M5 - stub
 }
 
 
