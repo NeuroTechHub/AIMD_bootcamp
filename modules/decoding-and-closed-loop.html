@@ -695,14 +695,13 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 
 <nav class='toc' aria-label='Sections'>
   <a href='#concept'><span class='n'>01</span> The loop in one picture</a>
-  <a href='#read'><span class='n'>02</span> Read brightness back out</a>
-  <a href='#pid'><span class='n'>03</span> PID: control the dynamics</a>
-  <a href='#train'><span class='n'>04</span> Train your own decoder</a>
-  <a href='#e2e'><span class='n'>05</span> End-to-end through the simulator</a>
-  <a href='#loop'><span class='n'>06</span> The whole loop, live</a>
-  <a href='#self-check'><span class='n'>07</span> Self-check</a>
-  <a href='#next'><span class='n'>08</span> Where to next</a>
-  <a href='#refs'><span class='n'>09</span> Tools &amp; references</a>
+  <a href='#pid'><span class='n'>02</span> PID: control the dynamics</a>
+  <a href='#train'><span class='n'>03</span> Train your own decoder</a>
+  <a href='#e2e'><span class='n'>04</span> End-to-end through the simulator</a>
+  <a href='#loop'><span class='n'>05</span> The whole loop, live</a>
+  <a href='#self-check'><span class='n'>06</span> Self-check</a>
+  <a href='#next'><span class='n'>07</span> Where to next</a>
+  <a href='#refs'><span class='n'>08</span> Tools &amp; references</a>
 </nav>
 
 
@@ -727,27 +726,27 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
       <text x='40' y='26' font-weight='600' fill='#1c1c1a'>CAMERA</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>scene in</text>
     </g>
-    <g class='hero-node' data-target='#e2e' data-tip='VISION MODEL &middot; turns the scene into a stim plan. §05 trains its weights end-to-end through the simulator.' transform='translate(150,80)'>
+    <g class='hero-node' data-target='#e2e' data-tip='VISION MODEL &middot; turns the scene into a stim plan. §04 trains its weights end-to-end through the simulator.' transform='translate(150,80)'>
       <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
       <text x='40' y='26' font-weight='600' fill='#1c1c1a'>VISION MODEL</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>edges / mask</text>
     </g>
-    <g class='hero-node' data-target='#pid' data-tip='STIM &middot; current per channel. §03 lets a PID controller write this every frame to track a target.' transform='translate(260,80)'>
+    <g class='hero-node' data-target='#pid' data-tip='STIM &middot; current per channel. §02 lets a PID controller write this every frame to track a target.' transform='translate(260,80)'>
       <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
       <text x='40' y='26' font-weight='600' fill='#1c1c1a'>STIM</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>current per ch.</text>
     </g>
-    <g class='hero-node' data-target='#read' data-tip='DYNAPHOS &middot; the differentiable phosphene simulator. §02 shows how brightness comes out per electrode.' transform='translate(370,80)'>
+    <g class='hero-node' data-target='#e2e' data-tip='DYNAPHOS &middot; the differentiable phosphene simulator. §04 backprops through it to train a vision model end-to-end.' transform='translate(370,80)'>
       <rect width='80' height='60' rx='4' fill='#fde7ef' stroke='#a83f63'/>
       <text x='40' y='26' font-weight='600' fill='#a83f63'>DYNAPHOS</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#a83f63' font-size='9'>phosphenes</text>
     </g>
-    <g class='hero-node' data-target='#train' data-tip='DECODER &middot; reads phosphenes back to a number or label. §04 lets you train one in your browser.' transform='translate(480,80)'>
+    <g class='hero-node' data-target='#train' data-tip='DECODER &middot; reads phosphenes back to a number or label. §03 lets you train one in your browser.' transform='translate(480,80)'>
       <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
       <text x='40' y='26' font-weight='600' fill='#1c1c1a'>DECODER</text>
       <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>readout</text>
     </g>
-    <g class='hero-node' data-target='#loop' data-tip='READOUT &middot; one number per frame. The control signal that lets §06 close the whole loop.' transform='translate(590,80)'>
+    <g class='hero-node' data-target='#loop' data-tip='READOUT &middot; one number per frame. The control signal that lets §05 close the whole loop.' transform='translate(590,80)'>
       <rect width='90' height='60' rx='4' fill='#f8f8f6' stroke='#d8d6cf' stroke-dasharray='3 3'/>
       <text x='45' y='26' font-weight='600' fill='#3a3a36'>READOUT</text>
       <text x='45' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>brightness / label</text>
@@ -761,7 +760,7 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
       <path d='M560 110 L590 110'/>
     </g>
     <!-- feedback arrow: from decoder back to STIM and VISION MODEL -->
-    <g class='hero-fb' data-target='#pid' data-tip='FEEDBACK &middot; the loop. §03 closes it with a PID; §05 closes it with gradients during end-to-end training; §06 puts both together.'>
+    <g class='hero-fb' data-target='#pid' data-tip='FEEDBACK &middot; the loop. §02 closes it with a PID; §04 closes it with gradients during end-to-end training; §05 puts both together.'>
       <!-- invisible hit area so the whole feedback region is hoverable -->
       <rect class='hero-fb-hit' x='295' y='130' width='240' height='95' fill='rgba(0,0,0,0)'/>
       <path class='hero-fb-line' d='M525 140 Q525 220 300 220 L300 145' stroke='#a83f63' stroke-width='1.6' fill='none' marker-end='url(#loop-arr-pink)' stroke-dasharray='5 3'/>
@@ -783,7 +782,7 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   </g>
 </svg>
 <p id='hero-tip' class='hero-tip' aria-live='polite'>Hover any node for a one-line tour &middot; click to jump to that section.</p>
-<figcaption>The first five blocks already ran end-to-end across M1&ndash;M4. This module wires the dashed pink arrow on the bottom: the decoder&rsquo;s readout flows back into the next stim command (§03 PID) or into the vision model&rsquo;s weights (§05 end-to-end). §06 puts the whole thing on one page.</figcaption>
+<figcaption>The first five blocks already ran end-to-end across M1&ndash;M4. This module wires the dashed pink arrow on the bottom: the decoder&rsquo;s readout flows back into the next stim command (§02 PID) or into the vision model&rsquo;s weights (§04 end-to-end). §05 puts the whole thing on one page.</figcaption>
 </figure>
 
 <div class='grid-3'>
@@ -795,7 +794,7 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   <div class='panel'>
     <h4>What is fed back?</h4>
     <div class='panel-sub'>actuation</div>
-    <p>Two flavours. §03 feeds back <strong>stim current</strong> via a PID controller, one electrode, one number per frame. §05 feeds back <strong>vision-model weights</strong> via gradients through the (differentiable) dynaphos simulator.</p>
+    <p>Two flavours. §02 feeds back <strong>stim current</strong> via a PID controller, one electrode, one number per frame. §04 feeds back <strong>vision-model weights</strong> via gradients through the (differentiable) dynaphos simulator.</p>
   </div>
   <div class='panel'>
     <h4>What is the goal?</h4>
@@ -873,225 +872,12 @@ Open-loop systems pick a stim, render a phosphene, and hope. Three things make h
 </script>
 
 
-<section id='read'>
-<h2><span class='num'>02</span>Read brightness back out</h2>
-<p class='kicker'>The smallest decoder that closes a loop. One electrode, one slider, one number out: how bright did the phosphene end up. Drag the current. The dynaphos basis on the left updates. The decoded brightness on the right tries to match the ground-truth brightness that dynaphos computed under the hood.</p>
 
-<div class='read-demo'>
-  <div class='read-cell'>
-    <div class='read-h'>Phosphene <span class='read-sub'>1 electrode, eccentricity 4&deg;</span></div>
-    <canvas id='read-canvas' width='220' height='220' aria-label='Single phosphene visualisation'></canvas>
-    <div class='read-knob'>
-      <label for='read-current'>stim current</label>
-      <input id='read-current' type='range' min='10' max='250' step='1' value='80'>
-      <span class='v' id='read-current-v'>80 &micro;A</span>
-    </div>
-    <div class='read-knob'>
-      <label for='read-pw'>pulse width</label>
-      <input id='read-pw' type='range' min='40' max='500' step='5' value='170'>
-      <span class='v' id='read-pw-v'>170 &micro;s</span>
-    </div>
-  </div>
-  <div class='read-cell'>
-    <div class='read-h'>Readout <span class='read-sub'>decoder = mean pixel</span></div>
-    <div class='read-bars'>
-      <div class='read-bar'>
-        <div class='read-bar-h'>ground truth <span class='read-bar-tag'>dynaphos</span></div>
-        <div class='read-bar-track'><div class='read-bar-fill gt' id='read-gt-fill'></div></div>
-        <div class='read-bar-v' id='read-gt-v'>0.00</div>
-      </div>
-      <div class='read-bar'>
-        <div class='read-bar-h'>decoded <span class='read-bar-tag dec'>mean px</span></div>
-        <div class='read-bar-track'><div class='read-bar-fill dec' id='read-dec-fill'></div></div>
-        <div class='read-bar-v' id='read-dec-v'>0.00</div>
-      </div>
-      <div class='read-bar'>
-        <div class='read-bar-h error'>|error|</div>
-        <div class='read-bar-track'><div class='read-bar-fill err' id='read-err-fill'></div></div>
-        <div class='read-bar-v err' id='read-err-v'>0.00</div>
-      </div>
-    </div>
-    <p class='read-explain'>The &ldquo;decoder&rdquo; here is the simplest thing that could possibly work: average the pixels of the rendered phosphene canvas. That&rsquo;s already enough to build the brightness readout that §03 PID will use as its measurement. A real decoder, the one you&rsquo;ll train in §04, learns a better readout from the same canvas.</p>
-  </div>
-</div>
-
-<aside class='callout'><strong>Why is there any error at all?</strong> The mean-pixel decoder has no idea where the phosphene lives on the canvas. As the current grows, the phosphene spreads (radius scales with &radic;I); the same total brightness gets averaged over more pixels, so the readout undershoots. A trained decoder fixes this in two lines of weights.</aside>
-
-<details class='prompt'><summary>Crank the current to max. Where does the decoder lag the ground truth most: near onset, mid-range, or saturation?</summary><p>Near saturation. Once the dynaphos sigmoid flattens, the ground-truth brightness barely moves with current, but the phosphene keeps spreading on the canvas. The mean-pixel readout keeps drifting downward. The trained decoder in §04 learns to weight the bright centre of the phosphene more than its dim halo, and the lag disappears.</p></details>
-</section>
-
-<style>
-/* --- §02 read-demo --- */
-.read-demo{display:grid;grid-template-columns:minmax(260px,1fr) minmax(280px,1fr);
-  gap:0;border:1px solid var(--rule);background:#fff;border-radius:6px;
-  margin:18px 0 20px;overflow:hidden}
-.read-cell{padding:16px 18px}
-.read-cell + .read-cell{border-left:1px solid var(--rule)}
-.read-h{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
-  letter-spacing:0.05em;text-transform:uppercase;margin:0 0 10px;
-  display:flex;align-items:baseline;gap:8px}
-.read-h .read-sub{margin-left:auto;font-size:10.5px;color:var(--muted-2);
-  text-transform:none;letter-spacing:0.02em}
-.read-cell canvas{display:block;margin:0 auto 14px;background:#000;
-  border:1px solid var(--rule);border-radius:4px;max-width:100%;height:auto}
-.read-knob{display:grid;grid-template-columns:max-content 1fr max-content;
-  gap:8px 12px;align-items:center;margin-top:8px}
-.read-knob label{font-family:'JetBrains Mono',monospace;font-size:11px;
-  color:var(--muted);white-space:nowrap}
-.read-knob .v{font-family:'JetBrains Mono',monospace;font-size:11px;
-  color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;min-width:60px}
-.read-knob input[type=range]{appearance:none;background:transparent;
-  height:18px;width:100%;cursor:pointer;margin:0;padding:0}
-.read-knob input[type=range]::-webkit-slider-runnable-track{height:2px;
-  background:var(--rule);border-radius:1px}
-.read-knob input[type=range]::-webkit-slider-thumb{appearance:none;
-  height:12px;width:12px;background:var(--accent);border-radius:50%;
-  margin-top:-5px;border:0}
-.read-knob input[type=range]::-moz-range-track{height:2px;
-  background:var(--rule);border-radius:1px}
-.read-knob input[type=range]::-moz-range-thumb{height:12px;width:12px;
-  background:var(--accent);border-radius:50%;border:0}
-.read-bars{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
-.read-bar-h{font-family:'JetBrains Mono',monospace;font-size:10.5px;
-  color:var(--muted);letter-spacing:0.03em;display:flex;align-items:center;gap:8px;
-  margin-bottom:4px}
-.read-bar-h.error{color:var(--danger)}
-.read-bar-tag{font-size:9.5px;background:var(--paper-2);border:1px solid var(--rule);
-  padding:1px 6px;border-radius:3px;color:var(--muted)}
-.read-bar-tag.dec{background:var(--accent-wash);color:var(--accent-2);
-  border-color:var(--accent)}
-.read-bar-track{height:8px;background:var(--paper-2);border:1px solid var(--rule);
-  border-radius:3px;overflow:hidden;position:relative}
-.read-bar-fill{height:100%;transition:width 0.06s linear}
-.read-bar-fill.gt{background:var(--ink)}
-.read-bar-fill.dec{background:var(--accent)}
-.read-bar-fill.err{background:var(--danger)}
-.read-bar-v{font-family:'JetBrains Mono',monospace;font-size:11.5px;
-  color:var(--ink);font-variant-numeric:tabular-nums;margin-top:3px;font-weight:500}
-.read-bar-v.err{color:var(--danger)}
-.read-explain{font-size:12.5px;color:var(--muted);line-height:1.55;
-  margin:6px 0 0;padding-top:10px;border-top:1px solid var(--rule-2)}
-@media (max-width:780px){
-  .read-demo{grid-template-columns:1fr}
-  .read-cell + .read-cell{border-left:0;border-top:1px solid var(--rule)}
-}
-</style>
-
-<script>
-/* §02 — Read brightness back out. Inline-copy of M4's dynaphos math. */
-(function(){
-  const CORTEX = { a: 0.75, b: 120, k: 17.3 };
-  const PHYS = {
-    rheobase: 23.9e-6, pw: 170e-6, freq: 300,
-    current_spread: 675e-6,
-    act_threshold: 9.141886e-08,
-    cps_half: 1.057631e-07,
-    slope_bright: 1.9152642500946816e7,
-    trace_decay_rate: -Math.log(0.99949191),
-    trace_increase: 13.95528162,
-    act_decay_yaml: 0.00012340980408667956,
-  };
-  const RADIUS_TO_SIGMA = 0.5;
-  function mag(r){ return CORTEX.k * (1/(r+CORTEX.a) - 1/(r+CORTEX.b)); }
-  function sigmaDeg(I, r){
-    const radius_mm = Math.sqrt(Math.max(I,0) / PHYS.current_spread);
-    return RADIUS_TO_SIGMA * radius_mm / Math.max(mag(r), 1e-3);
-  }
-  function chargePerSec(I, pw){
-    const eff = I - PHYS.rheobase;
-    return eff > 0 ? eff * pw * PHYS.freq : 0;
-  }
-  function steadyActivation(cps){
-    return cps / -Math.log(PHYS.act_decay_yaml);
-  }
-  function brightnessFromActivation(a){
-    if (a <= PHYS.act_threshold) return 0;
-    const x = PHYS.slope_bright * (a - PHYS.cps_half);
-    return x > 30 ? 1 : (x < -30 ? 0 : 1/(1+Math.exp(-x)));
-  }
-
-  const canvas = document.getElementById('read-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  // Zoom in so the phosphene actually fills the canvas — at 4° ecc and the
-  // currents we use here, σ_deg lives in [0.04°, 0.15°], so an 8° FOV would
-  // leave the phosphene smaller than 5 px. We bracket the visible field to
-  // ±0.75°, giving a useful 30-100 px Gaussian footprint.
-  const FOV_DEG = 1.5;
-  const ECC_DEG = 4;     // pretend the electrode sits on a ring at 4 deg ecc
-  const DEG_PER_PX = FOV_DEG / W;
-
-  const curEl   = document.getElementById('read-current');
-  const curV    = document.getElementById('read-current-v');
-  const pwEl    = document.getElementById('read-pw');
-  const pwV     = document.getElementById('read-pw-v');
-  const gtFill  = document.getElementById('read-gt-fill');
-  const gtV     = document.getElementById('read-gt-v');
-  const decFill = document.getElementById('read-dec-fill');
-  const decV    = document.getElementById('read-dec-v');
-  const errFill = document.getElementById('read-err-fill');
-  const errV    = document.getElementById('read-err-v');
-
-  function render(){
-    const I = parseFloat(curEl.value) * 1e-6;          // µA -> A
-    const pw = parseFloat(pwEl.value) * 1e-6;          // µs -> s
-    curV.textContent = (I*1e6).toFixed(0) + ' µA';
-    pwV.textContent  = (pw*1e6).toFixed(0) + ' µs';
-
-    const cps  = chargePerSec(I, pw);
-    const act  = steadyActivation(cps);
-    const B    = brightnessFromActivation(act);
-    const sig  = sigmaDeg(I, ECC_DEG);                  // deg
-    const sigPx = sig / DEG_PER_PX;
-
-    // render: gaussian centred at canvas centre, peak = B
-    const img = ctx.createImageData(W, H);
-    const cx = W*0.5, cy = H*0.5;
-    let sum = 0;
-    const twoSig2 = 2 * sigPx * sigPx;
-    for (let y=0; y<H; y++){
-      for (let x=0; x<W; x++){
-        const dx = x-cx, dy = y-cy;
-        const v = B * Math.exp(-(dx*dx + dy*dy) / Math.max(twoSig2, 1e-6));
-        const k = (y*W + x) * 4;
-        const px = Math.max(0, Math.min(255, v * 255));
-        img.data[k]   = px;
-        img.data[k+1] = px;
-        img.data[k+2] = px;
-        img.data[k+3] = 255;
-        sum += v;
-      }
-    }
-    ctx.putImageData(img, 0, 0);
-
-    // Mean-pixel decoder, *scaled* into a usable range. A Gaussian's
-    // volume is bounded (~2πσ²·B) while canvas area is fixed, so raw
-    // mean-pixel maxes out around 0.05 even at full brightness. We
-    // multiply by a fixed normalisation so the decoder can land in
-    // [0, 1] — and *over-shoot* at large currents, which is exactly the
-    // pedagogical bug we want to expose. As sigma grows with √I, the
-    // multiplied mean keeps climbing past saturation, so the decoder
-    // tracks brightness only in the low-to-mid range.
-    const NORM = 16;
-    const decoded = Math.min(1.2, sum / (W*H) * NORM);
-    const err = Math.abs(B - decoded);
-    gtFill.style.width  = (B*100).toFixed(1) + '%';
-    decFill.style.width = (Math.min(1, decoded)*100).toFixed(1) + '%';
-    errFill.style.width = (Math.min(1, err*2)*100).toFixed(1) + '%';
-    gtV.textContent  = B.toFixed(2);
-    decV.textContent = decoded.toFixed(2);
-    errV.textContent = err.toFixed(2);
-  }
-  curEl.addEventListener('input', render);
-  pwEl.addEventListener('input', render);
-  render();
-})();
-</script>
 
 
 <section id='pid'>
-<h2><span class='num'>03</span>PID: control the dynamics</h2>
-<p class='kicker'>Dynaphos has state. Activation builds up and then leaks. An adaptation trace makes the same current dim over seconds. Open-loop stimulation can&rsquo;t correct for any of that. A classical PID controller can: it reads the decoded brightness (§02), compares it to a target, and writes the next stim current. Three gains, one electrode.</p>
+<h2><span class='num'>02</span>PID: control the dynamics</h2>
+<p class='kicker'>Dynaphos has state. Activation builds up and then leaks; an adaptation trace makes the same current dim over seconds. Open-loop stimulation can&rsquo;t correct for any of that. A controller can — given one number per frame to read. The cheapest such number is the mean of the rendered phosphene&rsquo;s pixels: a real decoder (§03) does better, but mean-pixel is enough to close the loop. A classical PID reads it, compares to a target, writes the next stim current. Three gains, one electrode.</p>
 
 <aside class='callout'><strong>The three letters.</strong>
 <strong>P</strong>roportional scales the current error.
@@ -1168,7 +954,7 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
 </section>
 
 <style>
-/* --- §03 pid-demo --- */
+/* --- §02 pid-demo --- */
 .pid-demo{border:1px solid var(--rule);background:#fff;border-radius:6px;
   margin:18px 0 20px;overflow:hidden}
 .pid-header{display:flex;align-items:center;gap:10px;padding:10px 14px;
@@ -1267,9 +1053,9 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
 </style>
 
 <script>
-/* §03 — PID closing the loop on phosphene brightness. */
+/* §02 — PID closing the loop on phosphene brightness. */
 (function(){
-  // shared dynaphos constants (mirrors §02; small enough to inline twice)
+  // shared dynaphos constants (inline-copy of M4's math)
   const PHYS = {
     rheobase: 23.9e-6, pw: 170e-6, freq: 300,
     act_threshold: 9.141886e-08,
@@ -1584,7 +1370,7 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
 
 
 <section id='train'>
-<h2><span class='num'>04</span>Train your own decoder</h2>
+<h2><span class='num'>03</span>Train your own decoder</h2>
 <p class='kicker'>The decoder&rsquo;s job is to take a phosphene render and recover what the user is looking at. Classification is the cleanest version: one digit in, one digit out. The model gets ten training examples (one per digit, MNIST-style, rendered into phosphenes by dynaphos). Hit Train. The weights below update as the network learns to read its own percepts.</p>
 
 <aside class='callout'><strong>Ten examples is enough to make a point.</strong>
@@ -1623,7 +1409,7 @@ Training fits in three seconds on a laptop, and you can read what the network le
 
 
 <section id='e2e'>
-<h2><span class='num'>05</span>End-to-end through the simulator</h2>
+<h2><span class='num'>04</span>End-to-end through the simulator</h2>
 <p class='kicker'>So far the decoder has been learning to read a fixed dynaphos render. Because dynaphos is differentiable, gradients flow all the way from a decoder loss back through the simulator into a learnable <strong>vision model</strong>. Vision model and decoder co-train. The vision model learns what makes the decoder&rsquo;s job easy, even if that means producing pre-stim patterns that look nothing like Sobel edges.</p>
 
 <figure class='hero-loop'>
@@ -1693,8 +1479,8 @@ Real end-to-end training takes minutes on a GPU and several thousand gradient st
 
 
 <section id='loop'>
-<h2><span class='num'>06</span>The whole loop, live</h2>
-<p class='kicker'>Everything together, on one canvas, with one play button. An input image gets gaze-cropped, run through the vision model, turned into per-channel stimulation, fed to the dynaphos temporal simulator, and decoded. In closed-loop mode, the decoder reading drives the next stim through the PID from §03. Toggle <strong>open / closed</strong> to see what the feedback actually does.</p>
+<h2><span class='num'>05</span>The whole loop, live</h2>
+<p class='kicker'>Everything together, on one canvas, with one play button. An input image gets gaze-cropped, run through the vision model, turned into per-channel stimulation, fed to the dynaphos temporal simulator, and decoded. In closed-loop mode, the decoder reading drives the next stim through the PID from §02. Toggle <strong>open / closed</strong> to see what the feedback actually does.</p>
 
 <div class='loop-demo'>
   <div class='loop-header'>
@@ -1744,7 +1530,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
 </section>
 
 <style>
-/* --- §04 train-mnist demo --- */
+/* --- §03 train-mnist demo --- */
 .train-mnist-demo{border:1px solid var(--rule);background:#fff;border-radius:6px;
   margin:18px 0 20px;overflow:hidden;display:flex;flex-direction:column}
 .train-mnist-header{display:flex;align-items:center;gap:10px;padding:10px 14px;
@@ -1817,7 +1603,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
   .train-mnist-row{grid-template-columns:repeat(5,1fr)}
 }
 
-/* --- §05 e2e-demo --- */
+/* --- §04 e2e-demo --- */
 .e2e-demo{border:1px solid var(--rule);background:#fff;border-radius:6px;
   margin:18px 0 20px;overflow:hidden}
 .e2e-h{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
@@ -1884,7 +1670,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
   .e2e-grid{grid-template-columns:repeat(2,1fr)}
 }
 
-/* --- §06 loop-demo --- */
+/* --- §05 loop-demo --- */
 .loop-demo{border:1px solid var(--rule);background:#fff;border-radius:6px;
   margin:18px 0 20px;overflow:hidden}
 .loop-header{display:flex;align-items:center;gap:10px;padding:10px 14px;
@@ -1964,7 +1750,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
 </style>
 
 <script>
-/* §04 — Train a digit decoder through dynaphos via TF.js.
+/* §03 — Train a digit decoder through dynaphos via TF.js.
    Dataset: 10 MNIST-style examples (one per class), rendered once at
    load into the page's hidden canvas, then passed through dynaphos
    once to produce 10 fixed phosphene targets.  Training overfits the
@@ -1979,7 +1765,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
   }
   const tf = window.tf;
 
-  // dynaphos constants (matches §02/§03)
+  // dynaphos constants (matches the §02 PID values)
   const PHYS = {
     rheobase: 23.9e-6, pw: 170e-6, freq: 300,
     current_spread: 675e-6,
@@ -2274,7 +2060,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
 </script>
 
 <script>
-/* §05 — End-to-end. Static "trained vs hand-tuned" demo using a
+/* §04 — End-to-end. Static "trained vs hand-tuned" demo using a
    precomputed centre-Gaussian preprocessor as a stand-in for an
    end-to-end-trained one. The point is the comparison, not the training. */
 (function(){
@@ -2434,7 +2220,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
     ctx.putImageData(img, 0, 0);
   }
 
-  // 16×16 electrode grid for the phosphene renderer. Same pattern as §06
+  // 16×16 electrode grid for the phosphene renderer. Same pattern as §05
   // but unitless: mask values map directly to per-electrode brightness so
   // the comparison is about what the *vision model* commits to.
   const N_EL = 16;
@@ -2563,7 +2349,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
 </script>
 
 <script>
-/* §06 — Whole loop, live. Image -> mask -> stim -> dynaphos -> decoder
+/* §05 — Whole loop, live. Image -> mask -> stim -> dynaphos -> decoder
    -> optional PID feedback to next stim. */
 (function(){
   const PHYS = {
@@ -2618,7 +2404,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
   // PID state (single, on global brightness). The control output is
   // used as a multiplicative factor on stim, which already has its own
   // non-linearity through dynaphos's saturating sigmoid — so the gains
-  // here are an order of magnitude smaller than the §03 single-electrode
+  // here are an order of magnitude smaller than the §02 single-electrode
   // demo to keep the loop smooth instead of bang-bang.
   let integral = 0, prevErr = 0;
   const Kp = 40e-6, Ki = 25e-6, Kd = 5e-6;
@@ -2907,23 +2693,23 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
 
 
 <section id='self-check'>
-<h2><span class='num'>07</span>Self-check</h2>
+<h2><span class='num'>06</span>Self-check</h2>
 <p class='kicker'>Predict the answer first, then verify with the demos above.</p>
 
 <details class='prompt'><summary>Open loop drifts even with a perfect vision model. Why?</summary><p>Because dynaphos has state. The adaptation trace builds with stimulation; the same current that produced a bright phosphene at t = 0 evokes a dimmer one at t = 2 s. Open loop never sees that drift, so it never corrects. Closed loop reads the decoder, notices the brightness has dropped, and pushes more current in.</p></details>
 
-<details class='prompt'><summary>When does PID over-correct, and what does the trace look like?</summary><p>Whenever K<sub>i</sub> dominates and there&rsquo;s any non-zero delay between command and percept. The integral keeps stuffing accumulated error into the current even after the brightness has reached the target, so you get a big overshoot, then a slow climb-down. The §03 PID trace shows this clearly. Pure I gives high-amplitude oscillations; a small K<sub>d</sub> term reads the &ldquo;we&rsquo;re heading there fast&rdquo; signal and pulls back early.</p></details>
+<details class='prompt'><summary>When does PID over-correct, and what does the trace look like?</summary><p>Whenever K<sub>i</sub> dominates and there&rsquo;s any non-zero delay between command and percept. The integral keeps stuffing accumulated error into the current even after the brightness has reached the target, so you get a big overshoot, then a slow climb-down. The §02 PID trace shows this clearly. Pure I gives high-amplitude oscillations; a small K<sub>d</sub> term reads the &ldquo;we&rsquo;re heading there fast&rdquo; signal and pulls back early.</p></details>
 
 <details class='prompt'><summary>After end-to-end training, what does the vision model learn that hand-tuned Sobel doesn&rsquo;t?</summary><p>It learns to encode for the decoder it&rsquo;s coupled to, not for human perception. Sobel produces edge maps that look right to us. The end-to-end vision model is free to produce whatever pre-stim pattern makes the decoder&rsquo;s job easiest, even if that pattern looks nothing like a Sobel edge. It&rsquo;s also why end-to-end systems can outperform hand-tuned ones on the actual recovery loss, even though the intermediate stages look weirder.</p></details>
 
-<details class='prompt'><summary>Which loop ingredient matters most: a better decoder, a better controller, or a better vision model?</summary><p>Depends on what&rsquo;s broken. If the decoder is wrong, the loop chases a phantom target (garbage in, garbage out). If the controller is wrong, the loop oscillates or never converges. If the vision model is wrong, the loop converges to a sub-optimal percept. In practice, real systems iterate on all three. End-to-end training (§05) is the one trick that lets them co-improve.</p></details>
+<details class='prompt'><summary>Which loop ingredient matters most: a better decoder, a better controller, or a better vision model?</summary><p>Depends on what&rsquo;s broken. If the decoder is wrong, the loop chases a phantom target (garbage in, garbage out). If the controller is wrong, the loop oscillates or never converges. If the vision model is wrong, the loop converges to a sub-optimal percept. In practice, real systems iterate on all three. End-to-end training (§04) is the one trick that lets them co-improve.</p></details>
 
 <details class='prompt'><summary>Could you replace PID with a learned controller? What would that look like?</summary><p>Yes. Train a small recurrent network on the error signal with the same loss as the PID (track the target). It would essentially learn to be a non-linear PID (with state-dependent gains), and could in principle handle the dynaphos non-linearities better than a fixed-gain PID. The cost is opacity. PID gives you three numbers you can reason about; a learned controller is a black box that mostly works. Real prosthesis pipelines tend to use the simplest controller that works.</p></details>
 </section>
 
 
 <section id='next'>
-<h2><span class='num'>08</span>Where to next</h2>
+<h2><span class='num'>07</span>Where to next</h2>
 <p class='kicker'>The notebook is the optional, deeper Python version of everything you just touched. The three workshop tracks pick up from here.</p>
 
 <div class='grid-3'>
@@ -2941,7 +2727,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
   <div class='panel'>
     <h4>Developer track</h4>
     <div class='panel-sub'>real-time / control</div>
-    <p>Port §03&rsquo;s PID to per-channel control on the Utah array from M3. Investigate where it breaks (channel coupling, charge budget). Optionally try a learned gain-scheduler.</p>
+    <p>Port §02&rsquo;s PID to per-channel control on the Utah array from M3. Investigate where it breaks (channel coupling, charge budget). Optionally try a learned gain-scheduler.</p>
   </div>
 </div>
 
@@ -2951,7 +2737,7 @@ The closed-loop pattern generalises beyond visual prostheses. The same loop (dec
 
 
 <section id='refs' class='refs'>
-<h2><span class='num'>09</span>Tools &amp; references</h2>
+<h2><span class='num'>08</span>Tools &amp; references</h2>
 <ul>
   <li><span class='rk'>Tool</span> <strong>TensorFlow.js</strong>: in-browser training and inference. <a href='https://www.tensorflow.org/js' target='_blank' rel='noopener'>tensorflow.org/js</a></li>
   <li><span class='rk'>Tool</span> <strong>dynaphos</strong>: differentiable phosphene simulator used everywhere in this module. <a href='https://github.com/neuralcodinglab/dynaphos' target='_blank' rel='noopener'>neuralcodinglab/dynaphos</a></li>
