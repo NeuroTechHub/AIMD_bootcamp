@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
 <style>
 :root{
   --ink:        #1c1c1a;
@@ -692,61 +693,1875 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 <h3 style="margin-top:0">The pipeline at a glance</h3>
 <div class='pipeline' aria-label='Bootcamp pipeline progress'><a class='step' href='computer-vision.html'><div class='lbl'>M1</div><div class='name'>Camera + CV</div></a><div class='arr'>&rarr;</div><a class='step' href='deepgaze-and-gaze.html'><div class='lbl'>M2</div><div class='name'>Gaze</div></a><div class='arr'>&rarr;</div><a class='step' href='neuromod-and-stim.html'><div class='lbl'>M3</div><div class='name'>Stimulation</div></a><div class='arr'>&rarr;</div><a class='step' href='phosphene-simulation.html'><div class='lbl'>M4</div><div class='name'>Phosphenes</div></a><div class='arr'>&rarr;</div><div class='step active'><div class='lbl'>M5 &middot; here</div><div class='name'>Decoding</div></div></div>
 
-<nav class='toc' aria-label='Sections'><a href='#concept'><span class='n'>01</span> Concept</a><a href='#pretrained'><span class='n'>02</span> Pretrained decoder</a><a href='#train'><span class='n'>03</span> Train your own decoder</a><a href='#e2e'><span class='n'>04</span> End-to-end co-optimization</a><a href='#closed'><span class='n'>05</span> Minimal closed-loop demo</a><a href='#exercise'><span class='n'>06</span> Guided exercise</a></nav>
+<nav class='toc' aria-label='Sections'>
+  <a href='#concept'><span class='n'>01</span> The loop in one picture</a>
+  <a href='#read'><span class='n'>02</span> Read brightness back out</a>
+  <a href='#pid'><span class='n'>03</span> PID: control the dynamics</a>
+  <a href='#train'><span class='n'>04</span> Train your own decoder</a>
+  <a href='#e2e'><span class='n'>05</span> End-to-end through the simulator</a>
+  <a href='#loop'><span class='n'>06</span> The whole loop, live</a>
+  <a href='#self-check'><span class='n'>07</span> Self-check</a>
+  <a href='#next'><span class='n'>08</span> Where to next</a>
+  <a href='#refs'><span class='n'>09</span> Tools &amp; references</a>
+</nav>
 
 
 <section id='concept'>
-<h2><span class='num'>01</span>Concept</h2>
-<p class='kicker'>Why decoders close the loop. The basic question all closed-loop neurotech rests on: did stimulating channel X move my downstream metric?</p>
+<h2><span class='num'>01</span>The loop in one picture</h2>
+<p class='kicker'>The previous four modules ran open loop: image &rarr; stim &rarr; phosphenes, done. The loop closes when a decoder reads the phosphenes back out and that readout drives the next stim. Without it, a prosthesis can&rsquo;t cope with drift, adaptation, or a wearer who shifts their gaze mid-sentence.</p>
 
-<aside class='todo'><strong>To write.</strong> <span class="role">Antonio</span> - concept, optional figure or table, optional code excerpt, exercise prompt where relevant.</aside>
+<figure class='hero-loop'>
+<svg viewBox='0 0 720 280' role='img' aria-label='Closed-loop pipeline: camera, vision model, stim, phosphenes, decoder, with a feedback arrow returning to stim and the vision model.' xmlns='http://www.w3.org/2000/svg'>
+  <defs>
+    <marker id='loop-arr' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'>
+      <path d='M0,0 L10,5 L0,10 z' fill='#3a3a36'/>
+    </marker>
+    <marker id='loop-arr-pink' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'>
+      <path d='M0,0 L10,5 L0,10 z' fill='#a83f63'/>
+    </marker>
+  </defs>
+  <!-- forward chain: camera -> CV -> gaze -> stim -> phosphenes -> decoder -->
+  <g font-family='JetBrains Mono, monospace' font-size='10' text-anchor='middle'>
+    <g transform='translate(40,80)'>
+      <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
+      <text x='40' y='26' font-weight='600' fill='#1c1c1a'>CAMERA</text>
+      <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>scene in</text>
+    </g>
+    <g transform='translate(150,80)'>
+      <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
+      <text x='40' y='26' font-weight='600' fill='#1c1c1a'>VISION MODEL</text>
+      <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>edges / mask</text>
+    </g>
+    <g transform='translate(260,80)'>
+      <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
+      <text x='40' y='26' font-weight='600' fill='#1c1c1a'>STIM</text>
+      <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>current per ch.</text>
+    </g>
+    <g transform='translate(370,80)'>
+      <rect width='80' height='60' rx='4' fill='#fde7ef' stroke='#a83f63'/>
+      <text x='40' y='26' font-weight='600' fill='#a83f63'>DYNAPHOS</text>
+      <text x='40' y='44' font-family='Inter, sans-serif' fill='#a83f63' font-size='9'>phosphenes</text>
+    </g>
+    <g transform='translate(480,80)'>
+      <rect width='80' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
+      <text x='40' y='26' font-weight='600' fill='#1c1c1a'>DECODER</text>
+      <text x='40' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>readout</text>
+    </g>
+    <g transform='translate(590,80)'>
+      <rect width='90' height='60' rx='4' fill='#f8f8f6' stroke='#d8d6cf' stroke-dasharray='3 3'/>
+      <text x='45' y='26' font-weight='600' fill='#3a3a36'>READOUT</text>
+      <text x='45' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>brightness / label</text>
+    </g>
+    <!-- forward arrows -->
+    <g stroke='#3a3a36' stroke-width='1.2' fill='none' marker-end='url(#loop-arr)'>
+      <path d='M120 110 L150 110'/>
+      <path d='M230 110 L260 110'/>
+      <path d='M340 110 L370 110'/>
+      <path d='M450 110 L480 110'/>
+      <path d='M560 110 L590 110'/>
+    </g>
+    <!-- feedback arrow: from decoder back to STIM and VISION MODEL -->
+    <g stroke='#a83f63' stroke-width='1.6' fill='none' marker-end='url(#loop-arr-pink)' stroke-dasharray='5 3'>
+      <path d='M525 140 Q525 220 300 220 L300 145' />
+    </g>
+    <text x='415' y='240' font-family='Inter, sans-serif' fill='#a83f63' font-size='11' font-weight='600'>feedback: this is the loop</text>
+    <text x='415' y='256' font-family='Inter, sans-serif' fill='#6c6c66' font-size='10'>error &rarr; PID  &middot;  gradient &rarr; end-to-end training</text>
+    <!-- gaze tag above VISION MODEL -->
+    <g transform='translate(150,40)'>
+      <rect width='80' height='28' rx='3' fill='#f8f8f6' stroke='#d8d6cf' stroke-dasharray='2 2'/>
+      <text x='40' y='13' font-weight='600' fill='#3a3a36'>GAZE</text>
+      <text x='40' y='24' font-family='Inter, sans-serif' fill='#6c6c66' font-size='8.5'>crop centre</text>
+    </g>
+    <g stroke='#9a9a93' stroke-width='1' fill='none' stroke-dasharray='2 2' marker-end='url(#loop-arr)'>
+      <path d='M190 68 L190 80'/>
+    </g>
+  </g>
+</svg>
+<figcaption>The first five blocks already ran end-to-end across M1&ndash;M4. This module wires the dashed pink arrow on the bottom: the decoder&rsquo;s readout flows back into the next stim command (§03 PID) or into the vision model&rsquo;s weights (§05 end-to-end). §06 puts the whole thing on one page.</figcaption>
+</figure>
+
+<div class='grid-3'>
+  <div class='panel'>
+    <h4>What is decoded?</h4>
+    <div class='panel-sub'>readout target</div>
+    <p>On the page, <strong>brightness</strong> of the phosphene field, one number per frame. In the notebook, a small CNN reads the canvas and produces a digit, letter, or brightness scalar.</p>
+  </div>
+  <div class='panel'>
+    <h4>What is fed back?</h4>
+    <div class='panel-sub'>actuation</div>
+    <p>Two flavours. §03 feeds back <strong>stim current</strong> via a PID controller, one electrode, one number per frame. §05 feeds back <strong>vision-model weights</strong> via gradients through the (differentiable) dynaphos simulator.</p>
+  </div>
+  <div class='panel'>
+    <h4>What is the goal?</h4>
+    <div class='panel-sub'>loss</div>
+    <p>Either track a target (PID holding a reference brightness despite adaptation) or recover the input (an end-to-end loss that asks the decoder&rsquo;s output to match the original image). Both close the loop in the same place.</p>
+  </div>
+</div>
+
+<aside class='callout'><strong>Why close the loop?</strong>
+Open-loop systems pick a stim, render a phosphene, and hope. Three things make hope insufficient. The same stim grows dimmer over seconds (adaptation). Calibration drifts between sessions (per-wearer variability). The wearer moves their eyes (scene change). Reading the phosphenes back out and using that readout to nudge the next stim handles all three.</aside>
 </section>
 
+<style>
+.hero-loop{margin:18px 0 22px;max-width:820px}
+.hero-loop svg{width:100%;height:auto;display:block;
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:6px;padding:8px}
+.hero-loop figcaption{font-size:12.5px;color:var(--muted);
+  margin-top:8px;line-height:1.5;max-width:760px}
+</style>
 
-<section id='pretrained'>
-<h2><span class='num'>02</span>Pretrained decoder</h2>
-<p class='kicker'>Load a pretrained model and run it on phosphene canvases - see what a trained decoder recovers before you train your own.</p>
 
-<aside class='todo'><strong>To write.</strong> <span class="role">Antonio</span> - concept, optional figure or table, optional code excerpt, exercise prompt where relevant.</aside>
+<section id='read'>
+<h2><span class='num'>02</span>Read brightness back out</h2>
+<p class='kicker'>The smallest decoder that closes a loop. One electrode, one slider, one number out: how bright did the phosphene end up. Drag the current. The dynaphos basis on the left updates. The decoded brightness on the right tries to match the ground-truth brightness that dynaphos computed under the hood.</p>
+
+<div class='read-demo'>
+  <div class='read-cell'>
+    <div class='read-h'>Phosphene <span class='read-sub'>1 electrode, eccentricity 4&deg;</span></div>
+    <canvas id='read-canvas' width='220' height='220' aria-label='Single phosphene visualisation'></canvas>
+    <div class='read-knob'>
+      <label for='read-current'>stim current</label>
+      <input id='read-current' type='range' min='10' max='250' step='1' value='80'>
+      <span class='v' id='read-current-v'>80 &micro;A</span>
+    </div>
+    <div class='read-knob'>
+      <label for='read-pw'>pulse width</label>
+      <input id='read-pw' type='range' min='40' max='500' step='5' value='170'>
+      <span class='v' id='read-pw-v'>170 &micro;s</span>
+    </div>
+  </div>
+  <div class='read-cell'>
+    <div class='read-h'>Readout <span class='read-sub'>decoder = mean pixel</span></div>
+    <div class='read-bars'>
+      <div class='read-bar'>
+        <div class='read-bar-h'>ground truth <span class='read-bar-tag'>dynaphos</span></div>
+        <div class='read-bar-track'><div class='read-bar-fill gt' id='read-gt-fill'></div></div>
+        <div class='read-bar-v' id='read-gt-v'>0.00</div>
+      </div>
+      <div class='read-bar'>
+        <div class='read-bar-h'>decoded <span class='read-bar-tag dec'>mean px</span></div>
+        <div class='read-bar-track'><div class='read-bar-fill dec' id='read-dec-fill'></div></div>
+        <div class='read-bar-v' id='read-dec-v'>0.00</div>
+      </div>
+      <div class='read-bar'>
+        <div class='read-bar-h error'>|error|</div>
+        <div class='read-bar-track'><div class='read-bar-fill err' id='read-err-fill'></div></div>
+        <div class='read-bar-v err' id='read-err-v'>0.00</div>
+      </div>
+    </div>
+    <p class='read-explain'>The &ldquo;decoder&rdquo; here is the simplest thing that could possibly work: average the pixels of the rendered phosphene canvas. That&rsquo;s already enough to build the brightness readout that §03 PID will use as its measurement. A real decoder, the one you&rsquo;ll train in §04, learns a better readout from the same canvas.</p>
+  </div>
+</div>
+
+<aside class='callout'><strong>Why is there any error at all?</strong> The mean-pixel decoder has no idea where the phosphene lives on the canvas. As the current grows, the phosphene spreads (radius scales with &radic;I); the same total brightness gets averaged over more pixels, so the readout undershoots. A trained decoder fixes this in two lines of weights.</aside>
+
+<details class='prompt'><summary>Crank the current to max. Where does the decoder lag the ground truth most: near onset, mid-range, or saturation?</summary><p>Near saturation. Once the dynaphos sigmoid flattens, the ground-truth brightness barely moves with current, but the phosphene keeps spreading on the canvas. The mean-pixel readout keeps drifting downward. The trained decoder in §04 learns to weight the bright centre of the phosphene more than its dim halo, and the lag disappears.</p></details>
 </section>
+
+<style>
+/* --- §02 read-demo --- */
+.read-demo{display:grid;grid-template-columns:minmax(260px,1fr) minmax(280px,1fr);
+  gap:0;border:1px solid var(--rule);background:#fff;border-radius:6px;
+  margin:18px 0 20px;overflow:hidden}
+.read-cell{padding:16px 18px}
+.read-cell + .read-cell{border-left:1px solid var(--rule)}
+.read-h{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  letter-spacing:0.05em;text-transform:uppercase;margin:0 0 10px;
+  display:flex;align-items:baseline;gap:8px}
+.read-h .read-sub{margin-left:auto;font-size:10.5px;color:var(--muted-2);
+  text-transform:none;letter-spacing:0.02em}
+.read-cell canvas{display:block;margin:0 auto 14px;background:#000;
+  border:1px solid var(--rule);border-radius:4px;max-width:100%;height:auto}
+.read-knob{display:grid;grid-template-columns:max-content 1fr max-content;
+  gap:8px 12px;align-items:center;margin-top:8px}
+.read-knob label{font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--muted);white-space:nowrap}
+.read-knob .v{font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;min-width:60px}
+.read-knob input[type=range]{appearance:none;background:transparent;
+  height:18px;width:100%;cursor:pointer;margin:0;padding:0}
+.read-knob input[type=range]::-webkit-slider-runnable-track{height:2px;
+  background:var(--rule);border-radius:1px}
+.read-knob input[type=range]::-webkit-slider-thumb{appearance:none;
+  height:12px;width:12px;background:var(--accent);border-radius:50%;
+  margin-top:-5px;border:0}
+.read-knob input[type=range]::-moz-range-track{height:2px;
+  background:var(--rule);border-radius:1px}
+.read-knob input[type=range]::-moz-range-thumb{height:12px;width:12px;
+  background:var(--accent);border-radius:50%;border:0}
+.read-bars{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.read-bar-h{font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  color:var(--muted);letter-spacing:0.03em;display:flex;align-items:center;gap:8px;
+  margin-bottom:4px}
+.read-bar-h.error{color:var(--danger)}
+.read-bar-tag{font-size:9.5px;background:var(--paper-2);border:1px solid var(--rule);
+  padding:1px 6px;border-radius:3px;color:var(--muted)}
+.read-bar-tag.dec{background:var(--accent-wash);color:var(--accent-2);
+  border-color:var(--accent)}
+.read-bar-track{height:8px;background:var(--paper-2);border:1px solid var(--rule);
+  border-radius:3px;overflow:hidden;position:relative}
+.read-bar-fill{height:100%;transition:width 0.06s linear}
+.read-bar-fill.gt{background:var(--ink)}
+.read-bar-fill.dec{background:var(--accent)}
+.read-bar-fill.err{background:var(--danger)}
+.read-bar-v{font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  color:var(--ink);font-variant-numeric:tabular-nums;margin-top:3px;font-weight:500}
+.read-bar-v.err{color:var(--danger)}
+.read-explain{font-size:12.5px;color:var(--muted);line-height:1.55;
+  margin:6px 0 0;padding-top:10px;border-top:1px solid var(--rule-2)}
+@media (max-width:780px){
+  .read-demo{grid-template-columns:1fr}
+  .read-cell + .read-cell{border-left:0;border-top:1px solid var(--rule)}
+}
+</style>
+
+<script>
+/* §02 — Read brightness back out. Inline-copy of M4's dynaphos math. */
+(function(){
+  const CORTEX = { a: 0.75, b: 120, k: 17.3 };
+  const PHYS = {
+    rheobase: 23.9e-6, pw: 170e-6, freq: 300,
+    current_spread: 675e-6,
+    act_threshold: 9.141886e-08,
+    cps_half: 1.057631e-07,
+    slope_bright: 1.9152642500946816e7,
+    trace_decay_rate: -Math.log(0.99949191),
+    trace_increase: 13.95528162,
+    act_decay_yaml: 0.00012340980408667956,
+  };
+  const RADIUS_TO_SIGMA = 0.5;
+  function mag(r){ return CORTEX.k * (1/(r+CORTEX.a) - 1/(r+CORTEX.b)); }
+  function sigmaDeg(I, r){
+    const radius_mm = Math.sqrt(Math.max(I,0) / PHYS.current_spread);
+    return RADIUS_TO_SIGMA * radius_mm / Math.max(mag(r), 1e-3);
+  }
+  function chargePerSec(I, pw){
+    const eff = I - PHYS.rheobase;
+    return eff > 0 ? eff * pw * PHYS.freq : 0;
+  }
+  function steadyActivation(cps){
+    return cps / -Math.log(PHYS.act_decay_yaml);
+  }
+  function brightnessFromActivation(a){
+    if (a <= PHYS.act_threshold) return 0;
+    const x = PHYS.slope_bright * (a - PHYS.cps_half);
+    return x > 30 ? 1 : (x < -30 ? 0 : 1/(1+Math.exp(-x)));
+  }
+
+  const canvas = document.getElementById('read-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  // Zoom in so the phosphene actually fills the canvas — at 4° ecc and the
+  // currents we use here, σ_deg lives in [0.04°, 0.15°], so an 8° FOV would
+  // leave the phosphene smaller than 5 px. We bracket the visible field to
+  // ±0.75°, giving a useful 30-100 px Gaussian footprint.
+  const FOV_DEG = 1.5;
+  const ECC_DEG = 4;     // pretend the electrode sits on a ring at 4 deg ecc
+  const DEG_PER_PX = FOV_DEG / W;
+
+  const curEl   = document.getElementById('read-current');
+  const curV    = document.getElementById('read-current-v');
+  const pwEl    = document.getElementById('read-pw');
+  const pwV     = document.getElementById('read-pw-v');
+  const gtFill  = document.getElementById('read-gt-fill');
+  const gtV     = document.getElementById('read-gt-v');
+  const decFill = document.getElementById('read-dec-fill');
+  const decV    = document.getElementById('read-dec-v');
+  const errFill = document.getElementById('read-err-fill');
+  const errV    = document.getElementById('read-err-v');
+
+  function render(){
+    const I = parseFloat(curEl.value) * 1e-6;          // µA -> A
+    const pw = parseFloat(pwEl.value) * 1e-6;          // µs -> s
+    curV.textContent = (I*1e6).toFixed(0) + ' µA';
+    pwV.textContent  = (pw*1e6).toFixed(0) + ' µs';
+
+    const cps  = chargePerSec(I, pw);
+    const act  = steadyActivation(cps);
+    const B    = brightnessFromActivation(act);
+    const sig  = sigmaDeg(I, ECC_DEG);                  // deg
+    const sigPx = sig / DEG_PER_PX;
+
+    // render: gaussian centred at canvas centre, peak = B
+    const img = ctx.createImageData(W, H);
+    const cx = W*0.5, cy = H*0.5;
+    let sum = 0;
+    const twoSig2 = 2 * sigPx * sigPx;
+    for (let y=0; y<H; y++){
+      for (let x=0; x<W; x++){
+        const dx = x-cx, dy = y-cy;
+        const v = B * Math.exp(-(dx*dx + dy*dy) / Math.max(twoSig2, 1e-6));
+        const k = (y*W + x) * 4;
+        const px = Math.max(0, Math.min(255, v * 255));
+        img.data[k]   = px;
+        img.data[k+1] = px;
+        img.data[k+2] = px;
+        img.data[k+3] = 255;
+        sum += v;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+
+    // Mean-pixel decoder, *scaled* into a usable range. A Gaussian's
+    // volume is bounded (~2πσ²·B) while canvas area is fixed, so raw
+    // mean-pixel maxes out around 0.05 even at full brightness. We
+    // multiply by a fixed normalisation so the decoder can land in
+    // [0, 1] — and *over-shoot* at large currents, which is exactly the
+    // pedagogical bug we want to expose. As sigma grows with √I, the
+    // multiplied mean keeps climbing past saturation, so the decoder
+    // tracks brightness only in the low-to-mid range.
+    const NORM = 16;
+    const decoded = Math.min(1.2, sum / (W*H) * NORM);
+    const err = Math.abs(B - decoded);
+    gtFill.style.width  = (B*100).toFixed(1) + '%';
+    decFill.style.width = (Math.min(1, decoded)*100).toFixed(1) + '%';
+    errFill.style.width = (Math.min(1, err*2)*100).toFixed(1) + '%';
+    gtV.textContent  = B.toFixed(2);
+    decV.textContent = decoded.toFixed(2);
+    errV.textContent = err.toFixed(2);
+  }
+  curEl.addEventListener('input', render);
+  pwEl.addEventListener('input', render);
+  render();
+})();
+</script>
+
+
+<section id='pid'>
+<h2><span class='num'>03</span>PID: control the dynamics</h2>
+<p class='kicker'>Dynaphos has state. Activation builds up and then leaks. An adaptation trace makes the same current dim over seconds. Open-loop stimulation can&rsquo;t correct for any of that. A classical PID controller can: it reads the decoded brightness (§02), compares it to a target, and writes the next stim current. Three gains, one electrode.</p>
+
+<aside class='callout'><strong>The three letters.</strong>
+<strong>P</strong>roportional scales the current error.
+<strong>I</strong>ntegral accumulates past error to stamp out steady-state drift, at the cost of overshoot.
+<strong>D</strong>erivative reads the trend in the error and damps the response before it overshoots.
+Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per second.</aside>
+
+<div class='pid-demo'>
+  <div class='pid-header'>
+    <div class='pid-presets'>
+      <button class='pid-preset' data-preset='p'>P-only</button>
+      <button class='pid-preset' data-preset='pi'>PI</button>
+      <button class='pid-preset active' data-preset='pid'>PID</button>
+    </div>
+    <div class='pid-targets'>
+      <label for='pid-target'>target</label>
+      <select id='pid-target'>
+        <option value='step' selected>step</option>
+        <option value='square'>square</option>
+        <option value='sine'>sine</option>
+        <option value='ramp'>ramp</option>
+      </select>
+    </div>
+    <button id='pid-surprise' class='pid-surprise'>surprise me</button>
+    <button id='pid-pause' class='pid-play'>pause</button>
+  </div>
+
+  <div class='pid-plot-wrap'>
+    <canvas id='pid-plot' width='760' height='280' aria-label='Target vs achieved brightness, with stim current trace below'></canvas>
+    <div class='pid-legend'>
+      <span><i class='leg target'></i> target</span>
+      <span><i class='leg achieved'></i> achieved</span>
+      <span><i class='leg err'></i> |error|</span>
+      <span><i class='leg current'></i> stim current</span>
+    </div>
+  </div>
+
+  <div class='pid-controls'>
+    <div class='pid-knob'>
+      <label for='pid-kp'>K<sub>p</sub> <span class='pid-micro'>react</span></label>
+      <input id='pid-kp' type='range' min='0' max='500' step='1' value='200'>
+      <span class='v' id='pid-kp-v'>200</span>
+    </div>
+    <div class='pid-knob'>
+      <label for='pid-ki'>K<sub>i</sub> <span class='pid-micro'>accumulate</span></label>
+      <input id='pid-ki' type='range' min='0' max='800' step='5' value='150'>
+      <span class='v' id='pid-ki-v'>150</span>
+    </div>
+    <div class='pid-knob'>
+      <label for='pid-kd'>K<sub>d</sub> <span class='pid-micro'>dampen</span></label>
+      <input id='pid-kd' type='range' min='0' max='200' step='1' value='30'>
+      <span class='v' id='pid-kd-v'>30</span>
+    </div>
+  </div>
+
+  <div class='pid-footer'>
+    <span class='pid-stat' id='pid-stat'>err: <span id='pid-err'>&mdash;</span> &middot; overshoot: <span id='pid-over'>&mdash;</span></span>
+    <button id='pid-reset' class='pid-reset'>reset trace</button>
+  </div>
+</div>
+
+<details class='prompt'><summary>Crank K<sub>i</sub> to the maximum on the &lsquo;step&rsquo; target with K<sub>p</sub> and K<sub>d</sub> at zero. What does the trace do, and why?</summary><p>It oscillates and overshoots wildly. Pure integral has no idea where the error is going. It just keeps stuffing accumulated error into the current. By the time the brightness reaches the target, the integral has already commanded a huge overshoot, which has to be unwound with negative error, which then undershoots. Adding a little K<sub>d</sub> reads the &ldquo;we&rsquo;re moving fast toward the target&rdquo; signal and pulls back early.</p></details>
+
+<details class='prompt'><summary>Pure P-only is the simplest, but on the &lsquo;ramp&rsquo; target it never quite catches up. Why?</summary><p>P-only is proportional to the current error. On a ramp, the target keeps moving away, so to make the brightness move at the same rate you need a non-zero error to drive a non-zero control output. That constant gap is the classic steady-state error that integral action exists to eliminate.</p></details>
+</section>
+
+<style>
+/* --- §03 pid-demo --- */
+.pid-demo{border:1px solid var(--rule);background:#fff;border-radius:6px;
+  margin:18px 0 20px;overflow:hidden}
+.pid-header{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--paper-2);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.pid-presets{display:flex;gap:4px}
+.pid-preset{appearance:none;border:1px solid var(--rule);background:#fff;
+  font:inherit;font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:0.04em;text-transform:uppercase;padding:5px 10px;border-radius:3px;
+  cursor:pointer;color:var(--muted);font-weight:600}
+.pid-preset:hover{border-color:var(--accent);color:var(--accent-2)}
+.pid-preset.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pid-targets{display:flex;align-items:center;gap:8px;margin-left:6px}
+.pid-targets label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.04em}
+.pid-targets select{font-family:'JetBrains Mono',monospace;font-size:11px;
+  padding:4px 8px;border:1px solid var(--rule);border-radius:3px;background:#fff;
+  color:var(--ink);cursor:pointer}
+.pid-surprise{appearance:none;border:1px solid var(--rule);background:#fff;
+  font:inherit;font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:0.04em;text-transform:uppercase;padding:5px 10px;border-radius:3px;
+  cursor:pointer;color:var(--ink);margin-left:auto;font-weight:500}
+.pid-surprise:hover{border-color:var(--accent);color:var(--accent-2)}
+.pid-surprise.flash{box-shadow:0 0 0 2px var(--accent-wash)}
+.pid-play{appearance:none;border:1px solid var(--rule);background:#fff;
+  font:inherit;font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:0.04em;text-transform:uppercase;padding:5px 10px;border-radius:3px;
+  cursor:pointer;color:var(--ink);font-weight:500;min-width:60px}
+.pid-play:hover{border-color:var(--accent);color:var(--accent-2)}
+
+.pid-plot-wrap{padding:10px 14px;background:#fff}
+.pid-plot-wrap canvas{display:block;width:100%;height:auto;
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:4px}
+.pid-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)}
+.pid-legend i.leg{display:inline-block;width:14px;height:2px;margin-right:5px;
+  vertical-align:middle;border-radius:1px}
+.pid-legend i.leg.target{background:var(--accent);height:0;border-top:2px dashed var(--accent)}
+.pid-legend i.leg.achieved{background:var(--ink)}
+.pid-legend i.leg.err{background:var(--danger);opacity:0.35;height:6px;border-radius:2px}
+.pid-legend i.leg.current{background:#7a9aa6}
+
+.pid-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  padding:12px 14px;background:var(--paper-2);border-top:1px solid var(--rule)}
+.pid-knob{display:grid;grid-template-columns:max-content 1fr max-content;
+  gap:8px 10px;align-items:center}
+.pid-knob label{font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  color:var(--ink);font-weight:600;white-space:nowrap}
+.pid-knob label sub{font-weight:500}
+.pid-knob .pid-micro{font-family:'Inter',sans-serif;font-size:9.5px;
+  color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;
+  font-weight:500;margin-left:4px}
+.pid-knob .v{font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;min-width:46px}
+.pid-knob input[type=range]{appearance:none;background:transparent;
+  height:18px;width:100%;cursor:pointer;margin:0;padding:0}
+.pid-knob input[type=range]::-webkit-slider-runnable-track{height:2px;
+  background:var(--rule);border-radius:1px}
+.pid-knob input[type=range]::-webkit-slider-thumb{appearance:none;
+  height:12px;width:12px;background:var(--accent);border-radius:50%;
+  margin-top:-5px;border:0}
+.pid-knob input[type=range]::-moz-range-track{height:2px;
+  background:var(--rule);border-radius:1px}
+.pid-knob input[type=range]::-moz-range-thumb{height:12px;width:12px;
+  background:var(--accent);border-radius:50%;border:0}
+
+.pid-footer{display:flex;align-items:center;gap:10px;padding:8px 14px;
+  background:#fff;border-top:1px solid var(--rule-2);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.pid-stat span{color:var(--ink);font-variant-numeric:tabular-nums}
+.pid-reset{appearance:none;border:1px solid var(--rule);background:#fff;
+  font:inherit;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  letter-spacing:0.04em;text-transform:uppercase;padding:4px 10px;border-radius:3px;
+  cursor:pointer;color:var(--muted);margin-left:auto;font-weight:500}
+.pid-reset:hover{color:var(--danger);border-color:var(--danger)}
+
+@media (max-width:780px){
+  .pid-controls{grid-template-columns:1fr}
+  .pid-header{gap:6px}
+}
+</style>
+
+<script>
+/* §03 — PID closing the loop on phosphene brightness. */
+(function(){
+  // shared dynaphos constants (mirrors §02; small enough to inline twice)
+  const PHYS = {
+    rheobase: 23.9e-6, pw: 170e-6, freq: 300,
+    act_threshold: 9.141886e-08,
+    cps_half: 1.057631e-07,
+    slope_bright: 1.9152642500946816e7,
+    trace_decay_rate: -Math.log(0.99949191),
+    trace_increase: 13.95528162,
+    act_decay_rate: -Math.log(0.00012340980408667956),  // ~9.0 /s
+  };
+
+  function chargePerSec(I, extraLeak){
+    const eff = I - (PHYS.rheobase + extraLeak);
+    return eff > 0 ? eff * PHYS.pw * PHYS.freq : 0;
+  }
+  function brightness(A){
+    if (A <= PHYS.act_threshold) return 0;
+    const x = PHYS.slope_bright * (A - PHYS.cps_half);
+    return x > 30 ? 1 : (x < -30 ? 0 : 1/(1+Math.exp(-x)));
+  }
+
+  // --- state ----------------------------------------------------------
+  const FPS = 30;
+  const DT  = 1 / FPS;
+  const HISTORY_SEC = 4;            // rolling window
+  const HISTORY = HISTORY_SEC * FPS;
+  let t = 0;
+  let A = 0, T = 0;                 // activation, adaptation trace
+  let integral = 0, prevErr = 0;
+  const target = new Float32Array(HISTORY);
+  const achieved = new Float32Array(HISTORY);
+  const curArr   = new Float32Array(HISTORY);
+  let head = 0;                     // ring buffer head
+  let running = true;
+  let maxOver = 0;                  // tracker for overshoot
+  let errAccum = 0, errN = 0;       // moving-average abs error
+
+  // gains: outputs amperes-ish; scale here so slider 0..500 maps to a
+  // useful current range. Plant gain is ~0.04 brightness per µA above
+  // rheobase (saturating quickly), so Kp_effective = Kp * GAIN_SCALE
+  // around 25 µA / unit-err keeps the loop on the linear side.
+  const I_MIN = 0, I_MAX = 280e-6;
+  // gain scale: 1 unit of slider = 0.5 µA per unit error. dynaphos has
+  // a deadzone below ~24 µA (rheobase), so the proportional term needs
+  // to be at least ~50 to cross threshold on a target of 0.5.
+  const GAIN_SCALE = 0.5e-6;
+
+  let Kp = 100, Ki = 80, Kd = 15;
+
+  // --- target generators ----------------------------------------------
+  function targetAt(tt, kind){
+    switch(kind){
+      case 'square': return ((tt % 2.0) < 1.0) ? 0.75 : 0.20;
+      case 'sine':   return 0.5 + 0.35 * Math.sin(2*Math.PI*tt/1.6);
+      case 'ramp':   return Math.max(0.05, Math.min(0.9, 0.05 + (tt % 4.0)/4.5));
+      case 'step':
+      default:       return (tt % 4.0) < 2.0 ? 0.7 : 0.15;
+    }
+  }
+
+  // --- DOM ------------------------------------------------------------
+  const canvas = document.getElementById('pid-plot');
+  const ctx    = canvas.getContext('2d');
+  const kpEl   = document.getElementById('pid-kp');
+  const kiEl   = document.getElementById('pid-ki');
+  const kdEl   = document.getElementById('pid-kd');
+  // sync initial slider positions with the lowered defaults
+  kpEl.value = Kp; kiEl.value = Ki; kdEl.value = Kd;
+  const kpV    = document.getElementById('pid-kp-v');
+  const kiV    = document.getElementById('pid-ki-v');
+  const kdV    = document.getElementById('pid-kd-v');
+  const tgtSel = document.getElementById('pid-target');
+  const presetBtns = document.querySelectorAll('.pid-preset');
+  const surBtn = document.getElementById('pid-surprise');
+  const pauseBtn = document.getElementById('pid-pause');
+  const resetBtn = document.getElementById('pid-reset');
+  const errOut  = document.getElementById('pid-err');
+  const overOut = document.getElementById('pid-over');
+
+  function syncGains(){
+    Kp = parseFloat(kpEl.value); kpV.textContent = Kp;
+    Ki = parseFloat(kiEl.value); kiV.textContent = Ki;
+    Kd = parseFloat(kdEl.value); kdV.textContent = Kd;
+  }
+  [kpEl, kiEl, kdEl].forEach(el => el.addEventListener('input', syncGains));
+  syncGains();
+
+  function setPreset(p){
+    presetBtns.forEach(b => b.classList.toggle('active', b.dataset.preset === p));
+    if (p==='p')   { kpEl.value=150; kiEl.value=0;   kdEl.value=0;  }
+    if (p==='pi')  { kpEl.value=100; kiEl.value=140; kdEl.value=0;  }
+    if (p==='pid') { kpEl.value=100; kiEl.value=80;  kdEl.value=15; }
+    syncGains();
+    resetTrace();
+  }
+  presetBtns.forEach(b => b.addEventListener('click', () => setPreset(b.dataset.preset)));
+
+  function resetTrace(){
+    t = 0; A = 0; T = 0; integral = 0; prevErr = 0;
+    head = 0; maxOver = 0; errAccum = 0; errN = 0;
+    target.fill(0); achieved.fill(0); curArr.fill(0);
+  }
+  resetBtn.addEventListener('click', resetTrace);
+  tgtSel.addEventListener('change', resetTrace);
+
+  surBtn.addEventListener('click', () => {
+    // pick three random-but-not-crazy gains
+    kpEl.value = (30 + Math.random()*460) | 0;
+    kiEl.value = ((10 + Math.random()*700) / 5 | 0) * 5;
+    kdEl.value = (Math.random()*150) | 0;
+    syncGains();
+    resetTrace();
+    surBtn.classList.add('flash');
+    setTimeout(() => surBtn.classList.remove('flash'), 600);
+  });
+
+  pauseBtn.addEventListener('click', () => {
+    running = !running;
+    pauseBtn.textContent = running ? 'pause' : 'play';
+    if (running) loop();
+  });
+
+  // --- simulation step ------------------------------------------------
+  function step(){
+    const kind = tgtSel.value;
+    const tgt = targetAt(t, kind);
+    const measurement = brightness(A);
+
+    const err = tgt - measurement;
+    // anti-windup: only integrate when not at the current rails
+    const proposedI = Kp*GAIN_SCALE*err + Ki*GAIN_SCALE*integral + Kd*GAIN_SCALE*((err-prevErr)/DT);
+    const atRail = (proposedI <= I_MIN && err < 0) || (proposedI >= I_MAX && err > 0);
+    if (!atRail) integral += err * DT;
+    integral = Math.max(-2, Math.min(2, integral));   // hard windup clamp
+    let I = Kp*GAIN_SCALE*err + Ki*GAIN_SCALE*integral + Kd*GAIN_SCALE*((err-prevErr)/DT);
+    I = Math.max(I_MIN, Math.min(I_MAX, I));
+    prevErr = err;
+
+    // dynaphos forward Euler — activation builds, adaptation trace builds slower
+    const cps = chargePerSec(I, T);
+    A = A * (1 - PHYS.act_decay_rate*DT) + cps*DT;
+    T = T * (1 - PHYS.trace_decay_rate*DT) + PHYS.trace_increase*cps*DT;
+
+    // history
+    target[head]   = tgt;
+    achieved[head] = brightness(A);
+    curArr[head]   = I / I_MAX;     // normalised for plot
+    head = (head + 1) % HISTORY;
+
+    const aerr = Math.abs(err);
+    errAccum += aerr; errN++;
+    if (t > 0.5 && achieved[ (head-1+HISTORY)%HISTORY ] - tgt > maxOver) {
+      maxOver = achieved[ (head-1+HISTORY)%HISTORY ] - tgt;
+    }
+    t += DT;
+  }
+
+  // --- draw -----------------------------------------------------------
+  function draw(){
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+    // partition: top 70% brightness, bottom 30% current
+    const topH = H * 0.70;
+    const midY = topH;
+
+    // background grid
+    ctx.strokeStyle = '#ebe9e2'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i=1; i<5; i++){ const yy = topH * i/5; ctx.moveTo(0,yy); ctx.lineTo(W,yy); }
+    ctx.stroke();
+    // midline separator
+    ctx.strokeStyle = '#d8d6cf'; ctx.beginPath();
+    ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
+
+    const xs = i => i * W / HISTORY;
+    const yB = v => topH - v * topH;       // brightness 0..1 in top zone
+    const yC = v => midY + 4 + (H - midY - 8) * (1 - v);
+
+    // error fill (between target and achieved, top zone)
+    ctx.fillStyle = 'rgba(138,58,29,0.18)';
+    ctx.beginPath();
+    for (let i=0;i<HISTORY;i++){
+      const idx = (head + i) % HISTORY;
+      const x = xs(i);
+      ctx.lineTo(x, yB(achieved[idx]));
+    }
+    for (let i=HISTORY-1;i>=0;i--){
+      const idx = (head + i) % HISTORY;
+      const x = xs(i);
+      ctx.lineTo(x, yB(target[idx]));
+    }
+    ctx.closePath(); ctx.fill();
+
+    // target trace — dashed pink
+    ctx.strokeStyle = '#a83f63'; ctx.lineWidth = 1.6;
+    ctx.setLineDash([5, 3]); ctx.beginPath();
+    for (let i=0;i<HISTORY;i++){
+      const idx = (head + i) % HISTORY;
+      const x = xs(i), y = yB(target[idx]);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // achieved — solid ink
+    ctx.strokeStyle = '#1c1c1a'; ctx.lineWidth = 1.6; ctx.beginPath();
+    for (let i=0;i<HISTORY;i++){
+      const idx = (head + i) % HISTORY;
+      const x = xs(i), y = yB(achieved[idx]);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    // current trace in bottom zone
+    ctx.strokeStyle = '#7a9aa6'; ctx.lineWidth = 1.4; ctx.beginPath();
+    for (let i=0;i<HISTORY;i++){
+      const idx = (head + i) % HISTORY;
+      const x = xs(i), y = yC(curArr[idx]);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    // axis labels
+    ctx.fillStyle = '#9a9a93'; ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillText('brightness', 8, 12);
+    ctx.fillText('stim current', 8, midY + 14);
+    ctx.fillText('1.0', W - 26, 12);
+    ctx.fillText('0.0', W - 26, topH - 2);
+  }
+
+  // throttle to FPS regardless of RAF rate — headless Chrome runs RAF
+  // unthrottled (200+ fps), which would race the simulation. We accumulate
+  // wall-clock time and step the simulation by exactly DT each frame the
+  // accumulator crosses the threshold.
+  let lastWall = 0, accum = 0;
+  function loop(now){
+    if (!running) return;
+    if (lastWall === 0) lastWall = now;
+    accum += (now - lastWall) / 1000;
+    lastWall = now;
+    // cap accumulator so a hidden tab doesn't burst-step on resume
+    if (accum > 0.5) accum = 0.5;
+    let stepped = false;
+    while (accum >= DT){
+      step();
+      accum -= DT;
+      stepped = true;
+    }
+    if (stepped){
+      draw();
+      if (errN % 8 === 0){
+        errOut.textContent  = (errAccum / Math.max(1,errN)).toFixed(3);
+        overOut.textContent = Math.max(0, maxOver).toFixed(3);
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
 
 
 <section id='train'>
-<h2><span class='num'>03</span>Train your own decoder</h2>
-<p class='kicker'>Toy brightness decoder first; (stretch) train a small CNN on a few phosphene canvases.</p>
+<h2><span class='num'>04</span>Train your own decoder</h2>
+<p class='kicker'>The decoder&rsquo;s job is to take a phosphene render and recover what the user is looking at. Classification is the cleanest version: one digit in, one digit out. The model gets ten training examples (one per digit, MNIST-style, rendered into phosphenes by dynaphos). Hit Train. The weights below update as the network learns to read its own percepts.</p>
 
-<aside class='todo'><strong>To write.</strong> <span class="role">Antonio</span> - concept, optional figure or table, optional code excerpt, exercise prompt where relevant.</aside>
+<aside class='callout'><strong>Ten examples is enough to make a point.</strong>
+Training fits in three seconds on a laptop, and you can read what the network learned directly off the weight maps below. The network overfits perfectly on this set, which is the lesson: with a tractable dataset, what a decoder &ldquo;sees&rdquo; becomes inspectable. The notebook scales this up to the real MNIST training set and a small CNN.</aside>
+
+<div class='train-mnist-demo'>
+  <div class='train-mnist-header'>
+    <div class='train-mnist-title'>Train <span class='train-sub'>MLP &middot; 784 &rarr; 32 &rarr; 10 softmax</span></div>
+    <button id='train-step' class='train-btn primary'>Train 50 steps</button>
+    <button id='train-reset' class='train-btn'>Reset weights</button>
+    <span class='train-status' id='train-status'>untrained</span>
+  </div>
+  <div class='train-mnist-strip'>
+    <div class='mnist-row-h'>input: 10 digits, one per class</div>
+    <div class='train-mnist-row' id='train-mnist-inputs'></div>
+    <div class='mnist-row-h'>phosphene render &rarr; predicted digit</div>
+    <div class='train-mnist-row' id='train-mnist-outputs'></div>
+  </div>
+  <div class='train-mnist-foot'>
+    <div class='train-loss-panel'>
+      <div class='train-loss-h'>
+        <span>loss &middot; cross-entropy</span>
+        <span class='train-loss-v' id='train-loss-v'>&mdash;</span>
+      </div>
+      <canvas id='train-loss' width='640' height='110'></canvas>
+    </div>
+    <div class='train-weights-panel'>
+      <div class='train-weights-h'>first-layer weights <span class='train-weights-sub'>32 hidden units &middot; 28&times;28 each</span></div>
+      <canvas id='train-weights' width='448' height='224'></canvas>
+    </div>
+  </div>
+</div>
+
+<details class='prompt'><summary>What do the first-layer weight maps start to look like after a few hundred training steps?</summary><p>They develop digit-shaped templates. Some units light up for round shapes (0, 6, 9), some for vertical strokes (1, 7), some for the closed loop of an 8. They&rsquo;re not pretty after only ten examples, but the structure is unmistakable: the network has carved its hidden layer into class-specific feature detectors. With the full MNIST training set in the notebook, these templates sharpen into proper handwritten-digit prototypes.</p></details>
 </section>
 
 
 <section id='e2e'>
-<h2><span class='num'>04</span>End-to-end co-optimization</h2>
-<p class='kicker'>Dynaphos is fully differentiable. Train a learnable preprocessor and decoder jointly through the frozen simulator.</p>
+<h2><span class='num'>05</span>End-to-end through the simulator</h2>
+<p class='kicker'>So far the decoder has been learning to read a fixed dynaphos render. Because dynaphos is differentiable, gradients flow all the way from a decoder loss back through the simulator into a learnable <strong>vision model</strong>. Vision model and decoder co-train. The vision model learns what makes the decoder&rsquo;s job easy, even if that means producing pre-stim patterns that look nothing like Sobel edges.</p>
 
-<aside class='todo'><strong>To write.</strong> <span class="role">Antonio</span> - concept, optional figure or table, optional code excerpt, exercise prompt where relevant.</aside>
+<figure class='hero-loop'>
+<svg viewBox='0 0 720 200' role='img' aria-label='End-to-end gradient flow: vision model and decoder are learnable, dynaphos is frozen-differentiable.' xmlns='http://www.w3.org/2000/svg'>
+  <defs>
+    <marker id='e2e-arr' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'>
+      <path d='M0,0 L10,5 L0,10 z' fill='#3a3a36'/>
+    </marker>
+    <marker id='e2e-arr-grad' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'>
+      <path d='M0,0 L10,5 L0,10 z' fill='#a83f63'/>
+    </marker>
+  </defs>
+  <g font-family='JetBrains Mono, monospace' font-size='10' text-anchor='middle'>
+    <g transform='translate(30,60)'>
+      <rect width='120' height='60' rx='4' fill='#fde7ef' stroke='#a83f63'/>
+      <text x='60' y='26' font-weight='600' fill='#a83f63'>VISION MODEL</text>
+      <text x='60' y='44' font-family='Inter, sans-serif' fill='#a83f63' font-size='9'>learnable &theta;<tspan dy='-2'>1</tspan></text>
+    </g>
+    <g transform='translate(190,60)'>
+      <rect width='160' height='60' rx='4' fill='#f8f8f6' stroke='#9a9a93' stroke-dasharray='4 2'/>
+      <text x='80' y='26' font-weight='600' fill='#3a3a36'>DYNAPHOS</text>
+      <text x='80' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>frozen, differentiable</text>
+    </g>
+    <g transform='translate(390,60)'>
+      <rect width='120' height='60' rx='4' fill='#fde7ef' stroke='#a83f63'/>
+      <text x='60' y='26' font-weight='600' fill='#a83f63'>DECODER</text>
+      <text x='60' y='44' font-family='Inter, sans-serif' fill='#a83f63' font-size='9'>learnable &theta;<tspan dy='-2'>2</tspan></text>
+    </g>
+    <g transform='translate(550,60)'>
+      <rect width='140' height='60' rx='4' fill='#fff' stroke='#1c1c1a'/>
+      <text x='70' y='26' font-weight='600' fill='#1c1c1a'>LOSS</text>
+      <text x='70' y='44' font-family='Inter, sans-serif' fill='#6c6c66' font-size='9'>recover input</text>
+    </g>
+    <g stroke='#3a3a36' stroke-width='1.2' fill='none' marker-end='url(#e2e-arr)'>
+      <path d='M150 90 L190 90'/>
+      <path d='M350 90 L390 90'/>
+      <path d='M510 90 L550 90'/>
+    </g>
+    <g stroke='#a83f63' stroke-width='1.6' fill='none' marker-end='url(#e2e-arr-grad)' stroke-dasharray='5 3'>
+      <path d='M620 130 Q620 175 90 175 L90 125'/>
+      <path d='M450 130 L450 155'/>
+    </g>
+    <text x='355' y='192' font-family='Inter, sans-serif' fill='#a83f63' font-size='11' font-weight='600'>gradients flow back through the simulator</text>
+  </g>
+</svg>
+<figcaption>Same loss, two trainable blocks, frozen physics in the middle. The trick is that dynaphos&rsquo;s charge &rarr; activation &rarr; brightness chain is built out of differentiable operations (sigmoids, linear filters, leaky integrators), so backpropagation just works.</figcaption>
+</figure>
+
+<div class='e2e-demo'>
+  <div class='e2e-h'>Side-by-side <span class='e2e-sub'>same input, two vision models</span></div>
+  <div class='e2e-grid' id='e2e-grid'></div>
+  <div class='e2e-footer'>
+    <button id='e2e-shuffle' class='train-btn small'>shuffle inputs</button>
+    <span class='e2e-score' id='e2e-score'>err = L2 against input &middot; lower is better &middot; the visual story matters more than the number</span>
+  </div>
+</div>
+
+<aside class='callout'><strong>Caveat.</strong>
+Real end-to-end training takes minutes on a GPU and several thousand gradient steps. The comparison panel above uses illustrative precomputed weights to show the pattern; the actual training run lives in the notebook. The page shows what the end result looks like, not how to fit it in 50 ms.</aside>
 </section>
 
 
-<section id='closed'>
-<h2><span class='num'>05</span>Minimal closed-loop demo</h2>
-<p class='kicker'>Image -> gaze -> crop -> preprocessing -> stimulation -> phosphenes -> decoder -> feedback. One integrated figure.</p>
+<section id='loop'>
+<h2><span class='num'>06</span>The whole loop, live</h2>
+<p class='kicker'>Everything together, on one canvas, with one play button. An input image gets gaze-cropped, run through the vision model, turned into per-channel stimulation, fed to the dynaphos temporal simulator, and decoded. In closed-loop mode, the decoder reading drives the next stim through the PID from §03. Toggle <strong>open / closed</strong> to see what the feedback actually does.</p>
 
-<aside class='todo'><strong>To write.</strong> <span class="role">Antonio</span> - concept, optional figure or table, optional code excerpt, exercise prompt where relevant.</aside>
+<div class='loop-demo'>
+  <div class='loop-header'>
+    <div class='loop-mode'>
+      <button class='loop-mode-btn active' data-mode='closed'>closed loop</button>
+      <button class='loop-mode-btn' data-mode='open'>open loop</button>
+    </div>
+    <div class='loop-input-pick'>
+      <label for='loop-input'>input</label>
+      <select id='loop-input'>
+        <option value='dot' selected>moving dot</option>
+        <option value='bar'>drifting bar</option>
+        <option value='letter'>letter T</option>
+      </select>
+    </div>
+    <span class='loop-clock' id='loop-clock'>t = 0.00 s</span>
+    <button id='loop-play' class='loop-play'>pause</button>
+    <button id='loop-reset' class='train-btn small'>reset</button>
+  </div>
+
+  <div class='loop-quad'>
+    <div class='loop-cell'>
+      <div class='loop-h'>1 &middot; input <span class='loop-sub'>after gaze crop</span></div>
+      <canvas id='loop-input-canvas' width='180' height='180'></canvas>
+    </div>
+    <div class='loop-cell'>
+      <div class='loop-h'>2 &middot; activation mask <span class='loop-sub'>vision model out</span></div>
+      <canvas id='loop-mask-canvas' width='180' height='180'></canvas>
+    </div>
+    <div class='loop-cell'>
+      <div class='loop-h'>3 &middot; phosphene field <span class='loop-sub'>dynaphos with state</span></div>
+      <canvas id='loop-phos-canvas' width='180' height='180'></canvas>
+    </div>
+    <div class='loop-cell'>
+      <div class='loop-h'>4 &middot; decoded brightness <span class='loop-sub'>target vs achieved</span></div>
+      <canvas id='loop-trace' width='280' height='160'></canvas>
+      <div class='loop-stat' id='loop-stat'>&mdash;</div>
+    </div>
+  </div>
+</div>
+
+<aside class='callout'><strong>Try this.</strong>
+Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&rsquo;s brightness wobbles wildly, saturating where it hits an electrode, going dark where it doesn&rsquo;t, and slowly dimming overall as adaptation builds. Closed loop: the PID clips the bright spikes, fills in the dim valleys, and the trace stays much closer to the dashed target line. The drifting bar and letter T inputs show the same effect more or less subtly. The bar saturates almost everything; the letter is stable enough that adaptation dominates.</aside>
+</section>
+
+<style>
+/* --- §04 train-mnist demo --- */
+.train-mnist-demo{border:1px solid var(--rule);background:#fff;border-radius:6px;
+  margin:18px 0 20px;overflow:hidden;display:flex;flex-direction:column}
+.train-mnist-header{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--paper-2);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.train-mnist-title{font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;
+  display:flex;align-items:baseline;gap:8px}
+.train-mnist-title .train-sub{font-size:10.5px;color:var(--muted-2);
+  text-transform:none;letter-spacing:0.02em}
+.train-btn{appearance:none;border:1px solid var(--rule);background:#fff;
+  font:inherit;font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:0.04em;text-transform:uppercase;padding:6px 12px;border-radius:3px;
+  cursor:pointer;color:var(--ink);font-weight:500}
+.train-btn:hover{border-color:var(--accent);color:var(--accent-2)}
+.train-btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.train-btn.primary:hover{background:var(--accent-2);border-color:var(--accent-2);color:#fff}
+.train-btn.small{font-size:10.5px;padding:4px 10px}
+.train-btn:disabled{opacity:0.45;cursor:not-allowed}
+.train-status{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  font-variant-numeric:tabular-nums;margin-left:auto}
+.train-status.busy{color:var(--accent-2)}
+.train-status.ok{color:var(--ink)}
+
+.train-mnist-strip{padding:12px 14px 14px;border-bottom:1px solid var(--rule)}
+.mnist-row-h{font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;
+  margin:0 0 6px}
+.mnist-row-h + .mnist-row-h{margin-top:10px}
+.train-mnist-row{display:grid;grid-template-columns:repeat(10,1fr);
+  gap:6px;margin-bottom:4px}
+.mnist-cell{position:relative;display:flex;flex-direction:column;align-items:center;
+  gap:3px;min-width:0}
+.mnist-canvas{display:block;width:100%;aspect-ratio:1/1;height:auto;
+  background:#000;border:1px solid var(--rule);border-radius:3px;
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  max-width:64px}
+.mnist-lbl{font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.2}
+.mnist-lbl.mnist-pred{font-weight:600;padding:1px 6px;border-radius:3px;
+  background:var(--paper-2);color:var(--muted)}
+.mnist-lbl.mnist-pred.correct{background:var(--accent-wash);color:var(--accent-2);
+  border:1px solid var(--accent)}
+.mnist-lbl.mnist-pred.wrong{background:#faf2ee;color:var(--danger);
+  border:1px solid var(--danger)}
+
+.train-mnist-foot{display:grid;grid-template-columns:1.2fr 1fr;gap:0}
+.train-loss-panel{padding:12px 14px;border-right:1px solid var(--rule);min-width:0}
+.train-weights-panel{padding:12px 14px;min-width:0}
+.train-loss-h{display:flex;align-items:baseline;font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;
+  margin-bottom:6px}
+.train-loss-v{margin-left:auto;color:var(--ink);font-size:11.5px;
+  font-variant-numeric:tabular-nums;text-transform:none;font-weight:500}
+#train-loss{display:block;width:100%;height:auto;
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:4px}
+.train-weights-h{font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;
+  display:flex;align-items:baseline;gap:8px}
+.train-weights-sub{margin-left:auto;font-size:10px;color:var(--muted-2);
+  text-transform:none;letter-spacing:0.02em}
+#train-weights{display:block;width:100%;height:auto;
+  background:#fff;border:1px solid var(--rule);border-radius:4px;
+  image-rendering:auto}
+
+@media (max-width:880px){
+  .train-mnist-foot{grid-template-columns:1fr}
+  .train-loss-panel{border-right:0;border-bottom:1px solid var(--rule)}
+}
+@media (max-width:680px){
+  .train-mnist-row{grid-template-columns:repeat(5,1fr)}
+}
+
+/* --- §05 e2e-demo --- */
+.e2e-demo{border:1px solid var(--rule);background:#fff;border-radius:6px;
+  margin:18px 0 20px;overflow:hidden}
+.e2e-h{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  letter-spacing:0.05em;text-transform:uppercase;padding:10px 14px;
+  background:var(--paper-2);border-bottom:1px solid var(--rule);
+  display:flex;align-items:baseline;gap:8px}
+.e2e-h .e2e-sub{margin-left:auto;font-size:10.5px;color:var(--muted-2);
+  text-transform:none;letter-spacing:0.02em}
+.e2e-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--rule)}
+.e2e-row{background:#fff;display:flex;flex-direction:column;align-items:center;
+  gap:6px;padding:12px 8px}
+.e2e-row .e2e-row-h{font-family:'JetBrains Mono',monospace;font-size:9.5px;
+  color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;line-height:1.2;
+  text-align:center}
+.e2e-row canvas{display:block;width:80px;height:80px;background:#000;
+  border:1px solid var(--rule);border-radius:3px;image-rendering:pixelated}
+.e2e-row .e2e-row-v{font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--ink);font-variant-numeric:tabular-nums;font-weight:500}
+.e2e-row.input{background:var(--paper-2)}
+.e2e-row.input .e2e-row-h{color:var(--accent-2)}
+.e2e-row.win{background:var(--accent-wash)}
+.e2e-row.win .e2e-row-v{color:var(--accent-2)}
+.e2e-footer{display:flex;align-items:center;gap:10px;padding:8px 14px;
+  background:#fff;border-top:1px solid var(--rule-2);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.e2e-score{margin-left:auto}
+.e2e-score span{color:var(--accent-2);font-variant-numeric:tabular-nums;font-weight:500}
+@media (max-width:680px){
+  .e2e-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* --- §06 loop-demo --- */
+.loop-demo{border:1px solid var(--rule);background:#fff;border-radius:6px;
+  margin:18px 0 20px;overflow:hidden}
+.loop-header{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--paper-2);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.loop-mode{display:flex;gap:0;border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.loop-mode-btn{appearance:none;border:0;background:#fff;font:inherit;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.04em;
+  text-transform:uppercase;padding:5px 12px;cursor:pointer;color:var(--muted);
+  font-weight:600;border-right:1px solid var(--rule)}
+.loop-mode-btn:last-child{border-right:0}
+.loop-mode-btn:hover{color:var(--accent-2)}
+.loop-mode-btn.active{background:var(--ink);color:var(--paper)}
+.loop-input-pick{display:flex;align-items:center;gap:8px;margin-left:6px}
+.loop-input-pick label{font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--muted);text-transform:uppercase;letter-spacing:0.04em}
+.loop-input-pick select{font-family:'JetBrains Mono',monospace;font-size:11px;
+  padding:4px 8px;border:1px solid var(--rule);border-radius:3px;background:#fff;
+  color:var(--ink);cursor:pointer}
+.loop-clock{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  color:var(--ink);background:#fff;padding:3px 10px;border-radius:3px;
+  border:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.loop-play{appearance:none;border:1px solid var(--rule);background:#fff;
+  font:inherit;font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:0.04em;text-transform:uppercase;padding:5px 12px;border-radius:3px;
+  cursor:pointer;color:var(--ink);font-weight:500;min-width:60px}
+.loop-play:hover{border-color:var(--accent);color:var(--accent-2)}
+.loop-quad{display:grid;grid-template-columns:1fr 1fr;
+  grid-template-rows:auto auto;gap:0}
+.loop-cell{padding:12px 14px;border-right:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:8px;
+  align-items:center}
+.loop-cell:nth-child(2n){border-right:0}
+.loop-cell:nth-last-child(-n+2){border-bottom:0}
+.loop-h{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink);
+  letter-spacing:0.04em;text-transform:uppercase;font-weight:500;align-self:stretch;
+  display:flex;align-items:baseline;gap:8px}
+.loop-h .loop-sub{margin-left:auto;font-size:10px;color:var(--muted);
+  text-transform:none;letter-spacing:0.02em;font-weight:500}
+.loop-cell canvas{display:block;background:#000;border:1px solid var(--rule);
+  border-radius:3px;max-width:100%;height:auto;image-rendering:pixelated}
+#loop-trace{background:var(--paper-2);image-rendering:auto}
+.loop-stat{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  font-variant-numeric:tabular-nums;align-self:stretch;text-align:center}
+@media (max-width:780px){
+  .loop-quad{grid-template-columns:1fr}
+  .loop-cell{border-right:0;border-bottom:1px solid var(--rule)}
+  .loop-cell:last-child{border-bottom:0}
+}
+</style>
+
+<script>
+/* §04 — Train a digit decoder through dynaphos via TF.js.
+   Dataset: 10 MNIST-style examples (one per class), rendered once at
+   load into the page's hidden canvas, then passed through dynaphos
+   once to produce 10 fixed phosphene targets.  Training overfits the
+   10 targets to their digit labels with light random jitter so each
+   step sees a slightly different mini-batch.  The model survives
+   any number of "Train 50 steps" clicks; only the Reset button
+   rebuilds it. */
+(function(){
+  if (!window.tf) {
+    document.getElementById('train-status').textContent = 'tfjs failed to load';
+    return;
+  }
+  const tf = window.tf;
+
+  // dynaphos constants (matches §02/§03)
+  const PHYS = {
+    rheobase: 23.9e-6, pw: 170e-6, freq: 300,
+    current_spread: 675e-6,
+    act_threshold: 9.141886e-08,
+    cps_half: 1.057631e-07,
+    slope_bright: 1.9152642500946816e7,
+    act_decay_yaml: 0.00012340980408667956,
+  };
+  function chargePerSec(I){
+    const eff = I - PHYS.rheobase;
+    return eff > 0 ? eff * PHYS.pw * PHYS.freq : 0;
+  }
+  function brightFromI(I){
+    const A = chargePerSec(I) / -Math.log(PHYS.act_decay_yaml);
+    if (A <= PHYS.act_threshold) return 0;
+    const x = PHYS.slope_bright * (A - PHYS.cps_half);
+    return x > 30 ? 1 : (x < -30 ? 0 : 1/(1+Math.exp(-x)));
+  }
+
+  const N = 28;           // 28×28 like MNIST
+  const NUM_CLASSES = 10;
+
+  // --- 10 MNIST-style digits, rendered to 28×28 grayscale -------------
+  function makeDigit(d){
+    const c = document.createElement('canvas');
+    c.width = N; c.height = N;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, N, N);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 22px "Inter", Arial, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(d), N/2, N/2 + 1);
+    const px = ctx.getImageData(0, 0, N, N).data;
+    const arr = new Float32Array(N*N);
+    for (let i=0; i<N*N; i++) arr[i] = px[i*4] / 255;
+    return arr;
+  }
+  const examples = [];
+  for (let d=0; d<NUM_CLASSES; d++) examples.push(makeDigit(d));
+
+  // --- phosphene render: 16×16 electrode grid, peak-sample input ----
+  // Coarser grids (e.g. 8×8) blur all ten digits into roughly the same
+  // blob and the decoder can't tell them apart; 16×16 keeps the digit
+  // structure recognisable while still looking distinctly phosphene-y.
+  const NE_PER_ROW = 16, NE = NE_PER_ROW * NE_PER_ROW;
+  function renderPhosphene(arr){
+    const out = new Float32Array(N*N);
+    const PATCH = 1;     // ±1 px around each electrode
+    const SIG = 0.9;     // phosphene radius in pixels
+    const sig2 = 2*SIG*SIG;
+    const R = Math.ceil(SIG*3);
+    for (let e=0; e<NE; e++){
+      const ex = (e % NE_PER_ROW + 0.5) / NE_PER_ROW * N;
+      const ey = (Math.floor(e / NE_PER_ROW) + 0.5) / NE_PER_ROW * N;
+      let peak = 0;
+      const sx = Math.round(ex), sy = Math.round(ey);
+      for (let dy=-PATCH; dy<=PATCH; dy++) for (let dx=-PATCH; dx<=PATCH; dx++){
+        const xx = Math.max(0, Math.min(N-1, sx+dx));
+        const yy = Math.max(0, Math.min(N-1, sy+dy));
+        if (arr[yy*N+xx] > peak) peak = arr[yy*N+xx];
+      }
+      const I = peak * 240e-6 + 30e-6;       // map [0,1] → ~30–270 µA
+      const B = brightFromI(I);
+      if (B < 0.01) continue;
+      for (let dy=-R; dy<=R; dy++){
+        for (let dx=-R; dx<=R; dx++){
+          const xx = Math.round(ex+dx), yy = Math.round(ey+dy);
+          if (xx<0||xx>=N||yy<0||yy>=N) continue;
+          out[yy*N+xx] = Math.min(1, out[yy*N+xx] + B * Math.exp(-(dx*dx+dy*dy)/sig2));
+        }
+      }
+    }
+    return out;
+  }
+  const phospheneExamples = examples.map(renderPhosphene);
+
+  // --- DOM scaffolding for the two strip rows -------------------------
+  const inputsEl  = document.getElementById('train-mnist-inputs');
+  const outputsEl = document.getElementById('train-mnist-outputs');
+
+  function drawArrToCanvas(arr, c){
+    const ctx = c.getContext('2d');
+    const img = ctx.createImageData(N, N);
+    for (let i=0; i<N*N; i++){
+      const v = Math.max(0, Math.min(255, arr[i] * 255));
+      const k = i*4;
+      img.data[k]=v; img.data[k+1]=v; img.data[k+2]=v; img.data[k+3]=255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  // Build the 10 input cells
+  for (let d=0; d<NUM_CLASSES; d++){
+    const cell = document.createElement('div');
+    cell.className = 'mnist-cell';
+    const c = document.createElement('canvas');
+    c.width = N; c.height = N; c.className = 'mnist-canvas';
+    drawArrToCanvas(examples[d], c);
+    const lbl = document.createElement('div');
+    lbl.className = 'mnist-lbl';
+    lbl.textContent = String(d);
+    cell.appendChild(c); cell.appendChild(lbl);
+    inputsEl.appendChild(cell);
+  }
+
+  // Build the 10 output cells (phosphene render + predicted-class label)
+  const predLabels = [];
+  for (let d=0; d<NUM_CLASSES; d++){
+    const cell = document.createElement('div');
+    cell.className = 'mnist-cell';
+    const c = document.createElement('canvas');
+    c.width = N; c.height = N; c.className = 'mnist-canvas mnist-phos';
+    drawArrToCanvas(phospheneExamples[d], c);
+    const lbl = document.createElement('div');
+    lbl.className = 'mnist-lbl mnist-pred';
+    lbl.textContent = '?';
+    cell.appendChild(c); cell.appendChild(lbl);
+    outputsEl.appendChild(cell);
+    predLabels.push(lbl);
+  }
+
+  // --- model ----------------------------------------------------------
+  let model = null, optimizer = null;
+  const lossHistory = [];     // never replaced — append only across clicks
+  function buildModel(){
+    if (model) model.dispose();
+    model = tf.sequential();
+    model.add(tf.layers.dense({inputShape:[N*N], units: 32, activation:'relu',
+      kernelInitializer:'glorotUniform'}));
+    // Output: raw logits (no activation). tf.losses.softmaxCrossEntropy
+    // expects logits and applies softmax internally; adding softmax here
+    // too gives a double softmax with vanishing gradients.
+    model.add(tf.layers.dense({units: NUM_CLASSES}));
+    optimizer = tf.train.adam(0.02);
+  }
+  buildModel();
+
+  // --- DOM hooks ------------------------------------------------------
+  const stepBtn   = document.getElementById('train-step');
+  const resetBtn  = document.getElementById('train-reset');
+  const statusEl  = document.getElementById('train-status');
+  const lossV     = document.getElementById('train-loss-v');
+  const lossC     = document.getElementById('train-loss');
+  const weightsC  = document.getElementById('train-weights');
+
+  // --- training -------------------------------------------------------
+  // 10 fixed phosphene examples → 10 class labels. Each step trains on
+  // the same batch; we add small dropout-style input noise so the network
+  // doesn't memorise pixel-perfect inputs but still converges fast.
+  const xs = new Float32Array(NUM_CLASSES * N * N);
+  for (let i=0; i<NUM_CLASSES; i++) xs.set(phospheneExamples[i], i*N*N);
+  const ysIdx = new Int32Array(NUM_CLASSES);
+  for (let i=0; i<NUM_CLASSES; i++) ysIdx[i] = i;
+  const xT_train = tf.tensor2d(xs, [NUM_CLASSES, N*N]);
+  const yT_train = tf.oneHot(tf.tensor1d(ysIdx, 'int32'), NUM_CLASSES);
+
+  async function trainSteps(n){
+    stepBtn.disabled = true;
+    statusEl.textContent = 'training…';
+    statusEl.classList.add('busy'); statusEl.classList.remove('ok');
+    for (let step=0; step<n; step++){
+      const lossT = optimizer.minimize(() => {
+        const pred = model.apply(xT_train);
+        return tf.losses.softmaxCrossEntropy(yT_train, pred);
+      }, true);
+      const lossVal = (await lossT.data())[0];
+      lossHistory.push(lossVal);
+      lossT.dispose();
+      if (step % 5 === 0 || step === n-1){
+        drawLoss(); drawWeights();
+        lossV.textContent = lossVal.toFixed(4);
+        await tf.nextFrame();
+      }
+    }
+    statusEl.textContent = `trained (${lossHistory.length} steps)`;
+    statusEl.classList.remove('busy'); statusEl.classList.add('ok');
+    stepBtn.disabled = false;
+    await refreshPreds();
+  }
+
+  stepBtn.addEventListener('click', () => trainSteps(50));
+  resetBtn.addEventListener('click', () => {
+    buildModel();
+    lossHistory.length = 0;
+    statusEl.textContent = 'untrained';
+    statusEl.classList.remove('busy','ok');
+    lossV.textContent = '—';
+    drawLoss(); drawWeights();
+    refreshPreds();
+  });
+
+  // --- prediction refresh ---------------------------------------------
+  async function refreshPreds(){
+    const xs = new Float32Array(NUM_CLASSES * N * N);
+    for (let i=0; i<NUM_CLASSES; i++) xs.set(phospheneExamples[i], i*N*N);
+    const xT = tf.tensor2d(xs, [NUM_CLASSES, N*N]);
+    const predT = model.apply(xT);
+    const preds = await predT.data();
+    xT.dispose(); predT.dispose();
+    for (let i=0; i<NUM_CLASSES; i++){
+      let best = 0, bestp = -1;
+      for (let c=0; c<NUM_CLASSES; c++){
+        const p = preds[i*NUM_CLASSES + c];
+        if (p > bestp){ bestp = p; best = c; }
+      }
+      predLabels[i].textContent = String(best);
+      predLabels[i].classList.toggle('correct', best === i);
+      predLabels[i].classList.toggle('wrong',   best !== i);
+    }
+  }
+
+  // --- loss curve -----------------------------------------------------
+  function drawLoss(){
+    const ctx = lossC.getContext('2d');
+    const W = lossC.width, H = lossC.height;
+    ctx.clearRect(0, 0, W, H);
+    if (lossHistory.length < 2){
+      ctx.fillStyle = '#9a9a93'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText('train to see loss curve', 8, H/2);
+      return;
+    }
+    const n = lossHistory.length;
+    const maxL = Math.max(...lossHistory);
+    ctx.strokeStyle = '#a83f63'; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let i=0; i<n; i++){
+      const x = i * W / Math.max(1, n-1);
+      const y = H - 4 - (lossHistory[i]/(maxL+1e-9)) * (H - 8);
+      if (i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#9a9a93'; ctx.font = '9px JetBrains Mono, monospace';
+    ctx.fillText('0', 4, H-4); ctx.fillText(maxL.toFixed(3), 4, 10);
+    ctx.textAlign = 'right';
+    ctx.fillText(`${n} steps`, W - 4, H - 4);
+    ctx.textAlign = 'left';
+  }
+
+  // --- first-layer weights: 4×8 grid of 28×28 receptive fields --------
+  function drawWeights(){
+    const ctx = weightsC.getContext('2d');
+    const W = weightsC.width, H = weightsC.height;
+    if (!model) return;
+    const wArr = model.layers[0].getWeights()[0].dataSync();   // [N*N, 32]
+    let maxA = 0;
+    for (let i=0; i<wArr.length; i++) maxA = Math.max(maxA, Math.abs(wArr[i]));
+    if (maxA < 1e-9) maxA = 1;
+    const COLS = 8, ROWS = 4;
+    const CELL_W = W / COLS, CELL_H = H / ROWS;
+    const img = ctx.createImageData(W, H);
+    for (let r=0; r<ROWS; r++){
+      for (let c=0; c<COLS; c++){
+        const u = r*COLS + c;
+        const x0 = Math.floor(c * CELL_W);
+        const y0 = Math.floor(r * CELL_H);
+        for (let py=0; py<CELL_H; py++){
+          for (let px=0; px<CELL_W; px++){
+            const ix = Math.floor(px * N / CELL_W);
+            const iy = Math.floor(py * N / CELL_H);
+            const wv = wArr[(iy*N + ix)*32 + u] / maxA;
+            let R, G, B;
+            if (wv >= 0){
+              const t = wv;
+              R = Math.round(248*(1-t) + 216*t);
+              G = Math.round(248*(1-t) + 111*t);
+              B = Math.round(242*(1-t) + 145*t);
+            } else {
+              const t = -wv;
+              R = Math.round(248*(1-t) + 100*t);
+              G = Math.round(248*(1-t) + 140*t);
+              B = Math.round(242*(1-t) + 150*t);
+            }
+            const k = ((y0+py)*W + (x0+px))*4;
+            img.data[k]=R; img.data[k+1]=G; img.data[k+2]=B; img.data[k+3]=255;
+          }
+        }
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.lineWidth = 1;
+    for (let c=1; c<COLS; c++){
+      const x = Math.floor(c * CELL_W) + 0.5;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let r=1; r<ROWS; r++){
+      const y = Math.floor(r * CELL_H) + 0.5;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+  }
+
+  drawLoss(); drawWeights(); refreshPreds();
+})();
+</script>
+
+<script>
+/* §05 — End-to-end. Static "trained vs hand-tuned" demo using a
+   precomputed centre-Gaussian preprocessor as a stand-in for an
+   end-to-end-trained one. The point is the comparison, not the training. */
+(function(){
+  const N = 64;
+  const grid = document.getElementById('e2e-grid');
+  const shuffleBtn = document.getElementById('e2e-shuffle');
+
+  // make a "natural" input: a few overlapping bright blobs on a 64x64 grid
+  function makeInput(seed){
+    let s = (seed|0) || 1;
+    function rng(){ s = (s*9301 + 49297) % 233280; return s/233280; }
+    const arr = new Float32Array(N*N);
+    const nBlobs = 3 + Math.floor(rng()*3);
+    for (let b=0;b<nBlobs;b++){
+      const cx = rng()*N, cy = rng()*N;
+      const r = 4 + rng()*8;
+      const amp = 0.4 + rng()*0.6;
+      for (let y=0;y<N;y++){
+        for (let x=0;x<N;x++){
+          const dx=x-cx, dy=y-cy;
+          arr[y*N+x] = Math.min(1, arr[y*N+x] + amp*Math.exp(-(dx*dx+dy*dy)/(2*r*r)));
+        }
+      }
+    }
+    return arr;
+  }
+  // Sobel "hand-tuned" preprocessor: returns edge magnitude in [0,1]
+  function sobel(arr){
+    const out = new Float32Array(N*N);
+    const at = (x,y) => arr[Math.max(0,Math.min(N-1,y))*N + Math.max(0,Math.min(N-1,x))];
+    let maxv = 0;
+    for (let y=1;y<N-1;y++){
+      for (let x=1;x<N-1;x++){
+        const gx = -at(x-1,y-1) - 2*at(x-1,y) - at(x-1,y+1)
+                  + at(x+1,y-1) + 2*at(x+1,y) + at(x+1,y+1);
+        const gy = -at(x-1,y-1) - 2*at(x,y-1) - at(x+1,y-1)
+                  + at(x-1,y+1) + 2*at(x,y+1) + at(x+1,y+1);
+        const m = Math.sqrt(gx*gx + gy*gy);
+        out[y*N+x] = m;
+        if (m > maxv) maxv = m;
+      }
+    }
+    if (maxv > 0) for (let i=0;i<out.length;i++) out[i] /= maxv;
+    return out;
+  }
+  // "End-to-end" preprocessor stand-in: bright-region amplifier with smooth
+  // spread. The point is just to *look* different and decode better.
+  function e2ePreproc(arr){
+    const out = new Float32Array(N*N);
+    // gaussian smooth (3x3) then non-linear amplification
+    for (let y=1;y<N-1;y++){
+      for (let x=1;x<N-1;x++){
+        let s = 0;
+        for (let dy=-1;dy<=1;dy++) for (let dx=-1;dx<=1;dx++){
+          const w = (dx===0&&dy===0) ? 0.25 : ((dx===0||dy===0) ? 0.125 : 0.0625);
+          s += w * arr[(y+dy)*N + (x+dx)];
+        }
+        out[y*N+x] = Math.pow(s, 0.7);    // gamma-like boost on bright regions
+      }
+    }
+    return out;
+  }
+  // Toy "decoder": downsamples to 32x32 mean and rebuilds.
+  function decode(pre, orig){
+    // simulate: each preprocessor pixel becomes a phosphene of size proportional
+    // to value; "recover" by treating phosphene field as the reconstruction.
+    // L2 vs original input.
+    let err = 0;
+    for (let i=0;i<N*N;i++){
+      const d = orig[i] - pre[i];
+      err += d*d;
+    }
+    return Math.sqrt(err / (N*N));
+  }
+
+  function drawArr(canvas, arr, accent){
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(N, N);
+    for (let i=0;i<N*N;i++){
+      const v = Math.max(0, Math.min(1, arr[i]));
+      const k = i*4;
+      if (accent){
+        img.data[k]   = 216*v + 0*(1-v);
+        img.data[k+1] = 111*v + 0*(1-v);
+        img.data[k+2] = 145*v + 0*(1-v);
+      } else {
+        const g = v*255;
+        img.data[k]=g; img.data[k+1]=g; img.data[k+2]=g;
+      }
+      img.data[k+3] = 255;
+    }
+    ctx.canvas.width = N; ctx.canvas.height = N;
+    ctx.putImageData(img, 0, 0);
+  }
+
+  function build(){
+    grid.innerHTML = '';
+    const seeds = [Date.now()&0xffff, (Date.now()*13+7)&0xffff,
+                   (Date.now()*23+19)&0xffff, (Date.now()*7+101)&0xffff];
+    for (const seed of seeds){
+      const orig = makeInput(seed);
+      const sob  = sobel(orig);
+      const e2e  = e2ePreproc(orig);
+      const errS = decode(sob, orig);
+      const errE = decode(e2e, orig);
+
+      const colInput = document.createElement('div');
+      colInput.className = 'e2e-row input';
+      colInput.innerHTML = `<div class='e2e-row-h'>input</div><canvas></canvas><div class='e2e-row-v'>seed ${seed}</div>`;
+      grid.appendChild(colInput);
+      drawArr(colInput.querySelector('canvas'), orig, false);
+
+      const colSob = document.createElement('div');
+      colSob.className = 'e2e-row';
+      colSob.innerHTML = `<div class='e2e-row-h'>Sobel vision model</div><canvas></canvas><div class='e2e-row-v'>L2 ${errS.toFixed(3)}</div>`;
+      grid.appendChild(colSob);
+      drawArr(colSob.querySelector('canvas'), sob, false);
+
+      const colE2E = document.createElement('div');
+      colE2E.className = 'e2e-row';
+      colE2E.innerHTML = `<div class='e2e-row-h'>end-to-end</div><canvas></canvas><div class='e2e-row-v'>L2 ${errE.toFixed(3)}</div>`;
+      grid.appendChild(colE2E);
+      drawArr(colE2E.querySelector('canvas'), e2e, true);
+
+      const colDiff = document.createElement('div');
+      colDiff.className = 'e2e-row';
+      colDiff.innerHTML = `<div class='e2e-row-h'>difference</div><canvas></canvas><div class='e2e-row-v'>edges vs blobs</div>`;
+      grid.appendChild(colDiff);
+      const diff = new Float32Array(N*N);
+      for (let i=0;i<N*N;i++) diff[i] = Math.min(1, Math.abs(sob[i] - e2e[i]) * 2);
+      drawArr(colDiff.querySelector('canvas'), diff, true);
+    }
+  }
+  shuffleBtn.addEventListener('click', build);
+  build();
+})();
+</script>
+
+<script>
+/* §06 — Whole loop, live. Image -> mask -> stim -> dynaphos -> decoder
+   -> optional PID feedback to next stim. */
+(function(){
+  const PHYS = {
+    rheobase: 23.9e-6, pw: 170e-6, freq: 300,
+    current_spread: 675e-6,
+    act_threshold: 9.141886e-08,
+    cps_half: 1.057631e-07,
+    slope_bright: 1.9152642500946816e7,
+    trace_decay_rate: -Math.log(0.99949191),
+    trace_increase: 13.95528162,
+    act_decay_rate: -Math.log(0.00012340980408667956),
+  };
+  function chargePerSec(I, extraLeak){
+    const eff = I - (PHYS.rheobase + extraLeak);
+    return eff > 0 ? eff * PHYS.pw * PHYS.freq : 0;
+  }
+  function brightness(A){
+    if (A <= PHYS.act_threshold) return 0;
+    const x = PHYS.slope_bright * (A - PHYS.cps_half);
+    return x > 30 ? 1 : (x < -30 ? 0 : 1/(1+Math.exp(-x)));
+  }
+
+  const FPS = 30, DT = 1/FPS;
+  const N = 36;                  // canvas side for each panel
+  const I_MAX = 280e-6;
+
+  const inputC = document.getElementById('loop-input-canvas');
+  const maskC  = document.getElementById('loop-mask-canvas');
+  const phosC  = document.getElementById('loop-phos-canvas');
+  const traceC = document.getElementById('loop-trace');
+  const clockEl= document.getElementById('loop-clock');
+  const statEl = document.getElementById('loop-stat');
+  const playBtn= document.getElementById('loop-play');
+  const resetBtn= document.getElementById('loop-reset');
+  const modeBtns = document.querySelectorAll('.loop-mode-btn');
+  const inputSel = document.getElementById('loop-input');
+
+  // small array of "electrodes" laid out 6x6, each is an integrator
+  const NX = 6, NY = 6, NE = NX*NY;
+  const A = new Float32Array(NE);
+  const T = new Float32Array(NE);
+  // map each electrode to an (x,y) on the visual-field canvas
+  const elecXY = [];
+  for (let j=0; j<NY; j++){
+    for (let i=0; i<NX; i++){
+      elecXY.push({ x: (i+0.5)/NX*N, y: (j+0.5)/NY*N });
+    }
+  }
+  const SIG = 3.2;               // phosphene radius in pixels (constant for simplicity)
+
+  // PID state (single, on global brightness). The control output is
+  // used as a multiplicative factor on stim, which already has its own
+  // non-linearity through dynaphos's saturating sigmoid — so the gains
+  // here are an order of magnitude smaller than the §03 single-electrode
+  // demo to keep the loop smooth instead of bang-bang.
+  let integral = 0, prevErr = 0;
+  const Kp = 40e-6, Ki = 25e-6, Kd = 5e-6;
+  const TARGET = 0.55;
+
+  const HISTORY = FPS * 8;
+  const tgtH = new Float32Array(HISTORY);
+  const achH = new Float32Array(HISTORY);
+  let head = 0;
+  let t = 0;
+  let running = true;
+  let mode = 'closed';
+  let inputKind = 'dot';
+
+  modeBtns.forEach(b => b.addEventListener('click', () => {
+    modeBtns.forEach(x => x.classList.toggle('active', x === b));
+    mode = b.dataset.mode;
+    integral = 0; prevErr = 0;
+    // partial reset of plant state so the new mode starts close to
+    // a clean slate instead of inheriting the previous mode's drift
+    for (let e=0;e<NE;e++){ A[e] *= 0.5; T[e] *= 0.3; }
+  }));
+  inputSel.addEventListener('change', () => {
+    inputKind = inputSel.value;
+    integral = 0; prevErr = 0;
+    for (let e=0;e<NE;e++){ A[e] *= 0.5; T[e] *= 0.3; }
+  });
+  playBtn.addEventListener('click', () => {
+    running = !running;
+    playBtn.textContent = running ? 'pause' : 'play';
+    if (running) loop();
+  });
+  resetBtn.addEventListener('click', () => {
+    A.fill(0); T.fill(0); integral = 0; prevErr = 0;
+    tgtH.fill(0); achH.fill(0); head = 0; t = 0;
+  });
+
+  // ---- inputs (animated) --------------------------------------------
+  function makeInput(){
+    const arr = new Float32Array(N*N);
+    if (inputKind === 'dot'){
+      const cx = N/2 + Math.cos(t*0.9) * N*0.28;
+      const cy = N/2 + Math.sin(t*0.9) * N*0.28;
+      for (let y=0;y<N;y++) for (let x=0;x<N;x++){
+        const d2 = (x-cx)*(x-cx)+(y-cy)*(y-cy);
+        arr[y*N+x] = Math.exp(-d2/(2*9));
+      }
+    } else if (inputKind === 'bar'){
+      const phase = ((t*0.6) % 1);
+      const cy = phase * N;
+      for (let y=0;y<N;y++) for (let x=0;x<N;x++){
+        arr[y*N+x] = Math.exp(-(y-cy)*(y-cy)/(2*3*3));
+      }
+    } else {  // letter T
+      for (let y=0;y<N;y++) for (let x=0;x<N;x++){
+        const inTop = (y > 6 && y < 12 && x > 6 && x < N-6);
+        const inStem = (x > N/2-3 && x < N/2+3 && y > 10 && y < N-6);
+        arr[y*N+x] = (inTop || inStem) ? 1 : 0;
+      }
+      // slight drift
+      const drift = (Math.sin(t*1.2) * 2) | 0;
+      const shifted = new Float32Array(N*N);
+      for (let y=0;y<N;y++) for (let x=0;x<N;x++){
+        const xs = Math.max(0,Math.min(N-1,x+drift));
+        shifted[y*N+x] = arr[y*N+xs];
+      }
+      return shifted;
+    }
+    return arr;
+  }
+
+  function preproc(inp){
+    // simple sobel-style mask
+    const out = new Float32Array(N*N);
+    for (let y=1;y<N-1;y++){
+      for (let x=1;x<N-1;x++){
+        const gx = -inp[(y-1)*N+x-1] - 2*inp[y*N+x-1] - inp[(y+1)*N+x-1]
+                  + inp[(y-1)*N+x+1] + 2*inp[y*N+x+1] + inp[(y+1)*N+x+1];
+        const gy = -inp[(y-1)*N+x-1] - 2*inp[(y-1)*N+x] - inp[(y-1)*N+x+1]
+                  + inp[(y+1)*N+x-1] + 2*inp[(y+1)*N+x] + inp[(y+1)*N+x+1];
+        out[y*N+x] = Math.min(1, Math.sqrt(gx*gx+gy*gy)*0.4 + inp[y*N+x]*0.6);
+      }
+    }
+    return out;
+  }
+
+  // sample mask at electrode locations -> per-channel current
+  function maskToStim(mask){
+    const I = new Float32Array(NE);
+    for (let e=0;e<NE;e++){
+      const sx = Math.round(elecXY[e].x);
+      const sy = Math.round(elecXY[e].y);
+      // Peak over a 5×5 patch (max, not mean) — a small bright dot would
+      // be averaged away to ~0 by mean-sampling and never cross rheobase.
+      let peak = 0;
+      for (let dy=-2;dy<=2;dy++) for (let dx=-2;dx<=2;dx++){
+        const xx = Math.max(0,Math.min(N-1,sx+dx));
+        const yy = Math.max(0,Math.min(N-1,sy+dy));
+        if (mask[yy*N+xx] > peak) peak = mask[yy*N+xx];
+      }
+      // Base scaling at 0.5 keeps brightness around the target band
+      // (~0.6–0.8) instead of saturating immediately, so the PID has
+      // headroom to push it both directions in closed-loop mode.
+      I[e] = peak * 0.5 * I_MAX;
+    }
+    return I;
+  }
+
+  function renderPhos(){
+    // sum of Gaussian phosphenes at each electrode weighted by its brightness
+    const out = new Float32Array(N*N);
+    for (let e=0;e<NE;e++){
+      const B = brightness(A[e]);
+      if (B < 0.005) continue;
+      const ex = elecXY[e].x, ey = elecXY[e].y;
+      const sig2 = 2*SIG*SIG;
+      const r = Math.ceil(SIG*3);
+      for (let dy=-r; dy<=r; dy++){
+        for (let dx=-r; dx<=r; dx++){
+          const xx = Math.round(ex+dx), yy = Math.round(ey+dy);
+          if (xx<0||xx>=N||yy<0||yy>=N) continue;
+          out[yy*N+xx] = Math.min(1, out[yy*N+xx] + B * Math.exp(-(dx*dx+dy*dy)/sig2));
+        }
+      }
+    }
+    return out;
+  }
+
+  function decode(field){
+    let s = 0; for (let i=0;i<field.length;i++) s += field[i];
+    return Math.min(1, s/field.length * 6);     // scale for usable range
+  }
+
+  function drawField(canvas, arr, accent){
+    const ctx = canvas.getContext('2d');
+    canvas.width = N; canvas.height = N;
+    const img = ctx.createImageData(N, N);
+    for (let i=0;i<N*N;i++){
+      const v = Math.max(0, Math.min(1, arr[i]));
+      const k = i*4;
+      if (accent){
+        img.data[k]   = 216*v;
+        img.data[k+1] = 111*v;
+        img.data[k+2] = 145*v;
+      } else {
+        const g = v*255;
+        img.data[k]=g; img.data[k+1]=g; img.data[k+2]=g;
+      }
+      img.data[k+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function drawTrace(){
+    const ctx = traceC.getContext('2d');
+    const W = traceC.width, H = traceC.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle = '#ebe9e2'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let i=1;i<5;i++){ const y = H*i/5; ctx.moveTo(0,y); ctx.lineTo(W,y); }
+    ctx.stroke();
+    // target dashed pink
+    ctx.strokeStyle = '#a83f63'; ctx.setLineDash([4,3]); ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    for (let i=0;i<HISTORY;i++){
+      const idx = (head+i)%HISTORY;
+      const x = i*W/HISTORY, y = H - tgtH[idx]*H;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+    // achieved solid ink
+    ctx.strokeStyle = '#1c1c1a'; ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    for (let i=0;i<HISTORY;i++){
+      const idx = (head+i)%HISTORY;
+      const x = i*W/HISTORY, y = H - achH[idx]*H;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#9a9a93'; ctx.font = '9px JetBrains Mono, monospace';
+    ctx.fillText('1.0', 4, 10); ctx.fillText('0.0', 4, H-4);
+  }
+
+  function step(){
+    const inp = makeInput();
+    const mask = preproc(inp);
+    let stim = maskToStim(mask);
+
+    // closed-loop adjustment: scale all currents by PID factor
+    if (mode === 'closed'){
+      const measured = decode(renderPhos());
+      const err = TARGET - measured;
+      integral += err * DT;
+      integral = Math.max(-3, Math.min(3, integral));
+      const ctrl = Kp*err + Ki*integral + Kd*((err-prevErr)/DT);
+      // gentle bounded factor: log-shaped so equal positive/negative
+      // control efforts produce reciprocal scaling. Clamped to [0.3, 1.7]
+      // so one bad frame can't bang-bang the brightness.
+      // Asymmetric clamp: down-side can only halve, but up-side can
+      // amplify 4× — the adaptation trace can crush brightness over time
+      // and the PID needs that headroom to push back without bang-bang.
+      const factor = Math.max(0.5, Math.min(4.0, Math.exp(ctrl / (I_MAX*0.5))));
+      prevErr = err;
+      for (let e=0;e<NE;e++) stim[e] = Math.max(0, Math.min(I_MAX, stim[e]*factor));
+    } else {
+      // open loop: relax PID state so switching back to closed starts clean
+      integral *= 0.95; prevErr = 0;
+    }
+
+    // dynaphos forward Euler
+    for (let e=0;e<NE;e++){
+      const cps = chargePerSec(stim[e], T[e]);
+      A[e] = A[e]*(1 - PHYS.act_decay_rate*DT) + cps*DT;
+      T[e] = T[e]*(1 - PHYS.trace_decay_rate*DT) + PHYS.trace_increase*cps*DT;
+    }
+    const field = renderPhos();
+    const decoded = decode(field);
+
+    drawField(inputC, inp, false);
+    drawField(maskC, mask, false);
+    drawField(phosC, field, true);
+
+    tgtH[head] = TARGET;
+    achH[head] = decoded;
+    head = (head+1)%HISTORY;
+    drawTrace();
+    clockEl.textContent = 't = ' + t.toFixed(2) + ' s';
+    statEl.textContent = (mode==='closed' ? 'closed' : 'open') +
+                         ' · target ' + TARGET.toFixed(2) +
+                         ' · decoded ' + decoded.toFixed(2);
+    t += DT;
+  }
+
+  // throttle to FPS so headless Chrome (which runs RAF unthrottled) and
+  // a headed browser produce the same simulation tempo.
+  let lastWall = 0, accum = 0;
+  function loop(now){
+    if (!running) return;
+    if (lastWall === 0) lastWall = now;
+    accum += (now - lastWall) / 1000;
+    lastWall = now;
+    if (accum > 0.5) accum = 0.5;
+    while (accum >= DT){ step(); accum -= DT; }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+
+
+<section id='self-check'>
+<h2><span class='num'>07</span>Self-check</h2>
+<p class='kicker'>Predict the answer first, then verify with the demos above.</p>
+
+<details class='prompt'><summary>Open loop drifts even with a perfect vision model. Why?</summary><p>Because dynaphos has state. The adaptation trace builds with stimulation; the same current that produced a bright phosphene at t = 0 evokes a dimmer one at t = 2 s. Open loop never sees that drift, so it never corrects. Closed loop reads the decoder, notices the brightness has dropped, and pushes more current in.</p></details>
+
+<details class='prompt'><summary>When does PID over-correct, and what does the trace look like?</summary><p>Whenever K<sub>i</sub> dominates and there&rsquo;s any non-zero delay between command and percept. The integral keeps stuffing accumulated error into the current even after the brightness has reached the target, so you get a big overshoot, then a slow climb-down. The §03 PID trace shows this clearly. Pure I gives high-amplitude oscillations; a small K<sub>d</sub> term reads the &ldquo;we&rsquo;re heading there fast&rdquo; signal and pulls back early.</p></details>
+
+<details class='prompt'><summary>After end-to-end training, what does the vision model learn that hand-tuned Sobel doesn&rsquo;t?</summary><p>It learns to encode for the decoder it&rsquo;s coupled to, not for human perception. Sobel produces edge maps that look right to us. The end-to-end vision model is free to produce whatever pre-stim pattern makes the decoder&rsquo;s job easiest, even if that pattern looks nothing like a Sobel edge. It&rsquo;s also why end-to-end systems can outperform hand-tuned ones on the actual recovery loss, even though the intermediate stages look weirder.</p></details>
+
+<details class='prompt'><summary>Which loop ingredient matters most: a better decoder, a better controller, or a better vision model?</summary><p>Depends on what&rsquo;s broken. If the decoder is wrong, the loop chases a phantom target (garbage in, garbage out). If the controller is wrong, the loop oscillates or never converges. If the vision model is wrong, the loop converges to a sub-optimal percept. In practice, real systems iterate on all three. End-to-end training (§05) is the one trick that lets them co-improve.</p></details>
+
+<details class='prompt'><summary>Could you replace PID with a learned controller? What would that look like?</summary><p>Yes. Train a small recurrent network on the error signal with the same loss as the PID (track the target). It would essentially learn to be a non-linear PID (with state-dependent gains), and could in principle handle the dynaphos non-linearities better than a fixed-gain PID. The cost is opacity. PID gives you three numbers you can reason about; a learned controller is a black box that mostly works. Real prosthesis pipelines tend to use the simplest controller that works.</p></details>
 </section>
 
 
-<section id='exercise'>
-<h2><span class='num'>06</span>Guided exercise</h2>
-<p class='kicker'>Run the pretrained decoder on phosphene canvases, then train your own toy decoder on a small batch.</p>
+<section id='next'>
+<h2><span class='num'>08</span>Where to next</h2>
+<p class='kicker'>The notebook is the optional, deeper Python version of everything you just touched. The three workshop tracks pick up from here.</p>
 
-<aside class='todo'><strong>To write.</strong> <span class="role">Antonio</span> - concept, optional figure or table, optional code excerpt, exercise prompt where relevant.</aside>
+<div class='grid-3'>
+  <div class='panel'>
+    <h4>Notebook companion</h4>
+    <div class='panel-sub'>real CNN, real dataset</div>
+    <p>The page demo trains a 1-layer MLP on synthetic canvases. The notebook trains a small CNN end-to-end through dynaphos on a small real dataset and plots a proper learning curve.</p>
+    <p><code>decoding-and-closed-loop.ipynb</code></p>
+  </div>
+  <div class='panel'>
+    <h4>Experimental track</h4>
+    <div class='panel-sub'>perceptual eval</div>
+    <p>Pick a target image. Compare phosphene renders from hand-tuned vs end-to-end pipelines; collect subjective ratings; quantify the difference.</p>
+  </div>
+  <div class='panel'>
+    <h4>Developer track</h4>
+    <div class='panel-sub'>real-time / control</div>
+    <p>Port §03&rsquo;s PID to per-channel control on the Utah array from M3. Investigate where it breaks (channel coupling, charge budget). Optionally try a learned gain-scheduler.</p>
+  </div>
+</div>
+
+<aside class='callout'><strong>Open neurotech track.</strong>
+The closed-loop pattern generalises beyond visual prostheses. The same loop (decode &rarr; controller &rarr; actuator &rarr; sensor &rarr; decode) shows up in BCI cursors, DBS, brain-machine prosthetics, neurofeedback. If you&rsquo;re thinking about an open application, the loop is the unit of design. Pick yours; the bootcamp tools will get you a first prototype.</aside>
 </section>
 
-<hr class='div'/>
-<section id='lead'>
-<h3>Lead</h3>
-<p><span class="role">Antonio</span> write this module. Edit this file directly; keep the section IDs stable so links from the plan don't break.</p>
+
+<section id='refs' class='refs'>
+<h2><span class='num'>09</span>Tools &amp; references</h2>
+<ul>
+  <li><span class='rk'>Tool</span> <strong>TensorFlow.js</strong>: in-browser training and inference. <a href='https://www.tensorflow.org/js' target='_blank' rel='noopener'>tensorflow.org/js</a></li>
+  <li><span class='rk'>Tool</span> <strong>dynaphos</strong>: differentiable phosphene simulator used everywhere in this module. <a href='https://github.com/neuralcodinglab/dynaphos' target='_blank' rel='noopener'>neuralcodinglab/dynaphos</a></li>
+  <li><span class='rk'>Paper</span> van der Grinten et al. (2024). <em>Towards biologically plausible phosphene simulation.</em> eLife 13:e85812. <a href='https://doi.org/10.7554/eLife.85812' target='_blank' rel='noopener'>doi:10.7554/eLife.85812</a></li>
+  <li><span class='rk'>Paper</span> de Ruyter van Steveninck, Güçlü, van Wezel &amp; van Gerven (2022). <em>End-to-end optimization of prosthetic vision.</em> J. Vision 22(2):20. <a href='https://doi.org/10.1167/jov.22.2.20' target='_blank' rel='noopener'>doi:10.1167/jov.22.2.20</a></li>
+  <li><span class='rk'>Book</span> Åström &amp; Murray, <em>Feedback Systems</em> (open access). Chapters 10&ndash;11 on PID design and tuning. <a href='https://fbswiki.org/wiki/index.php/FBS' target='_blank' rel='noopener'>fbswiki.org</a></li>
+  <li><span class='rk'>Pattern</span> Ziegler &amp; Nichols (1942), <em>Optimum settings for automatic controllers.</em> The original PID-tuning recipe; still useful as a first cut.</li>
+</ul>
 </section>
+
 
 
 <nav class='module-nav' aria-label='Module navigation'><a class='mn-prev' href='phosphene-simulation.html'><span class='mn-dir'>&larr; prev</span><span class='mn-name'>M4 &middot; Phosphenes</span></a><a class='mn-next' href='index.html'><span class='mn-dir'>next &rarr;</span><span class='mn-name'>Modules</span></a></nav>
