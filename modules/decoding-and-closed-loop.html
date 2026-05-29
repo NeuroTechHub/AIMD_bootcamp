@@ -1715,7 +1715,7 @@ Real end-to-end training takes minutes on a GPU and several thousand gradient st
     <button id='loop-reset' class='train-btn small'>reset</button>
   </div>
 
-  <div class='loop-quad'>
+  <div class='loop-row'>
     <div class='loop-cell'>
       <div class='loop-h'>1 &middot; input <span class='loop-sub'>after gaze crop</span></div>
       <canvas id='loop-input-canvas' width='180' height='180'></canvas>
@@ -1728,11 +1728,14 @@ Real end-to-end training takes minutes on a GPU and several thousand gradient st
       <div class='loop-h'>3 &middot; phosphene field <span class='loop-sub'>dynaphos with state</span></div>
       <canvas id='loop-phos-canvas' width='180' height='180'></canvas>
     </div>
-    <div class='loop-cell'>
-      <div class='loop-h'>4 &middot; decoded brightness <span class='loop-sub'>target vs achieved</span></div>
-      <canvas id='loop-trace' width='280' height='160'></canvas>
-      <div class='loop-stat' id='loop-stat'>&mdash;</div>
+  </div>
+  <div class='loop-trace-wrap'>
+    <div class='loop-trace-h'>
+      <span>4 &middot; decoded brightness <em>target vs achieved &middot; error band colored by magnitude</em></span>
+      <span id='loop-status' class='loop-status ok'>&check; tracking</span>
     </div>
+    <canvas id='loop-trace' width='760' height='180'></canvas>
+    <div class='loop-stat' id='loop-stat'>&mdash;</div>
   </div>
 </div>
 
@@ -1908,6 +1911,34 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
   letter-spacing:0.04em;text-transform:uppercase;padding:5px 12px;border-radius:3px;
   cursor:pointer;color:var(--ink);font-weight:500;min-width:60px}
 .loop-play:hover{border-color:var(--accent);color:var(--accent-2)}
+.loop-row{display:grid;grid-template-columns:repeat(3,1fr);
+  border-bottom:1px solid var(--rule)}
+.loop-row .loop-cell{padding:12px 14px;border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;gap:8px;align-items:flex-start;min-width:0}
+.loop-row .loop-cell:last-child{border-right:0}
+.loop-row .loop-cell canvas{display:block;background:#000;border:1px solid var(--rule);
+  border-radius:3px;max-width:100%;width:180px;height:auto;aspect-ratio:1/1;
+  image-rendering:pixelated;image-rendering:crisp-edges}
+.loop-trace-wrap{padding:12px 14px 14px;background:#fff}
+.loop-trace-h{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink);
+  letter-spacing:.05em;text-transform:uppercase}
+.loop-trace-h em{font-style:normal;font-size:10px;color:var(--muted);
+  text-transform:none;letter-spacing:.02em;margin-left:6px;font-weight:400}
+.loop-trace-wrap canvas{display:block;width:100%;height:auto;
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:4px;
+  image-rendering:auto}
+.loop-status{margin-left:auto;font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:.04em;padding:3px 9px;border-radius:11px;
+  border:1px solid transparent;font-weight:600;font-variant-numeric:tabular-nums}
+.loop-status.ok  {background:rgba(72,160,96,0.15);color:#2f7a47;border-color:rgba(72,160,96,0.35)}
+.loop-status.mid {background:rgba(232,176,72,0.18);color:#8a5d12;border-color:rgba(232,176,72,0.45)}
+.loop-status.fail{background:rgba(204,72,72,0.15);color:#a83a3a;border-color:rgba(204,72,72,0.35)}
+@media (max-width:780px){
+  .loop-row{grid-template-columns:1fr}
+  .loop-row .loop-cell{border-right:0;border-bottom:1px solid var(--rule)}
+  .loop-row .loop-cell:last-child{border-bottom:0}
+}
 .loop-quad{display:grid;grid-template-columns:1fr 1fr;
   grid-template-rows:auto auto;gap:0}
 .loop-cell{padding:12px 14px;border-right:1px solid var(--rule);
@@ -2565,6 +2596,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
   const traceC = document.getElementById('loop-trace');
   const clockEl= document.getElementById('loop-clock');
   const statEl = document.getElementById('loop-stat');
+  const statusEl = document.getElementById('loop-status');
   const playBtn= document.getElementById('loop-play');
   const resetBtn= document.getElementById('loop-reset');
   const modeBtns = document.querySelectorAll('.loop-mode-btn');
@@ -2746,6 +2778,27 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
     ctx.strokeStyle = '#ebe9e2'; ctx.lineWidth = 1; ctx.beginPath();
     for (let i=1;i<5;i++){ const y = H*i/5; ctx.moveTo(0,y); ctx.lineTo(W,y); }
     ctx.stroke();
+    // error band: per-segment fill between target and achieved, colored by |err|/target.
+    // The error becomes a visceral picture instead of two thin curves the eye has to compare.
+    for (let i=0;i<HISTORY-1;i++){
+      const idx  = (head+i)%HISTORY;
+      const idx2 = (head+i+1)%HISTORY;
+      const x1 = i*W/HISTORY, x2 = (i+1)*W/HISTORY;
+      const yT1 = H - tgtH[idx]*H,  yT2 = H - tgtH[idx2]*H;
+      const yA1 = H - achH[idx]*H,  yA2 = H - achH[idx2]*H;
+      const tgt = (tgtH[idx]+tgtH[idx2])*0.5;
+      const ach = (achH[idx]+achH[idx2])*0.5;
+      const eRel = Math.abs(tgt - ach) / Math.max(tgt, 0.1);
+      let col;
+      if (eRel < 0.10)      col = 'rgba(72,160,96,0.35)';   // green
+      else if (eRel < 0.30) col = 'rgba(232,176,72,0.40)';  // amber
+      else                  col = 'rgba(204,72,72,0.40)';   // red
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.moveTo(x1, yT1); ctx.lineTo(x2, yT2);
+      ctx.lineTo(x2, yA2); ctx.lineTo(x1, yA1);
+      ctx.closePath(); ctx.fill();
+    }
     // target dashed pink
     ctx.strokeStyle = '#a83f63'; ctx.setLineDash([4,3]); ctx.lineWidth = 1.4;
     ctx.beginPath();
@@ -2767,6 +2820,25 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
     ctx.fillStyle = '#9a9a93'; ctx.font = '9px JetBrains Mono, monospace';
     ctx.fillText('1.0', 4, 10); ctx.fillText('0.0', 4, H-4);
   }
+  // status chip: rolling 100-frame mean |err|. Three states so the wobble
+  // around the threshold doesn't make it flip every frame.
+  function updateStatus(){
+    if (!statusEl) return;
+    let acc = 0, n = 0;
+    const W_FRAMES = 100;
+    for (let k=0; k<W_FRAMES; k++){
+      const idx = (head - 1 - k + HISTORY) % HISTORY;
+      if (tgtH[idx] > 0.01){ acc += Math.abs(tgtH[idx] - achH[idx]); n++; }
+    }
+    const meanErr = n > 0 ? acc / n : 0;
+    const errStr = 'mean |err| ' + meanErr.toFixed(2);
+    let cls, label;
+    if (meanErr < 0.12)      { cls = 'ok';   label = '✓ tracking · ' + errStr; }
+    else if (meanErr < 0.25) { cls = 'mid';  label = '~ lagging · '  + errStr; }
+    else                     { cls = 'fail'; label = '✗ drifting · ' + errStr; }
+    statusEl.textContent = label;
+    statusEl.className = 'loop-status ' + cls;
+  }
 
   function step(){
     const inp = makeInput();
@@ -2780,13 +2852,11 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
       integral += err * DT;
       integral = Math.max(-3, Math.min(3, integral));
       const ctrl = Kp*err + Ki*integral + Kd*((err-prevErr)/DT);
-      // gentle bounded factor: log-shaped so equal positive/negative
-      // control efforts produce reciprocal scaling. Clamped to [0.3, 1.7]
-      // so one bad frame can't bang-bang the brightness.
-      // Asymmetric clamp: down-side can only halve, but up-side can
-      // amplify 4× — the adaptation trace can crush brightness over time
-      // and the PID needs that headroom to push back without bang-bang.
-      const factor = Math.max(0.5, Math.min(4.0, Math.exp(ctrl / (I_MAX*0.5))));
+      // Asymmetric clamp: PID can pull all the way down to 0.2× (the input
+      // can naturally over-shoot when many electrodes light at once) and
+      // amplify up to 4× (adaptation pushes brightness down over seconds
+      // and the loop needs headroom to push back without bang-bang).
+      const factor = Math.max(0.2, Math.min(4.0, Math.exp(ctrl / (I_MAX*0.5))));
       prevErr = err;
       for (let e=0;e<NE;e++) stim[e] = Math.max(0, Math.min(I_MAX, stim[e]*factor));
     } else {
@@ -2811,6 +2881,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
     achH[head] = decoded;
     head = (head+1)%HISTORY;
     drawTrace();
+    updateStatus();
     clockEl.textContent = 't = ' + t.toFixed(2) + ' s';
     statEl.textContent = (mode==='closed' ? 'closed' : 'open') +
                          ' · target ' + TARGET.toFixed(2) +
