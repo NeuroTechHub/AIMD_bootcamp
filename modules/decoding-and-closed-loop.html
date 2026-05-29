@@ -1673,11 +1673,17 @@ Training fits in three seconds on a laptop, and you can read what the network le
 </figure>
 
 <div class='e2e-demo'>
-  <div class='e2e-h'>Side-by-side <span class='e2e-sub'>same input, two vision models</span></div>
+  <div class='e2e-h'>Side-by-side <span class='e2e-sub'>same input, two vision models, phosphene fields</span></div>
+  <div class='e2e-blend'>
+    <span class='e2e-blend-l'>Sobel</span>
+    <input id='e2e-alpha' type='range' min='0' max='100' value='100' aria-label='Vision-model blend Sobel to trained'>
+    <span class='e2e-blend-r'>trained vision model</span>
+    <span class='e2e-blend-v' id='e2e-alpha-v'>blend &alpha; = 100%</span>
+  </div>
   <div class='e2e-grid' id='e2e-grid'></div>
   <div class='e2e-footer'>
     <button id='e2e-shuffle' class='train-btn small'>shuffle inputs</button>
-    <span class='e2e-score' id='e2e-score'>err = L2 against input &middot; lower is better &middot; the visual story matters more than the number</span>
+    <span class='e2e-score' id='e2e-score'>L2 against input &middot; lower is better &middot; the decoded chip shows what the brain would &ldquo;see&rdquo;</span>
   </div>
 </div>
 
@@ -1817,6 +1823,40 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
   display:flex;align-items:baseline;gap:8px}
 .e2e-h .e2e-sub{margin-left:auto;font-size:10.5px;color:var(--muted-2);
   text-transform:none;letter-spacing:0.02em}
+.e2e-blend{display:grid;grid-template-columns:max-content 1fr max-content max-content;
+  gap:10px 12px;align-items:center;padding:10px 14px;background:#fff;
+  border-bottom:1px solid var(--rule);
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.e2e-blend .e2e-blend-l,.e2e-blend .e2e-blend-r{color:var(--ink);font-weight:600}
+.e2e-blend .e2e-blend-r{text-align:left}
+.e2e-blend input[type=range]{appearance:none;background:transparent;
+  height:18px;width:100%;cursor:pointer;margin:0;padding:0}
+.e2e-blend input[type=range]::-webkit-slider-runnable-track{height:2px;
+  background:var(--rule);border-radius:1px}
+.e2e-blend input[type=range]::-webkit-slider-thumb{appearance:none;
+  height:13px;width:13px;background:var(--accent);border-radius:50%;
+  margin-top:-5px;border:0}
+.e2e-blend input[type=range]::-moz-range-track{height:2px;
+  background:var(--rule);border-radius:1px}
+.e2e-blend input[type=range]::-moz-range-thumb{height:13px;width:13px;
+  background:var(--accent);border-radius:50%;border:0}
+.e2e-blend .e2e-blend-v{color:var(--ink);font-weight:600;font-size:11px;
+  text-transform:none;letter-spacing:0;min-width:108px;text-align:right;
+  font-variant-numeric:tabular-nums}
+.e2e-row.readout{align-items:stretch;justify-content:center;padding:14px 12px}
+.e2e-row.readout .e2e-read-h{font-family:'JetBrains Mono',monospace;font-size:9.5px;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:center;
+  margin-bottom:4px}
+.e2e-row.readout .e2e-read-chip{display:block;text-align:center;font-family:'JetBrains Mono',monospace;
+  font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600;
+  margin:2px 0 6px}
+.e2e-row.readout .e2e-read-bar{height:8px;width:100%;background:var(--paper-2);
+  border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.e2e-row.readout .e2e-read-bar i{display:block;height:100%;background:var(--accent);
+  width:0%;transition:width 200ms ease}
+.e2e-row.readout .e2e-read-foot{font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--muted);text-align:center;margin-top:6px;font-variant-numeric:tabular-nums}
 .e2e-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
   background:var(--rule)}
 .e2e-row{background:#fff;display:flex;flex-direction:column;align-items:center;
@@ -2249,11 +2289,75 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
     if (maxv > 0) for (let i=0;i<out.length;i++) out[i] /= maxv;
     return out;
   }
-  // "End-to-end" preprocessor stand-in: bright-region amplifier with smooth
-  // spread. The point is just to *look* different and decode better.
-  function e2ePreproc(arr){
+  // Vision-model stand-in. The page tries to load real trained weights
+  // from `assets/m5_e2e_weights.json` (exported by the notebook §4.1).
+  // If the file is present, e2ePreproc() runs the actual 2-conv forward.
+  // Otherwise it falls back to a gamma-boost lookalike so the demo still
+  // works without the bootcamp notebook ever having been run.
+  let _e2eWeights = null;
+  let _e2eFetched = false;
+  function tryLoadE2EWeights(){
+    if (_e2eFetched) return;
+    _e2eFetched = true;
+    // file:// can't run fetch under CORS; the page still works with the
+    // fallback stand-in, so don't even try.
+    if (location.protocol === 'file:') return;
+    fetch('assets/m5_e2e_weights.json')
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (j && j.c1 && j.c2 && Array.isArray(j.c1.w) && Array.isArray(j.c2.w)){
+          _e2eWeights = j;
+          try { renderRows(); } catch(_) {}
+        }
+      })
+      .catch(()=>{ /* fallback used */ });
+  }
+  function _convPreproc(arr, W){
+    // arr: NxN flat. W.c1.w: (F,1,5,5). W.c2.w: (1,F,5,5). Mirrors the
+    // PyTorch Preproc forward in the notebook.
+    const c1w = W.c1.w, c1b = W.c1.b, c2w = W.c2.w[0], c2b = W.c2.b[0];
+    const F1 = c1w.length, pad = 2;
+    const h1 = new Float32Array(F1 * N * N);
+    for (let f=0; f<F1; f++){
+      const wf = c1w[f][0]; const bf = c1b[f]; const base = f*N*N;
+      for (let y=0; y<N; y++){
+        for (let x=0; x<N; x++){
+          let s = bf;
+          for (let di=0; di<5; di++){
+            const yy = y + di - pad; if (yy < 0 || yy >= N) continue;
+            for (let dj=0; dj<5; dj++){
+              const xx = x + dj - pad; if (xx < 0 || xx >= N) continue;
+              s += wf[di][dj] * arr[yy*N + xx];
+            }
+          }
+          h1[base + y*N + x] = s > 0 ? s : 0;   // ReLU
+        }
+      }
+    }
     const out = new Float32Array(N*N);
-    // gaussian smooth (3x3) then non-linear amplification
+    for (let y=0; y<N; y++){
+      for (let x=0; x<N; x++){
+        let s = c2b;
+        for (let f=0; f<F1; f++){
+          const wfin = c2w[f]; const base = f*N*N;
+          for (let di=0; di<5; di++){
+            const yy = y + di - pad; if (yy < 0 || yy >= N) continue;
+            for (let dj=0; dj<5; dj++){
+              const xx = x + dj - pad; if (xx < 0 || xx >= N) continue;
+              s += wfin[di][dj] * h1[base + yy*N + xx];
+            }
+          }
+        }
+        out[y*N + x] = 1 / (1 + Math.exp(-s));
+      }
+    }
+    return out;
+  }
+  function e2ePreproc(arr){
+    if (_e2eWeights) return _convPreproc(arr, _e2eWeights);
+    const out = new Float32Array(N*N);
+    // gaussian smooth (3x3) then non-linear amplification — fallback when
+    // the notebook hasn't run yet.
     for (let y=1;y<N-1;y++){
       for (let x=1;x<N-1;x++){
         let s = 0;
@@ -2261,7 +2365,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
           const w = (dx===0&&dy===0) ? 0.25 : ((dx===0||dy===0) ? 0.125 : 0.0625);
           s += w * arr[(y+dy)*N + (x+dx)];
         }
-        out[y*N+x] = Math.pow(s, 0.7);    // gamma-like boost on bright regions
+        out[y*N+x] = Math.pow(s, 0.7);
       }
     }
     return out;
@@ -2299,16 +2403,90 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
     ctx.putImageData(img, 0, 0);
   }
 
+  // 16×16 electrode grid for the phosphene renderer. Same pattern as §06
+  // but unitless: mask values map directly to per-electrode brightness so
+  // the comparison is about what the *vision model* commits to.
+  const N_EL = 16;
+  const elecXY = [];
+  for (let j=0;j<N_EL;j++) for (let i=0;i<N_EL;i++){
+    elecXY.push({ x:(i+0.5)/N_EL*N, y:(j+0.5)/N_EL*N });
+  }
+  const PHOS_SIG = 2.0;
+  // Sample mask at each electrode (peak over a 3×3 patch — mean would
+  // wash out small bright dots), render each as a Gaussian phosphene.
+  function renderPhosphenesFromMask(mask){
+    const out = new Float32Array(N*N);
+    const sig2 = 2*PHOS_SIG*PHOS_SIG;
+    const r = Math.ceil(PHOS_SIG*3);
+    for (let e=0;e<elecXY.length;e++){
+      const ex = elecXY[e].x, ey = elecXY[e].y;
+      const sx = Math.round(ex), sy = Math.round(ey);
+      let peak = 0;
+      for (let dy=-1;dy<=1;dy++) for (let dx=-1;dx<=1;dx++){
+        const xx = Math.max(0,Math.min(N-1,sx+dx));
+        const yy = Math.max(0,Math.min(N-1,sy+dy));
+        if (mask[yy*N+xx] > peak) peak = mask[yy*N+xx];
+      }
+      if (peak < 0.05) continue;
+      for (let dy=-r; dy<=r; dy++){
+        for (let dx=-r; dx<=r; dx++){
+          const xx = Math.round(ex+dx), yy = Math.round(ey+dy);
+          if (xx<0||xx>=N||yy<0||yy>=N) continue;
+          out[yy*N+xx] = Math.min(1, out[yy*N+xx] + peak * Math.exp(-(dx*dx+dy*dy)/sig2));
+        }
+      }
+    }
+    return out;
+  }
+  function meanPixel(field){
+    let s = 0; for (let i=0;i<field.length;i++) s += field[i];
+    return s / field.length;
+  }
+
+  // Cache per-row precomputes so the slider only re-blends + re-renders.
+  const rows = [];                              // [{seed, orig, sob, sobCanvas, blendCanvas, readout*}]
+  const alphaEl = document.getElementById('e2e-alpha');
+  const alphaVEl = document.getElementById('e2e-alpha-v');
+
+  function blendField(sob, e2e, alpha){
+    const out = new Float32Array(N*N);
+    const oneMinus = 1 - alpha;
+    for (let i=0;i<N*N;i++) out[i] = oneMinus*sob[i] + alpha*e2e[i];
+    return out;
+  }
+
+  function renderRows(){
+    const alpha = parseInt(alphaEl.value, 10) / 100;
+    if (alphaVEl) alphaVEl.textContent = 'blend α = ' + (alpha*100).toFixed(0) + '%';
+    for (const r of rows){
+      // Recompute e2e each call so a late-loaded weights JSON immediately
+      // takes effect when the slider next moves.
+      const e2e = e2ePreproc(r.orig);
+      // Sobel-only phosphenes (fixed reference column)
+      const sobPhos = renderPhosphenesFromMask(r.sob);
+      drawArr(r.sobCanvas, sobPhos, true);
+      // Blended vision-model phosphenes (slider-controlled)
+      const blendMask = blendField(r.sob, e2e, alpha);
+      const blendPhos = renderPhosphenesFromMask(blendMask);
+      drawArr(r.blendCanvas, blendPhos, true);
+      // Decoded readout: mean brightness of the blended phosphene field +
+      // L2 of blended preprocessor against the input scene.
+      const meanB = meanPixel(blendPhos);
+      const l2 = decode(blendMask, r.orig);
+      r.readoutChip.textContent = meanB.toFixed(3);
+      r.readoutBar.style.width = (Math.min(1, meanB*6) * 100).toFixed(1) + '%';
+      r.readoutFoot.textContent = 'L2 vs input ' + l2.toFixed(3);
+    }
+  }
+
   function build(){
     grid.innerHTML = '';
+    rows.length = 0;
     const seeds = [Date.now()&0xffff, (Date.now()*13+7)&0xffff,
                    (Date.now()*23+19)&0xffff, (Date.now()*7+101)&0xffff];
     for (const seed of seeds){
       const orig = makeInput(seed);
       const sob  = sobel(orig);
-      const e2e  = e2ePreproc(orig);
-      const errS = decode(sob, orig);
-      const errE = decode(e2e, orig);
 
       const colInput = document.createElement('div');
       colInput.className = 'e2e-row input';
@@ -2318,27 +2496,38 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
 
       const colSob = document.createElement('div');
       colSob.className = 'e2e-row';
-      colSob.innerHTML = `<div class='e2e-row-h'>Sobel vision model</div><canvas></canvas><div class='e2e-row-v'>L2 ${errS.toFixed(3)}</div>`;
+      colSob.innerHTML = `<div class='e2e-row-h'>Sobel phosphenes</div><canvas></canvas><div class='e2e-row-v'>hand-tuned</div>`;
       grid.appendChild(colSob);
-      drawArr(colSob.querySelector('canvas'), sob, false);
+      const sobCanvas = colSob.querySelector('canvas');
 
-      const colE2E = document.createElement('div');
-      colE2E.className = 'e2e-row';
-      colE2E.innerHTML = `<div class='e2e-row-h'>end-to-end</div><canvas></canvas><div class='e2e-row-v'>L2 ${errE.toFixed(3)}</div>`;
-      grid.appendChild(colE2E);
-      drawArr(colE2E.querySelector('canvas'), e2e, true);
+      const colBlend = document.createElement('div');
+      colBlend.className = 'e2e-row';
+      colBlend.innerHTML = `<div class='e2e-row-h'>blended phosphenes</div><canvas></canvas><div class='e2e-row-v'>follows the slider</div>`;
+      grid.appendChild(colBlend);
+      const blendCanvas = colBlend.querySelector('canvas');
 
-      const colDiff = document.createElement('div');
-      colDiff.className = 'e2e-row';
-      colDiff.innerHTML = `<div class='e2e-row-h'>difference</div><canvas></canvas><div class='e2e-row-v'>edges vs blobs</div>`;
-      grid.appendChild(colDiff);
-      const diff = new Float32Array(N*N);
-      for (let i=0;i<N*N;i++) diff[i] = Math.min(1, Math.abs(sob[i] - e2e[i]) * 2);
-      drawArr(colDiff.querySelector('canvas'), diff, true);
+      const colRead = document.createElement('div');
+      colRead.className = 'e2e-row readout';
+      colRead.innerHTML = `<div class='e2e-read-h'>decoded readout</div>
+        <div class='e2e-read-chip'>—</div>
+        <div class='e2e-read-bar'><i></i></div>
+        <div class='e2e-read-foot'>—</div>`;
+      grid.appendChild(colRead);
+
+      rows.push({
+        seed, orig, sob,
+        sobCanvas, blendCanvas,
+        readoutChip: colRead.querySelector('.e2e-read-chip'),
+        readoutBar:  colRead.querySelector('.e2e-read-bar i'),
+        readoutFoot: colRead.querySelector('.e2e-read-foot'),
+      });
     }
+    renderRows();
   }
   shuffleBtn.addEventListener('click', build);
+  if (alphaEl) alphaEl.addEventListener('input', renderRows);
   build();
+  tryLoadE2EWeights();
 })();
 </script>
 
