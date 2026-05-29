@@ -42,3 +42,6 @@ old/
 .env
 .env.local
 *.pem
+
+# --- Claude Code local state ------------------------------------------------
+.claude/
