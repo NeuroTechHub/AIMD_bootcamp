@@ -4,7 +4,7 @@ run:
   origin: [0, 0]
   min_angle: 0.001
   fps: 35
-  gpu: -1
+  gpu: 0
   print_stats: False
   seed: 42
   dtype: float32
