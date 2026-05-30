@@ -10,7 +10,43 @@ Goal: ship a consistent, polished design across all six top-level HTML pages:
 - [modules/M5-decoding-and-closed-loop.html](../modules/M5-decoding-and-closed-loop.html)
 - [modules/index.html](../modules/index.html) — the modules-index landing (216 lines, found during audit — must be kept in scope)
 
-Every observation here is **anchored at file:line** so the work can be done as a single mechanical pass. **This document is the plan only — no code changes yet.**
+Every observation here is **anchored at file:line** so the work can be done as a single mechanical pass.
+
+## Progress
+
+**Round 1 (2026-05-30)** — Quick-wins shortlist + Dim 1 + Dim 11 + Dim 12 (.refs) + Dim 10 partial:
+
+- ✅ Quick-win 1: canonical mn-name "M3 · Stimulation" (was "M3 · Neuromodulation & stim") on M2 top + bottom
+- ✅ Quick-win 2: M4 mn-prev "back" → "prev"
+- ✅ Quick-win 3: `aside.callout` standardised on all 6 files (`padding:14px 18px; margin:22px 0; font-size:14.5px; max-width:820px`)
+- ✅ Quick-win 4: `hr.div{margin:48px 0}` on M1, M2, M4 (was 40/42/42)
+- ✅ Quick-win 5: `nav.toc a{border:0}` on M1, M2, M4 (index has no TOC)
+- ✅ Dim 1: `font-feature-settings:"ss01","cv11"` added to M1, M2, M4 body rule
+- ✅ Dim 1: `::selection` added to M2 and M4 (M1 already had it)
+- ✅ Dim 1: `.col{max-width:720px}` added to M1, M2, M4
+- ✅ Dim 11: pipeline `aria-label="Bootcamp pipeline"` on all 5 modules (was missing on M1/M2, "Bootcamp pipeline progress" on M3/M4/M5)
+- ✅ Dim 12: `.refs` markup standardised to `<section id="refs" class="refs" aria-label="Tools and references">` on all 5 modules (M3 was div, M4 was id="references")
+- ✅ Dim 12: `details.prompt` migrated from `?`-glyph to canonical chevron on M2 and M4
+- ✅ Dim 10: `footer a{text-decoration:none}` added to M1, M3, M5, plan (M2, M4, index already had it)
+
+**Audit-was-wrong corrections**: every file already had `footer{}` and `@media` declarations — the original audit overstated those gaps. Remaining drift is breakpoint values (680/780/880/900/980) and footer-copy paradigm, both lower priority.
+
+**Round 2 — remaining items, in priority order:**
+
+- Dim 2: small-mono-caption size unification (11 / 11.5 / 12 px → one canonical) — bigger refactor across `.cap`, `.caption`, `.panel-sub`, `.ttl`, `.spec`, `.readout`
+- Dim 3: M2/M4 `.lab` sidebar 320 vs 340 px → unify at 320
+- Dim 5: move `<h3 style="margin-top:0">` inline → CSS
+- Dim 7: drop M5's unused `aside.warn` / `aside.todo`; promote amber to root vars
+- Dim 9: M4 missing bottom module-nav — add
+- Dim 10: footer copy paradigm unification (decide: brief or with implementation note)
+- Dim 11: M3/M5 pipeline-at-bottom vs M1/M2/M4 pipeline-at-top — pick one
+- Dim 12: M1 has no self-check blocks — author them (content work) or drop README claim
+- Dim 14: factor shared CSS to `_shared.css` (architectural — needs user OK)
+- P2: `<title>NTH Bootcamp - Plan>` → `· Plan`; inline `style=` cleanup; quote-style
+
+---
+
+
 
 Items are tagged by priority:
 
