@@ -7,10 +7,10 @@ Open [bootcamp-plan.html](bootcamp-plan.html) to start. Each module is a single
 HTML page that runs in any modern browser — no server, no install.
 
 **Pipeline foundation.** The five modules walk through the cortical visual-prosthesis
-pipeline described in Lozano A., Soto-Sánchez C., Garrigós J., Martínez J.J.,
-Ferrández-Vicente J.M., Fernández-Jover E. — *Neurolight Alpha: Interfacing
-computational neural models for stimulus modulation in cortical visual
-neuroprostheses*, International Journal of Neural Systems **30**(09): 2050045 (2020).
+pipeline described in Lozano A., Suárez J.S., Soto-Sánchez C., Garrigós J.,
+Martínez-Alvarez J.J., Ferrández J.M., Fernández E. —
+*Neurolight: A Deep Learning Neural Interface for Cortical Visual Prostheses*,
+International Journal of Neural Systems **30**(09): 2050045 (2020).
 [doi:10.1142/S0129065720500458](https://doi.org/10.1142/S0129065720500458).
 Camera → vision (M1) → gaze (M2) → stimulation (M3) → phosphenes (M4) →
 decoding/closed loop (M5) traces that paper one module at a time.
