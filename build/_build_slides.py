@@ -37,6 +37,7 @@ ACCENT_H = Inches(0.18)
 _REPO = Path(__file__).resolve().parent.parent
 SRC_IMG = _REPO / "presentations" / "sources" / "brain_chip_2024" / "images"
 M4_ASSETS = _REPO / "modules" / "M4-phosphene-simulation" / "assets"
+NTH_LOGO = _REPO / "build" / "assets" / "nth_logo.png"
 
 
 # ----- low-level helpers ----------------------------------------------------
@@ -115,19 +116,44 @@ def _add_credit(slide, text):
               text, size=11, color=INK_MUTED)
 
 
-def _chrome(slide, title=None, *, dark_full=False):
-    """Add the dark header bar, accent bar, and optional title."""
+def _add_nth_logo(slide):
+    """Place the NTH brand mark in the top-right corner, inside the dark header
+    band. Sits at the same height regardless of dark_full vs. header-only chrome
+    so the chrome reads consistently across body and divider slides."""
+    if not NTH_LOGO.exists():
+        return
+    h = Inches(0.7)  # logo height; fits within the 1.1in header band
+    from PIL import Image as PILImage
+    with PILImage.open(NTH_LOGO) as im:
+        iw, ih = im.size
+    w = int(h * (iw / ih))
+    x = SLIDE_W - w - Inches(0.35)
+    y = (HEADER_H - h) // 2
+    slide.shapes.add_picture(str(NTH_LOGO), x, y, w, h)
+
+
+def _chrome(slide, title=None, *, dark_full=False, nth_logo=True):
+    """Add the dark header bar, accent bar, and optional title.
+
+    `nth_logo=True` (default) places the NTH brand mark top-right on every
+    slide. Pass False for slides that should be unbranded (the talk's own
+    title slide)."""
     if dark_full:
         _add_rect(slide, 0, 0, SLIDE_W, SLIDE_H, INK_DARK)
     else:
         _add_rect(slide, 0, 0, SLIDE_W, HEADER_H, INK_DARK)
         _add_rect(slide, 0, SLIDE_H - ACCENT_H, SLIDE_W, ACCENT_H, ACCENT)
     if title:
+        # Reserve ~1.4in on the right so the title text doesn't collide with
+        # the NTH logo when one is present.
+        title_w = SLIDE_W - Inches(1.2) - (Inches(1.4) if nth_logo else Inches(0))
         _add_text(
-            slide, Inches(0.6), Inches(0.25), SLIDE_W - Inches(1.2), Inches(0.7),
+            slide, Inches(0.6), Inches(0.25), title_w, Inches(0.7),
             title, size=30, bold=False, color=PAPER,
             anchor=MSO_ANCHOR.MIDDLE,
         )
+    if nth_logo:
+        _add_nth_logo(slide)
 
 
 # ----- slide builders -------------------------------------------------------
@@ -135,7 +161,8 @@ def _chrome(slide, title=None, *, dark_full=False):
 
 def slide_title(prs, big, sub):
     s = prs.slides.add_slide(prs.slide_layouts[6])
-    _chrome(s, dark_full=True)
+    # Title slide is intentionally unbranded — the NTH chrome starts on slide 2.
+    _chrome(s, dark_full=True, nth_logo=False)
     _add_rect(s, 0, SLIDE_H - ACCENT_H, SLIDE_W, ACCENT_H, ACCENT)
     _add_text(s, Inches(1), Inches(2.4), SLIDE_W - Inches(2), Inches(1.2),
               big, size=60, bold=True, color=PAPER, align=PP_ALIGN.CENTER)
