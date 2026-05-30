@@ -1,0 +1,20 @@
+# Shared Python dependencies for the optional Jupyter notebooks.
+#
+# The browser HTML modules still run without Python. This file is for local
+# notebook setup and for validation runs.
+numpy
+matplotlib
+scipy
+scikit-image
+opencv-contrib-python
+torch
+torchvision
+einops
+ipywidgets
+dynaphos
+ultralytics
+timm
+Pillow
+nbformat
+nbclient
+git+https://github.com/matthias-k/DeepGaze.git
