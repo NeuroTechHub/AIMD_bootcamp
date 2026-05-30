@@ -16,6 +16,10 @@ OUT_DIR = REPO / "modules" / "neuromod-and-stim"
 OUT_WORKSHOP = OUT_DIR / "neuromod-and-stim.ipynb"
 OUT_SOLUTION = OUT_DIR / "neuromod-and-stim-solution.ipynb"
 
+# Cross-file links in markdown cells use absolute GitHub URLs (not relative
+# paths) so they survive Colab's flat /content/ mount. Works equally well in
+# VS Code / Jupyter — clicks open a browser tab to the GitHub-rendered view.
+
 
 def md(text: str) -> dict:
     return {
@@ -70,7 +74,7 @@ split_md(
 
 **NTH bootcamp · Module 3**
 
-Before a cortical visual prosthesis can light up the brain, it has to shape a current waveform that is *safe*, *targetable*, and *audible* to the nervous system. This notebook is the code companion to [`neuromod-and-stim.html`](../neuromod-and-stim.html):
+Before a cortical visual prosthesis can light up the brain, it has to shape a current waveform that is *safe*, *targetable*, and *audible* to the nervous system. This notebook is the code companion to [`neuromod-and-stim.html`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/modules/neuromod-and-stim.html):
 
 1. Neuromodulation in one minute
 2. The five pulse parameters
@@ -86,7 +90,7 @@ Exercises are tagged **`[easy]`**, **`[intermediate]`**, or **`[challenge]`**.
 
 **NTH bootcamp · Module 3**
 
-Before a cortical visual prosthesis can light up the brain, it has to shape a current waveform that is *safe*, *targetable*, and *audible* to the nervous system. This notebook is the code companion to [`neuromod-and-stim.html`](../neuromod-and-stim.html):
+Before a cortical visual prosthesis can light up the brain, it has to shape a current waveform that is *safe*, *targetable*, and *audible* to the nervous system. This notebook is the code companion to [`neuromod-and-stim.html`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/modules/neuromod-and-stim.html):
 
 1. Neuromodulation in one minute
 2. The five pulse parameters
@@ -808,7 +812,7 @@ Each stimulated electrode produces one **phosphene** in the visual field. As a f
    - linear rise from threshold up to `amp_max = 200` µA
    - multiplied by `min(freq_hz / 250.0, 1.0)` to capture the refractory plateau
 2. Render the 10×10 brightness map for your letter pattern.
-3. Optional next step: open [`phosphene-simulation.ipynb`](../phosphene-simulation/phosphene-simulation.ipynb) and feed your activations into the real dynaphos forward model.
+3. Optional next step: open [`phosphene-simulation.ipynb`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/modules/phosphene-simulation/phosphene-simulation.ipynb) and feed your activations into the real dynaphos forward model.
 """)
 
 split_code(
@@ -851,7 +855,7 @@ both_md(r"""---
 
 **Done.** You've parameterised a biphasic train, quantised it to 30 kHz cycles, drawn a letter on a Utah array, staggered its electrodes to share a single 300 Hz slot, and fired the whole pattern through a Shannon-k safety checker. Swapping the inline mock for the real Grapevine is a one-line import: `from neurolight2.stim.factory import create_stimulator; stim = create_stimulator("mock_ripple")` — same `stimulate(params) -> StimEvent` contract, no other changes.
 
-Module lead: see [`bootcamp-plan.html`](../../bootcamp-plan.html). Edit this notebook directly; commit your additions to the bootcamp repo at the end of the day.
+Module lead: see [`bootcamp-plan.html`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/bootcamp-plan.html). Edit this notebook directly; commit your additions to the bootcamp repo at the end of the day.
 """)
 
 
