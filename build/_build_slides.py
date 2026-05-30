@@ -352,49 +352,56 @@ def build(out_path: Path) -> Path:
     prs.slide_width = SLIDE_W
     prs.slide_height = SLIDE_H
 
-    # The prelude deck already covers title, NTH/organizing team, vision,
-    # program, hands-on framing, tracks, and sponsors. Pick up from there.
+    # The prelude deck covers the NTH/organizing-team intro, vision, program,
+    # hands-on framing, tracks, and sponsors. This deck opens with the talk's
+    # own title slide and then dives in.
 
-    # 0 — Who's giving this talk (bullets on left, anatomy hero on right)
+    # 0 — Title slide for this talk.
+    slide_title(
+        prs, "Cortical visual prostheses",
+        "An afternoon to build the pipeline.",
+    )
+
+    # 1 — Who's giving this talk (bullets on left, anatomy hero on right).
     slide_bullets_side_image(
         prs, "About me",
-        subhead="Antonio Lozano — neuroengineer, AI for cortical visual prostheses",
+        subhead="Antonio Lozano. I work on the AI side of cortical visual prostheses.",
         size=16,
         items=[
-            "Postdoc @ Universidad Miguel Hernández (Elche, Spain) — AI side of the CORTIVIS first-in-human cortical visual prosthesis trial",
-            "Previously NIN Amsterdam (Roelfsema group, 2020–2024) — high-channel cortical implants, neural phosphene mapping, dynaphos phosphene simulator (eLife 2024)",
-            "Co-leader, INTENSE consortium (NWO, NL) — translational neurotech, work package on blindness",
-            "Senior Scientific Consultant @ Ruten Inc. — BCI R&D, neural decoding & computer-vision pipelines",
-            "PhD 2022 (UPCT, Cum Laude): \"AI-endowed visual neuroprosthesis for the blind\"",
-            "Today: bridging experimental neuroscience, deep learning, and clinical translation",
+            "Postdoc at UMH in Elche. I run the AI side of CORTIVIS — the first cortical visual prosthesis trial in human volunteers.",
+            "Four years before that at the NIN in Amsterdam (Roelfsema lab). High-channel cortical implants, neural phosphene mapping, and the dynaphos simulator that powers this bootcamp's M4.",
+            "Co-lead of INTENSE, a Dutch consortium pulling translational neurotech toward the clinic. My work package is blindness.",
+            "Senior scientist at Ruten Inc. on the side. BCI R&D and the kind of CV pipelines you'll meet in M1.",
+            "PhD in 2022 from UPCT in Cartagena (Cum Laude): \"AI-endowed visual neuroprosthesis for the blind.\"",
+            "What I actually do day to day: sit between experimental neuroscience, deep learning, and a clinical trial that has to keep working tomorrow.",
         ],
         image="s01_p01_0291ff0f.png",
         image_credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
     )
 
-    # 1 — One slide replaces the four definition slides + the section divider.
+    # 2 — One slide replaces the four definition slides + the section divider.
     #     Three columns of where the field actually is in 2026.
     slide_three_columns(
         prs, "Neurotechnology in 2026",
-        subhead="Sensors and actuators for the nervous system — from cochlear implants to closed-loop visual prostheses.",
+        subhead="Where the field is today — what's deployed, what's emerging, and where this bootcamp lives.",
         columns=[
             ("Deployed clinical", [
-                "Cochlear implants (1M+ users)",
-                "Deep brain stimulation (200k+, Parkinson/dystonia)",
-                "Spinal-cord stim, RNS for epilepsy",
-                "Mature read+write at low channel count",
+                "Cochlear implants — over a million people hearing",
+                "Deep brain stim for Parkinson and dystonia (200k+ implants)",
+                "Spinal-cord stim, and RNS for epilepsy",
+                "Mature read-and-write, but at low channel count",
             ]),
             ("Emerging clinical", [
-                "BrainGate motor BCIs (decade+ of trials)",
-                "Synchron Stentrode (endovascular)",
-                "Neuralink (early human implantations)",
-                "High-channel-count, closed-loop is the new frontier",
+                "BrainGate motor BCIs — running trials for over a decade",
+                "Synchron's endovascular Stentrode",
+                "Neuralink's first human implantations",
+                "Higher channels, closed loops — that's where the field is heading",
             ]),
             ("Where we live", [
-                "Cortical visual prostheses",
-                "Read what V1 needs, write the phosphenes",
-                "Pipeline: camera → CV → stim → percept",
-                "This bootcamp builds one piece per module",
+                "Cortical visual prostheses — restore sight by writing to V1",
+                "Read what V1 needs, write the percept",
+                "Camera → computer vision → stimulation → percept",
+                "This bootcamp: one working piece per module",
             ]),
         ],
     )
@@ -406,46 +413,46 @@ def build(out_path: Path) -> Path:
                   image_credit="Bernadeta Gómez — UMH / Fernández cohort")
     slide_bullets_image(
         prs, "The problem",
-        items=["Profound blindness — large unmet need across many causes",
-               "Retina/optic-nerve approaches need a working downstream chain",
-               "Cortical stim bypasses everything upstream of V1",
-               "Trade-off: invasive, but addresses the broadest patient population"],
+        items=["Profound blindness: millions of people, many causes, no treatment for most",
+               "Retinal and optic-nerve implants need everything above them still working",
+               "Cortical stim skips everything upstream — straight to V1",
+               "It's invasive. It's also the only approach that reaches the broadest population"],
         image="s39_p01_ee164db1.png",
-        subhead="The visual world is complex; our bandwidth to represent it is limited.",
+        subhead="The visual world is complex. Our bandwidth to represent it is limited.",
         credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
         image_h=Inches(2.6),
     )
     slide_bullets_image(
         prs, "The visual pathway",
         items=["Eye → LGN → V1 (and beyond)",
-               "Retinotopy in V1: a map we can in principle write to",
-               "Cortical magnification — foveal patches dominate V1 area",
-               "Why V1 is the most-studied target for intracortical prostheses"],
+               "Retinotopy: neighbouring V1 neurons see neighbouring parts of the visual field",
+               "Cortical magnification: a tiny patch of fovea takes up a huge slice of V1",
+               "Which is why V1 is the most-studied target for an intracortical implant"],
         image="s15_p01_ed547d2f.png",
-        subhead="V1 is a retinotopic map — and that map is what we'll be writing to.",
+        subhead="V1 is a map of the visual field. That map is what we'll be writing to.",
         credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
         image_h=Inches(2.6),
     )
     slide_bullets_image(
         prs, "Why intracortical",
-        items=["Retinal prostheses (Argus II, PRIMA) — limited by upstream damage",
-               "Optic-nerve and LGN — small populations, harder surgery",
-               "Cortical — addresses acquired blindness across causes",
-               "Penetrating arrays vs. surface arrays — resolution vs. invasiveness"],
+        items=["Retinal implants (Argus II, PRIMA): work, but only if the pathway above the retina still does",
+               "Optic-nerve and LGN approaches: small populations, harder surgery",
+               "Cortical implants: reach acquired blindness across most causes",
+               "Penetrating vs surface arrays: resolution vs invasiveness, still an open trade-off"],
         image="s07_p01_dd31ff76.png",
-        subhead="Higher channel counts and flexible implants make cortical viable now.",
+        subhead="Why now: channel counts went up, implants got more flexible, simulation got predictive.",
         credit="from A. Lozano, Brain & the Chip II (Elche 2024) — neurotech matures",
         image_h=Inches(2.6),
     )
     slide_bullets_image(
         prs, "Clinical landscape",
-        items=["Fernández et al. 2021 — Utah array, blind volunteer (Moran)",
-               "Second Sight / Orion — surface program (ceased ops 2022; Vivani holds IP)",
-               "Cortivis — penetrating array, EU/UMH effort (Fernández cohort, ongoing)",
-               "Phosphoenix — Dutch program, our partner",
-               "2026 bottleneck has shifted from hardware → mapping, decoding, control"],
+        items=["Fernández et al. 2021: Utah array in a blind volunteer (Moran cohort)",
+               "Second Sight / Orion: surface program. Ceased ops 2022; Vivani holds the IP",
+               "CORTIVIS: penetrating array, EU and UMH, Fernández cohort, ongoing",
+               "Phosphoenix: Dutch program, the one we partner with",
+               "In 2026 the bottleneck isn't the electrode anymore. It's mapping, decoding, and control"],
         image="s35_p02_8bd81e1d.jpg",
-        subhead="Small but real human-subject programs — the hard work has moved upstream of the electrode.",
+        subhead="Small but real human-subject programs. The hard work has moved upstream of the electrode.",
         credit="Fernández, Soto-Sánchez et al. — Moran cohort (UMH)",
         image_h=Inches(2.2),
     )
@@ -453,17 +460,17 @@ def build(out_path: Path) -> Path:
     # 3 — Bridge: borrow the 4-walls framing from "Brain & the Chip II".
     slide_bullets(
         prs, "Four walls between us and a real vision implant",
-        subhead="From Brain & the Chip II (Lozano 2024) — open problems and the modules that touch each.",
+        subhead="Four open problems. This bootcamp gives you a working module against each one.",
         items=[
-            "Surgical planning — where to place an implant for max coverage?",
-            ("M4 phosphene sim + vimplant2 — design and compare layouts in-browser", 1),
-            "Neural phosphene mapping — what does each electrode actually produce?",
-            ("M3 stim explorer + Granley/Beyeler temporal patterns", 1),
-            "Computer vision in real scenes — sparse bandwidth, useful percepts",
-            ("M1 (front-end CV) + M2 (gaze + saliency)", 1),
-            "Human-in-the-loop stim — close the loop with the user, not the model",
-            ("M5 decoding + end-to-end differentiable prosthesis", 1),
-            "Today's bootcamp: one working module per wall.",
+            "Surgical planning: where do you actually put the implant for the best coverage?",
+            ("M4 phosphene sim + vimplant2 — design and compare layouts in the browser", 1),
+            "Phosphene mapping: each electrode produces a different percept. Which one?",
+            ("M3 stim explorer, with Granley & Beyeler's temporal patterns", 1),
+            "Computer vision in real scenes: tiny bandwidth, useful percepts",
+            ("M1 front-end CV + M2 gaze and saliency", 1),
+            "Human-in-the-loop stim: close the loop with the user, not the model",
+            ("M5 decoding + the end-to-end differentiable prosthesis", 1),
+            "Today: one working module per wall.",
         ])
 
     # 4 — Animated phosphenes: what the patient actually perceives, over time.
@@ -473,19 +480,19 @@ def build(out_path: Path) -> Path:
     slide_image_focus(
         prs, "What patients actually see",
         image_path=M4_ASSETS / "fade_edges.gif",
-        caption="Scene → edges → phosphenes (left), with brightness rising over the first ~300 ms (right). Sparse, punctate, dynamic — not pixels. Animates in slideshow mode.",
+        caption="Scene → edges → phosphenes on the left, brightness rising over the first ~300 ms on the right. Sparse, punctate, dynamic — not pixels. (Animates in slideshow mode.)",
         credit="dynaphos forward model — van der Grinten, de Ruyter van Steveninck, Lozano et al. 2024 (CC BY)",
         max_h=Inches(4.0),
     )
 
     # 4 — Stim & safety divider
-    slide_section(prs, "Stim & safety", kicker="What every electrode does")
+    slide_section(prs, "Stim & safety", kicker="What every electrode actually does")
     slide_bullets_image(
         prs, "Stim parameters that matter",
-        items=["Amplitude (µA) — primary driver of phosphene brightness",
-               "Pulse width (µs) — and charge = amp × width",
-               "Frequency (Hz) — drives flicker fusion and adaptation",
-               "Train shape — pulses per train, train period, duty cycle"],
+        items=["Amplitude (µA): how bright the phosphene looks",
+               "Pulse width (µs): with amplitude, sets the total charge per phase",
+               "Frequency (Hz): drives flicker fusion and adaptation",
+               "Train shape: how many pulses, how long, with what duty cycle"],
         image="s43_p01_30e792f5.png",
         subhead="Perception probability shifts with charge, pulse width, frequency, train duration.",
         credit="Fernández et al. — phosphene perception psychophysics (Moran cohort)",
@@ -493,13 +500,13 @@ def build(out_path: Path) -> Path:
     )
     slide_bullets(prs, "Safety limits",
                   ["Shannon-k: log(D) + k·log(Q/A) ≤ k_max (Cogan 2016)",
-                   "Charge density per phase — tissue damage threshold",
-                   "Cumulative charge over a session",
-                   "Why M3 enforces these live before the stim button does anything"])
+                   "Charge density per phase: the threshold above which tissue starts to damage",
+                   "Total charge across a whole session",
+                   "M3 enforces all of these live, before the stim button does anything"])
 
     # 5 — Pipeline tour
     slide_section(prs, "Today's pipeline",
-                  kicker="Image in, perception out, loop closed")
+                  kicker="Image in, perception out, loop closed.")
     slide_image_focus(
         prs, "Vision implant — the loop in one figure",
         image="s09_p01_6614a827.png",
@@ -510,28 +517,28 @@ def build(out_path: Path) -> Path:
     slide_pipeline(prs)
     slide_bullets_image(
         prs, "M1 — Computer vision",
-        items=["OpenCV.js in-browser: Sobel, Canny, thresholding",
-               "YOLO via TF.js + COCO-SSD — live webcam object detection",
+        items=["OpenCV.js in the browser: Sobel, Canny, thresholding",
+               "YOLO + COCO-SSD via TF.js — live object detection from your webcam",
                "Five processing modes you can flip between live",
                "Owners: Lefteris & Jorge"],
         image="s51_p01_6c988087.png",
-        subhead="Pixels → features. The front-end of any prosthesis.",
+        subhead="Pixels in, features out. The front end of any prosthesis.",
         credit="real-scene → edges → sparse phosphenes (from A. Lozano, Brain & the Chip II)",
         image_h=Inches(2.1),
     )
     slide_module(prs, "M2", "Gaze & DeepGaze",
-                 "Where the user is looking — and why it still matters in a prosthesis.",
-                 ["Heatmap vs scanpath, inhibition of return",
-                  "DeepGaze III pipeline diagram + synthetic toy model on page",
+                 "Where the user looks. The camera is on the glasses, so head and eye movements still steer what gets stimulated.",
+                 ["Heatmaps vs scanpaths; inhibition of return",
+                  "DeepGaze III pipeline, plus a synthetic toy model you can play with",
                   "Scanpath sampler with stat histograms",
-                  "Why gaze still applies to prosthesis users",
+                  "Why gaze still applies when the eyes still move but can't see",
                   "Owners: Lefteris & Jorge"])
     slide_bullets_image(
         prs, "M3 — Neuromodulation & stimulation",
-        items=["Biphasic pulse demo — amp / width / freq / train tabs",
-               "Utah array config table with draft-and-add",
-               "Conductor live view — Utah flash, channels×time, safety chips",
-               "Surprise-me randomizer → Configure → Connect → Stim",
+        items=["Biphasic pulse explorer: amp, width, frequency, train shape",
+               "Utah array config table you draft and add to",
+               "Conductor view: Utah flashing, channels×time, live safety chips",
+               "Surprise-me randomiser → configure → connect → stim",
                "Owner: Antonio"],
         image="s55_p03_1ff3d95a.png",
         subhead="From a clean visual feature to a safe pulse train on an electrode.",
@@ -540,24 +547,24 @@ def build(out_path: Path) -> Path:
     )
     slide_bullets_image(
         prs, "M4 — Phosphene simulation",
-        items=["Single-phosphene basis explorer",
-               "Electrode population viewer with layout selector",
-               "Image → phosphenes forward demo (animate-drift option)",
+        items=["Single-phosphene explorer to feel the basis function",
+               "Population viewer with a layout selector",
+               "Full image → phosphenes demo, with an animate-drift toggle",
                "Temporal dynamics: leaky integrator + adaptation trace"],
         image="s47_p01_602a4e0f.png",
-        subhead="Forward model: stim → phosphenes (dynaphos, in browser).",
+        subhead="The forward model: stim in, phosphenes out. dynaphos, in the browser.",
         credit="van der Grinten et al. 2024, eLife — dynaphos forward model (CC BY)",
         image_h=Inches(2.4),
     )
     slide_bullets_image(
         prs, "M5 — Decoding & closed loop",
-        items=["Closed-loop pipeline diagram + brightness readout (mean-pixel)",
-               "Classical PID on dynaphos's leaky integrator — Kp/Ki/Kd sliders",
+        items=["Closed-loop pipeline with a live mean-pixel brightness readout",
+               "Classical PID on dynaphos's leaky integrator, with Kp/Ki/Kd sliders",
                "TF.js MLP trained on synthetic phosphene canvases",
-               "Hand-tuned vs end-to-end preprocessor comparison",
-               "Live 2×2 quad: full loop, open/closed toggle"],
+               "Hand-tuned vs end-to-end preprocessor, side by side",
+               "Live 2×2 quad: the full loop with an open/closed toggle"],
         image="s49_p01_b5b7a7cf.png",
-        subhead="Encoder → simulator → phosphenes → decoder. Recon + regul loss close the loop end-to-end.",
+        subhead="Encoder → simulator → phosphenes → decoder. Reconstruction loss closes the loop end to end.",
         credit="de Ruyter van Steveninck et al. — end-to-end differentiable prosthesis pipeline",
         image_h=Inches(2.3),
     )
@@ -566,7 +573,7 @@ def build(out_path: Path) -> Path:
     slide_image_focus(
         prs, "Where this is heading",
         image="s57_p01_783fa3be.png",
-        caption="Next-gen vision implants — every module today is one piece of a much bigger pipeline.",
+        caption="Next-gen vision implants. Every module today is one piece of a much bigger pipeline.",
         credit="Chris Klink — advanced-pipelines schematic, NIN",
         max_h=Inches(4.6),
     )
