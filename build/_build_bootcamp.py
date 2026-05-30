@@ -738,7 +738,8 @@ def module_nav(here_idx: int) -> str:
 def page(title: str, eyebrow: str, h1_html: str, lede: str,
          meta_html: str, toc_html: str, body_html: str,
          pipeline_html: str = "", footer_html: str = "",
-         nav_html: str = "") -> str:
+         nav_html: str = "",
+         shared_css_path: str = "_shared.css") -> str:
     default_footer = (
         'Internal planning document. '
         'Web to update once content is final: '
@@ -754,6 +755,7 @@ def page(title: str, eyebrow: str, h1_html: str, lede: str,
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{shared_css_path}">
 <style>{SHARED_CSS}</style>
 </head>
 <body>
@@ -1123,8 +1125,9 @@ def build_plan() -> None:
     )
 
     html_text = page(
-        title="NTH Bootcamp - Plan",
+        title="NTH Bootcamp · Plan",
         eyebrow="NTH / D-Bootcamp",
+        shared_css_path="modules/_shared.css",
         h1_html="NTH Bootcamp <span style='color:var(--muted-2);font-weight:500'>plan</span>",
         lede="Internal plan for the leads. Five modules from camera to closed loop, one open hour, one demo upload.",
         meta_html=meta,

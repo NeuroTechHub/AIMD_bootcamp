@@ -107,12 +107,15 @@ a.step:hover .name{color:var(--accent)}
 .module-nav a:hover .mn-name{color:var(--accent)}
 .module-nav .mn-next{margin-left:auto;text-align:right}
 
-/* Tools & references block */
+/* Tools & references block — flat <ul> list style used by M1, M2, M3, M5.
+ * M4 references use <ol> with its own scaling; M4 overrides these rules in
+ * its inline <style>. The shared `.refs ul li` selector is scoped to the
+ * unordered-list variant so the ordered-list variant stays clean. */
 .refs{margin-top:40px;font-size:13px}
 .refs h2{font-size:15px;margin-bottom:8px}
 .refs ul{list-style:none;padding:0;margin:0}
-.refs li{padding:6px 0;border-bottom:1px solid var(--rule-2);line-height:1.5}
-.refs li:last-child{border-bottom:none}
+.refs ul li{padding:6px 0;border-bottom:1px solid var(--rule-2);line-height:1.5}
+.refs ul li:last-child{border-bottom:none}
 .refs .rk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
   text-transform:uppercase;letter-spacing:.05em}
 

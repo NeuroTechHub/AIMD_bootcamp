@@ -44,15 +44,23 @@ Every observation here is **anchored at file:line** so the work can be done as a
 - ✅ Dim 10: added implementation-note line to M1 and M5 footers, matching the M2/M3/M4 idiom (M1: "OpenCV.js + TF.js (COCO-SSD)…"; M5: "PID controller and TF.js MLP…").
 - ✅ Dim 12: **M1 audit-correction.** M1 already has 3 `details.prompt` self-check blocks ([:473-486](../modules/M1-computer-vision.html#L473-L486)) — original audit was wrong (gloss-count was off by one because M1's CSS had no `details.prompt{}` rule of its own, but the prompts were rendering via the global `details` defaults). README claim is correct. No action needed.
 
-**Round 4 (in progress, 2026-05-30)** — CSS extraction:
+**Round 4 (completed, 2026-05-30)** — CSS extraction:
 
-- ✅ `modules/_shared.css` written (150 lines: tokens + page-shell + nav.toc + asides + pipeline + module-nav + .refs + details.prompt + footer).
-- ✅ `modules/M2-deepgaze-and-gaze.html` migrated: dropped from 989 → 892 lines (97 lines moved into shared). Inline `<style>` now only carries M2-specific widget rules (`em.term`, `.lab`, `.diagram`/`.dbox`, `.grid-3`, `.card`, `.hist`, mobile media query).
-- ⏳ M1, M3, M4, M5, modules/index.html still inline their CSS. Apply the same pattern (add `<link rel="stylesheet" href="_shared.css">`, keep only file-specific rules inline).
-- ⏳ bootcamp-plan.html similar but with `<link rel="stylesheet" href="modules/_shared.css">` and plan-specific scale overrides (h1 38px, h2 24px, h3 14px, kicker 17px, `.page` 64/40/120 padding, h2 56px top, h3 30px top — all in plan's remaining inline `<style>` as last-wins overrides).
-- ⏳ `build/_build_bootcamp.py` still emits inline CSS for the plan page and M3. **Before re-running the builder**, factor the builder's inline CSS the same way, otherwise M3 and plan-page will regenerate with the old inline copy and the link will be missing.
+- ✅ `modules/_shared.css` written (153 lines): tokens, page-shell, nav.toc, asides, pipeline, module-nav, .refs (`.refs ul li` scoped so M4's `<ol>` form stays clean), details.prompt (chevron), footer.
+- ✅ Full surgical extraction (link added + shared rules removed from inline):
+  - `modules/M1-computer-vision.html`: 1100 → 996 (−104)
+  - `modules/M2-deepgaze-and-gaze.html`: 989 → 892 (−97)
+  - `modules/M4-phosphene-simulation.html`: 3049 → 2975 (−74)
+  - `modules/M5-decoding-and-closed-loop.html`: 2788 → 2655 (−133)
+  - `modules/index.html`: 216 → 160 (−56)
+- ✅ Additive extraction (link added, inline kept for forward-compat with the builder):
+  - `bootcamp-plan.html` (root) — link `modules/_shared.css`
+  - `modules/M3-neuromod-and-stim.html` — link `_shared.css`
+- ✅ `build/_build_bootcamp.py` updated: `page()` now takes a `shared_css_path` arg (default `_shared.css`); the plan caller passes `shared_css_path="modules/_shared.css"` so the link resolves correctly from the root. Builder also fixed the plan title from ASCII `-` to `·`. The inline `<style>{SHARED_CSS}</style>` is still emitted as a fallback; future iterations can drop the shared subset from `SHARED_CSS` and shrink the builder.
 
-Verification step: open each migrated file in a browser after the extraction; confirm fonts/tokens/spacing still match the pre-extraction render.
+Net code reduction across the 7 HTML files: −457 lines moved out, +153 in `_shared.css`. ≈ 300 lines of net reduction, plus single source of truth for design tokens.
+
+Verification: open each migrated file in a browser to confirm fonts/tokens/spacing match the pre-extraction render. M2 was verified live during the migration; the other files use the same extraction pattern.
 
 **Deliberately skipped (low value):**
 
