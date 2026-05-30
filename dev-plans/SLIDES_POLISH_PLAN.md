@@ -38,3 +38,19 @@ The visual baseline is strong: dark `#3A3A3A` header, white body, teal `#4A8D7E`
 
 1. Run `python build/_build_slides.py` — should regenerate `presentations/bootcamp_talk_AL.pptx` cleanly.
 2. Open the resulting PPTX (or convert to PDF) and visually confirm: no `[TODO ...]` strings visible; M3 title reads "Neuromodulation & stimulation"; closing slide carries the Neurolight credit.
+
+---
+
+## Pass 2 (2026-05-30) — bugs caught after rebuild
+
+Regenerated the PDF and read the rendered slides; two layout bugs surfaced that the source-only audit missed:
+
+- **P0 — About me overflowed the bottom accent bar.** Six bullets at the default size=22 each wrapped to ~2 lines → total height exceeded the body box → last bullet `Today: bridging…` was visibly clipped by the teal accent. **Fix:** added a `size` kwarg to `slide_bullets()` and called it with `size=18` for the About me slide. Confirmed clean in the rebuild.
+- **P1 — "Where this is heading" caption wrapped to two lines** and pushed the image down. Tightened: "Next-gen vision implants: electrode design, surgical planning, neural mapping, simulation, end-to-end CV, human-in-the-loop — every module today is one piece." → "Next-gen vision implants — every module today is one piece of a much bigger pipeline." Now single-line.
+
+Verification step added to my own workflow: after every builder edit, regenerate the PDF via PowerPoint COM (PowerShell:
+`$ppt = New-Object -ComObject PowerPoint.Application; $deck = $ppt.Presentations.Open(<path>); $deck.SaveAs(<pdf>, 32); $deck.Close(); $ppt.Quit()`) and visually scan; XML-grep alone misses layout overflow.
+
+## Still deferred (per user)
+
+- **M2 spotlight image** — M2 is the only module slide without a supporting image (uses `slide_module`, not `slide_bullets_image`). Picking the right gaze/saliency figure from `presentations/sources/brain_chip_2024/images/` needs Antonio's eye; flagged for a later iteration.

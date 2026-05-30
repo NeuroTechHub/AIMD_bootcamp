@@ -176,7 +176,7 @@ def slide_section(prs, label, kicker=None, image=None, image_credit=None):
                   align=PP_ALIGN.CENTER)
 
 
-def slide_bullets(prs, title, items, *, subhead=None):
+def slide_bullets(prs, title, items, *, subhead=None, size=22):
     s = prs.slides.add_slide(prs.slide_layouts[6])
     _chrome(s, title=title)
     y = Inches(1.7)
@@ -185,7 +185,7 @@ def slide_bullets(prs, title, items, *, subhead=None):
                   subhead, size=18, color=INK_MUTED)
         y = Inches(2.2)
     _add_bullets(s, Inches(0.8), y, SLIDE_W - Inches(1.6), Inches(5),
-                 items, size=22)
+                 items, size=size)
 
 
 def slide_module(prs, code, name, blurb, points):
@@ -301,9 +301,12 @@ def build(out_path: Path) -> Path:
     # program, hands-on framing, tracks, and sponsors. Pick up from there.
 
     # 0 — Who's giving this talk
+    # Six bullets, each wraps to ~2 lines: drop to size 18 to stay above the
+    # accent bar (default size=22 overflowed in the rendered deck).
     slide_bullets(
         prs, "About me",
         subhead="Antonio Lozano — neuroengineer, AI for cortical visual prostheses",
+        size=18,
         items=[
             "Postdoc @ Universidad Miguel Hernández (Elche, Spain) — AI side of the CORTIVIS first-in-human cortical visual prosthesis trial",
             "Previously NIN Amsterdam (Roelfsema group, 2020–2024) — high-channel cortical implants, neural phosphene mapping, dynaphos phosphene simulator (eLife 2024)",
@@ -465,7 +468,7 @@ def build(out_path: Path) -> Path:
     slide_image_focus(
         prs, "Where this is heading",
         image="s57_p01_783fa3be.png",
-        caption="Next-gen vision implants: electrode design, surgical planning, neural mapping, simulation, end-to-end CV, human-in-the-loop — every module today is one piece.",
+        caption="Next-gen vision implants — every module today is one piece of a much bigger pipeline.",
         credit="Chris Klink — advanced-pipelines schematic, NIN",
         max_h=Inches(4.6),
     )
