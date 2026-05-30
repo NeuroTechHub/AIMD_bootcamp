@@ -6,7 +6,7 @@ Wi-Fi, reimbursements, food sponsorship) and captures only the code/content work
 
 ## Ground rules
 
-- **M3** (`modules/neuromod-and-stim.html`) is **generated** by
+- **M3** (`modules/M3-neuromod-and-stim.html`) is **generated** by
   `build/_build_bootcamp.py`. All M3 fixes go in the Python generator, then
   `python build/_build_bootcamp.py` to rebuild. The generator also writes
   `bootcamp-plan.html` and the M5 stub.
@@ -93,15 +93,15 @@ Module order for navigation: plan → M1 → M2 → M3 → M4 → M5.
 
 ---
 
-## C. M1 — `modules/computer-vision.html`
+## C. M1 — `modules/M1-computer-vision.html`
 - Apply A1–A5. Module is well-liked; mainly navigation, references block,
   notebook reframe, self-check audit.
 
-## D. M2 — `modules/deepgaze-and-gaze.html`
+## D. M2 — `modules/M2-deepgaze-and-gaze.html`
 - Apply A1–A5.
 - Add DeepGaze tool intro + attribution (its biggest specific gap).
 
-## E. M4 — `modules/phosphene-simulation.html`
+## E. M4 — `modules/M4-phosphene-simulation.html`
 - Apply A1–A5.
 - Add a **lightweight dynamic-stimulus loop** to the phosphene simulator: a
   drifting/animated stimulus driven through the existing forward model so

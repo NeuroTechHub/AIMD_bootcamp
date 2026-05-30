@@ -1,4 +1,4 @@
-"""Build the M4 phosphene-simulation exercise + solution notebooks.
+"""Build the M4 M4-phosphene-simulation exercise + solution notebooks.
 
 Both notebooks share content; the only difference is that "exercise" cells
 ship blank in `phosphene-simulation.ipynb` and full in
@@ -131,7 +131,7 @@ CELLS.append(md(r"""
 
 **NTH bootcamp · Module 4**
 
-The interactive companion page `phosphene-simulation.html` lets you move
+The interactive companion page `M4-phosphene-simulation.html` lets you move
 sliders and watch phosphenes change shape. This notebook does the same
 thing in Python, against the *real* [`dynaphos`](https://github.com/neuralcodinglab/dynaphos)
 library, and then takes one step further: it drives the simulator from
@@ -169,7 +169,7 @@ exercises rely on `cv2.saliency`, which ships only in the contrib build.
 If you already have `opencv-python` installed, uninstall it first
 (`pip uninstall -y opencv-python`) — the two cannot coexist.
 
-The cell below imports everything, downloads `bus.jpg` and a portrait
+The cell below imports everything, downloads `bus.jpg` and a kitten
 photo if they aren't already in `assets/`, picks the best available
 compute backend (GPU when present, else CPU), and defines a small
 `show()` helper used throughout. Run it once.
@@ -197,17 +197,18 @@ if not BUS.exists():
     urllib.request.urlretrieve('https://ultralytics.com/images/bus.jpg', BUS)
     print(f'downloaded {BUS}')
 
-# portrait.jpg — Wikimedia, public domain (same source as the HTML §03 face preset)
-PORTRAIT = ASSETS / 'portrait.jpg'
+# cat.jpg — Wikimedia (André Karwath / "Aka", CC BY-SA 2.5), same source as the
+# HTML §03 face preset. Cute kitten with strong silhouette + rich short-range
+# edges (eyes, whiskers, fur boundaries) — ideal for the Canny demo below.
+PORTRAIT = ASSETS / 'cat.jpg'
 if not PORTRAIT.exists():
-    url = ('https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/'
-           'Michelle_Obama_official_portrait_headshot.jpg/'
-           '320px-Michelle_Obama_official_portrait_headshot.jpg')
+    url = ('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/'
+           'Six_weeks_old_cat_%28aka%29.jpg/330px-Six_weeks_old_cat_%28aka%29.jpg')
     try:
         urllib.request.urlretrieve(url, PORTRAIT)
         print(f'downloaded {PORTRAIT}')
     except Exception as e:
-        print("portrait download failed (we'll generate a synthetic one later):", e)
+        print("cat download failed (we'll generate a synthetic blob instead):", e)
 
 print('versions:', 'numpy', np.__version__, '· cv2', cv2.__version__, '· torch', torch.__version__)
 """))
@@ -536,10 +537,11 @@ show(*(targets + renders),
 CELLS.append(md(r"""
 ### Exercise 2.2 — natural photos: blobs, then edges `[intermediate]`
 
-Now try a real photo. First push the portrait through the simulator
-raw (just resized to 256×256, grayscale). You should get a featureless
-bright blob — the silhouette of the head. Then preprocess with
-`cv2.Canny` first, and pass the edge map through the same simulator.
+Now try a real photo. First push the cat through the simulator raw
+(just resized to 256×256, grayscale). You should get a featureless
+bright blob — the silhouette of the kitten's head and body. Then
+preprocess with `cv2.Canny` first, and pass the edge map through the
+same simulator.
 
 1. Load `PORTRAIT` with `cv2.imread(str(PORTRAIT), cv2.IMREAD_GRAYSCALE)`. If
    the download failed, fall back to a synthetic blob:
@@ -547,7 +549,7 @@ bright blob — the silhouette of the head. Then preprocess with
 2. Resize to `RES`, render. Plot input + render.
 3. `edges = cv2.Canny(cv2.GaussianBlur(face, (5,5), 1.4), 50, 150)`. Render
    the edges instead. Plot input + edges + edge-render.
-4. Which carries more facial information through the prosthesis — the
+4. Which carries more recognisable cat-ness through the prosthesis — the
    raw intensity or the edges?
 """))
 
@@ -564,7 +566,7 @@ edges = cv2.Canny(cv2.GaussianBlur(face, (5, 5), 1.4), 50, 150)
 edge_render = render(edges)
 
 show(face, raw_render, edges, edge_render,
-     titles=['portrait', 'raw → phosphenes', 'Canny edges', 'edges → phosphenes'],
+     titles=['kitten', 'raw → phosphenes', 'Canny edges', 'edges → phosphenes'],
      cols=4, figsize=(14, 4))
 """,
     hint=r"""
@@ -1139,6 +1141,170 @@ plt.legend(); plt.tight_layout(); plt.show()
 """,
 ))
 
+# ============================================================ §6 vimplant2
+
+CELLS.append(md(r"""
+## 6 · Bring your own implant *(optional)*
+
+Up to here the electrode layout was hard-coded inside this notebook.
+[`vimplant2`](https://antonio-lozano.github.io/vimplant2/) is a browser
+tool (no install) that lets you place implant patches on a real cortical
+surface and export the resulting visual-field coverage as CSV. Drop the
+file next to this notebook and feed it into the same `dynaphos`
+simulator from §2.
+
+We ship one example, `vimplant2-rfs-example.csv`, generated with the
+same Schwartz log-polar wedge-dipole the HTML §02.1 preview uses. Once
+the pipeline is clear, replace it with your own export.
+"""))
+
+CELLS.append(md(r"""
+**Expected CSV columns** — exactly what vimplant2's *Export RFs (CSV)*
+button writes:
+
+| column | meaning |
+|---|---|
+| `source_app` | always `web_explorer` for vimplant2 web exports |
+| `dataset` | which retinotopic atlas the RFs came from (NHP / human) |
+| `prf_source` | which subject / parcellation produced the RFs |
+| `implant_id` | which implant the row belongs to (multi-implant scenes) |
+| `electrode_index` | per-implant index, 0-based |
+| `x_deg`, `y_deg` | visual-field coordinates in degrees |
+| `polar_deg`, `ecc_deg` | same point, polar form |
+
+`load_vimplant2_csv` reads the file, sanity-checks the schema, and
+returns an `(N, 2)` array of `(x_deg, y_deg)` ready to feed into
+`GaussianSimulator`.
+"""))
+
+CELLS.append(code(r"""
+import csv
+import warnings
+
+def load_vimplant2_csv(path: str) -> np.ndarray:
+    '''Read a vimplant2 RF-export CSV and return (N, 2) (x_deg, y_deg) coords.'''
+    required = {'x_deg', 'y_deg'}
+    coords, seen_app = [], None
+    with open(path, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        missing = required - set(reader.fieldnames or [])
+        if missing:
+            raise ValueError(f'CSV is missing required column(s): {missing}')
+        for row in reader:
+            if seen_app is None:
+                seen_app = (row.get('source_app') or '').strip()
+            try:
+                coords.append((float(row['x_deg']), float(row['y_deg'])))
+            except (TypeError, ValueError):
+                continue
+    if seen_app and seen_app != 'web_explorer':
+        warnings.warn(
+            f"CSV's source_app is {seen_app!r}, expected 'web_explorer'. "
+            'Proceeding anyway, but double-check the file came from vimplant2.'
+        )
+    if not coords:
+        raise ValueError(f'No rows with finite x_deg/y_deg in {path}')
+    return np.asarray(coords, dtype=np.float32)
+"""))
+
+CELLS.append(code(r"""
+EXAMPLE_CSV = Path('vimplant2-rfs-example.csv')
+coords_vimplant = load_vimplant2_csv(str(EXAMPLE_CSV))
+ecc_vimplant = np.hypot(coords_vimplant[:, 0], coords_vimplant[:, 1])
+print(f'loaded {len(coords_vimplant)} electrodes from {EXAMPLE_CSV.name}')
+print(f'  mean ecc {ecc_vimplant.mean():.2f}°  ·  max ecc {ecc_vimplant.max():.2f}°')
+"""))
+
+CELLS.append(md(r"""
+### Exercise 6.1 — visualise the layout `[easy]`
+
+Scatter the loaded electrodes on a square axes spanning ±8°. Overlay
+eccentricity guide rings at 2°, 5°, and 10° so a peripheral cluster is
+obviously peripheral, and mark the fovea at the origin.
+
+> Hint: `plt.scatter(coords_vimplant[:, 0], coords_vimplant[:, 1], s=14)`.
+> For each `e` in `[2, 5, 10]`, add `plt.Circle((0, 0), e, fill=False)`
+> via `ax.add_patch(...)`. Set `ax.set_aspect('equal')`.
+"""))
+
+CELLS.append(ex(
+    solution=r"""
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.scatter(coords_vimplant[:, 0], coords_vimplant[:, 1], s=14, c='C0', alpha=0.85)
+for e in [2, 5, 10]:
+    ax.add_patch(plt.Circle((0, 0), e, fill=False, color='C3', alpha=0.5, lw=1))
+    ax.annotate(f'{e}°', (e, 0.25), color='C3', fontsize=9)
+ax.axhline(0, color='0.7', lw=0.5); ax.axvline(0, color='0.7', lw=0.5)
+ax.set_xlim(-8, 8); ax.set_ylim(-8, 8); ax.set_aspect('equal')
+ax.set_xlabel('x (deg)'); ax.set_ylabel('y (deg)')
+ax.set_title(f'vimplant2 layout — {len(coords_vimplant)} electrodes')
+plt.tight_layout(); plt.show()
+""",
+    hint=r"""
+# your code here
+# Hint:
+#   fig, ax = plt.subplots(figsize=(5, 5))
+#   ax.scatter(coords_vimplant[:, 0], coords_vimplant[:, 1], s=14)
+#   for e in [2, 5, 10]:
+#       ax.add_patch(plt.Circle((0, 0), e, fill=False, color='C3'))
+#   ax.set_aspect('equal'); ax.set_xlim(-8, 8); ax.set_ylim(-8, 8)
+""",
+))
+
+CELLS.append(md(r"""
+### Exercise 6.2 — render through dynaphos `[intermediate]`
+
+Feed the vimplant2 coordinates straight into a fresh `GaussianSimulator`
+— same call signature as §2, just with the layout coming from the CSV
+instead of the procedural foveated sampler. Render the same
+`target = draw_pattern('square_disc')` through both simulators and
+display them side by side.
+
+> Hint: wrap the loaded coords as `Map(x=coords_vimplant[:, 0], y=coords_vimplant[:, 1])`
+> and build `sim_v = GaussianSimulator(params, coords_map)`. Then
+> `sim_v.reset(); ph = sim_v(sim_v.sample_stimulus(target, rescale=True)).detach().cpu().numpy()`.
+"""))
+
+CELLS.append(ex(
+    solution=r"""
+coords_map = Map(x=coords_vimplant[:, 0], y=coords_vimplant[:, 1])
+sim_v = GaussianSimulator(params, coords_map)
+
+target = draw_pattern('square_disc')
+ph_procedural = render(target)
+sim_v.reset()
+ph_vimplant = sim_v(
+    sim_v.sample_stimulus(target, rescale=True)
+).detach().cpu().numpy()
+
+show(target, ph_procedural, ph_vimplant,
+     titles=['target',
+             f'§2 procedural ({len(coords)} electrodes)',
+             f'vimplant2 layout ({len(coords_vimplant)} electrodes)'],
+     cols=3, figsize=(12, 4))
+""",
+    hint=r"""
+# your code here
+# Hint:
+#   coords_map = Map(x=coords_vimplant[:, 0], y=coords_vimplant[:, 1])
+#   sim_v = GaussianSimulator(params, coords_map)
+#   target = draw_pattern('square_disc')
+#   sim_v.reset()
+#   ph_v = sim_v(sim_v.sample_stimulus(target, rescale=True)).detach().cpu().numpy()
+#   show(target, render(target), ph_v, titles=[...], cols=3)
+""",
+))
+
+CELLS.append(md(r"""
+**Your own implant.** Open
+[vimplant2](https://antonio-lozano.github.io/vimplant2/), place a patch
+wherever you like, click **Export RFs (CSV)**, save the file alongside
+this notebook (e.g. `vimplant2-rfs-mine.csv`), and re-run the two cells
+above with `path='vimplant2-rfs-mine.csv'`. Every other cell in §6 is
+agnostic to where the layout came from.
+"""))
+
+
 CELLS.append(md(r"""
 ---
 
@@ -1196,11 +1362,59 @@ def write_notebook(path: Path, cells: list[dict]):
     print(f'wrote {path}  ({len(cells)} cells)')
 
 
+def _write_example_csv(path: Path):
+    """Emit a 10x10 Utah-array example CSV in the vimplant2 web-exporter format.
+
+    Grid is placed at (cx, cy) = (10 mm, 2 mm) on V1 and projected through
+    the same Schwartz log-polar wedge-dipole the HTML §02.1 preview uses
+    (a = 0.75, k = 15). Header and `source_app` value mirror the live
+    vimplant2 `web_explorer` CSV exporter.
+    """
+    import csv as _csv
+    import math as _math
+
+    WD_A, WD_K = 0.75, 15.0
+    # Place the patch so its visual-field projection lands inside the §2
+    # `square_disc` target's bright square (x_deg in [-4.25, 2.0], y_deg in
+    # [-2.0, 4.25]) — that way §6.2 produces a non-empty phosphene render
+    # with no extra alignment work from the student.
+    cx_mm, cy_mm = 15.0, 4.0
+    side, pitch = 10, 0.4
+    half = (side - 1) / 2
+
+    header = ['source_app', 'dataset', 'prf_source', 'implant_id',
+              'electrode_index', 'x_deg', 'y_deg', 'polar_deg', 'ecc_deg']
+    rows = []
+    idx = 0
+    for i in range(side):
+        for j in range(side):
+            xc = cx_mm + (i - half) * pitch
+            yc = cy_mm + (j - half) * pitch
+            ecc = max(0.0, WD_A * (_math.exp(xc / WD_K) - 1))
+            polar = yc / WD_K  # radians
+            rows.append([
+                'web_explorer', 'example', 'wedge_dipole_schwartz', 'example',
+                idx,
+                f'{ecc * _math.cos(polar):.6f}',
+                f'{ecc * _math.sin(polar):.6f}',
+                f'{_math.degrees(polar):.6f}',
+                f'{ecc:.6f}',
+            ])
+            idx += 1
+
+    with open(path, 'w', newline='', encoding='utf-8') as f:
+        w = _csv.writer(f)
+        w.writerow(header)
+        w.writerows(rows)
+    print(f'wrote {path}  ({len(rows)} electrodes)')
+
+
 def main():
     sol_cells  = [_clean(c) for c in CELLS]
     ex_cells   = [_strip_exercise(c) for c in CELLS]
     write_notebook(HERE / 'phosphene-simulation-solution.ipynb', sol_cells)
     write_notebook(HERE / 'phosphene-simulation.ipynb', ex_cells)
+    _write_example_csv(HERE / 'vimplant2-rfs-example.csv')
 
 
 if __name__ == '__main__':

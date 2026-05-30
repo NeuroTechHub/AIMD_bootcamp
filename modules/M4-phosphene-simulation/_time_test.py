@@ -2,7 +2,7 @@
 import time, numpy as np, torch, cv2
 from pathlib import Path
 
-PARAMS_PATH = Path('phosphene-simulation/assets/params.yaml')
+PARAMS_PATH = Path('M4-phosphene-simulation/assets/params.yaml')
 from dynaphos.utils import load_params
 from dynaphos.cortex_models import get_visual_field_coordinates_probabilistically
 from dynaphos.simulator import GaussianSimulator

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Computer Vision Playground — NTH Bootcamp / M1</title>
+<title>M1 · Computer vision — NTH Bootcamp</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -231,14 +231,14 @@ details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code
 
 <header class="masthead">
   <div class="eyebrow">NTH / M1 · Playground</div>
-  <h1>Computer vision — interactive</h1>
+  <h1>M1 · Computer vision <span style="color:var(--muted-2);font-weight:500">— interactive</span></h1>
   <p class="lede">Before a cortical prosthesis can stimulate the brain, it has to decide <em>what to light up</em>. Play with the controls below to see how a computer turns a photo into information.</p>
   <div class="meta">
     <span><strong>Module:</strong> M1</span>
     <span><strong>Pair with:</strong>
       <code>computer-vision.ipynb</code> &middot;
-      <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/computer-vision-notebooks/computer-vision.ipynb" target="_blank" rel="noopener">Colab</a>
-      <span class="vscode-wrap"> &middot; <a class="vscode-link" data-path="computer-vision-notebooks/computer-vision.ipynb" href="#">VS Code</a></span>
+      <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M1-computer-vision-notebooks/computer-vision.ipynb" target="_blank" rel="noopener">Colab</a>
+      <span class="vscode-wrap"> &middot; <a class="vscode-link" data-path="M1-computer-vision-notebooks/computer-vision.ipynb" href="#">VS Code</a></span>
     </span>
   </div>
 </header>
@@ -250,20 +250,20 @@ details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code
 
 <nav class="module-nav" aria-label="Module navigation">
   <a class="mn-prev" href="index.html"><span class="mn-dir">← back</span><span class="mn-name">Modules</span></a>
-  <a class="mn-next" href="deepgaze-and-gaze.html"><span class="mn-dir">next →</span><span class="mn-name">M2 · Gaze &amp; DeepGaze</span></a>
+  <a class="mn-next" href="M2-deepgaze-and-gaze.html"><span class="mn-dir">next →</span><span class="mn-name">M2 · Gaze &amp; DeepGaze</span></a>
 </nav>
 
 <h3 style="margin-top:0">The pipeline at a glance</h3>
 <div class="pipeline">
   <div class="step active"><div class="lbl">M1 · here</div><div class="name">Camera + CV</div></div>
   <div class="arr">→</div>
-  <a class="step" href="deepgaze-and-gaze.html"><div class="lbl">M2</div><div class="name">Gaze</div></a>
+  <a class="step" href="M2-deepgaze-and-gaze.html"><div class="lbl">M2</div><div class="name">Gaze</div></a>
   <div class="arr">→</div>
-  <a class="step" href="neuromod-and-stim.html"><div class="lbl">M3</div><div class="name">Stimulation</div></a>
+  <a class="step" href="M3-neuromod-and-stim.html"><div class="lbl">M3</div><div class="name">Stimulation</div></a>
   <div class="arr">→</div>
-  <a class="step" href="phosphene-simulation.html"><div class="lbl">M4</div><div class="name">Phosphenes</div></a>
+  <a class="step" href="M4-phosphene-simulation.html"><div class="lbl">M4</div><div class="name">Phosphenes</div></a>
   <div class="arr">→</div>
-  <a class="step" href="decoding-and-closed-loop.html"><div class="lbl">M5</div><div class="name">Decoding</div></a>
+  <a class="step" href="M5-decoding-and-closed-loop.html"><div class="lbl">M5</div><div class="name">Decoding</div></a>
 </div>
 
 <nav class="toc" aria-label="Sections">
@@ -282,20 +282,10 @@ details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code
 
 <h3>End-to-end overview</h3>
 
-<!-- ===================== TODO MARKER — REMOVE WHEN ASSET REPLACED ===================== -->
-<div style="background:#fff0ec;border:4px dashed #c0392b;color:#c0392b;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:30px;line-height:1.3;text-align:center;padding:24px 20px;margin:20px 0;border-radius:6px">
-  ⚠ TODO: REPLACE OVERVIEW FIGURE ⚠
-  <div style="font-size:15px;font-weight:600;margin-top:10px">
-    Swap <code style="font-size:14px">assets/cortical_prosthesis_fig.jpg</code> for the
-    final overview image. Keep the figcaption / attribution accurate to whatever replaces it.
-  </div>
-</div>
-<!-- =================================================================================== -->
-
 <figure class="illust">
-<img src="assets/cortical_prosthesis_fig.jpg" alt="Schematic illustration of a cortical visual neuro-prosthesis: the visual environment is captured by a camera, processed by a mobile computer, and a corresponding stimulation pattern is delivered through an electrode array implanted in the primary visual cortex (V1), evoking a percept of phosphenes.">
+<img src="assets/cortical_prosthesis_fig.png" alt="Schematic illustration of a cortical visual neuro-prosthesis: a head-mounted camera captures the visual environment, a mobile processor converts it into a stimulation pattern, and an electrode array implanted in the primary visual cortex (V1) evokes a percept of phosphenes that sketches the original scene.">
 <figcaption>A camera captures the scene, a mobile computer processes the image, the implanted electrode array stimulates the matching cluster of neurons in primary visual cortex (V1), and the user perceives a pattern of phosphenes that sketches the original scene.
-<span class="cite">Figure reproduced from de Ruyter van Steveninck J, Güçlü U, van Wezel R, van Gerven M. <em>End-to-end optimization of prosthetic vision</em>. Journal of Vision, 2022;22(2):20. <a href="https://doi.org/10.1167/jov.22.2.20" target="_blank" rel="noopener">doi:10.1167/jov.22.2.20</a>. Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.</span>
+<span class="cite">Schematic from A. Lozano, <em>Brain &amp; the Chip II — Design lessons for next-generation vision implants</em> (Elche, 2024).</span>
 </figcaption>
 </figure>
 </section>
@@ -499,9 +489,9 @@ details.prompt code{font-family:'JetBrains Mono',monospace;background:var(--code
 
 <section id="next">
 <h2><span class="num">06</span>Where to next</h2>
-<p>Next module: <strong><a href="deepgaze-and-gaze.html">M2 — Gaze &amp; DeepGaze</a></strong>, where the camera feed meets a model of <em>where a person looks</em>.</p>
+<p>Next module: <strong><a href="M2-deepgaze-and-gaze.html">M2 — Gaze &amp; DeepGaze</a></strong>, where the camera feed meets a model of <em>where a person looks</em>.</p>
 <aside class="callout"><strong>Going deeper (optional).</strong> The companion notebook
-<a href="computer-vision.ipynb"><code>computer-vision.ipynb</code></a> revisits this material in Python with
+<a href="M1-computer-vision-notebooks/computer-vision.ipynb"><code>computer-vision.ipynb</code></a> revisits this material in Python with
 runnable code — your own edge detector, YOLO end-to-end, and the activation maps that feed the rest
 of the pipeline. It is a self-guided resource, not a step in the workshop: open it whenever you want
 the hands-on version.</aside>
@@ -519,11 +509,13 @@ the hands-on version.</aside>
 
 <nav class="module-nav" aria-label="Module navigation">
   <a class="mn-prev" href="index.html"><span class="mn-dir">← back</span><span class="mn-name">Modules</span></a>
-  <a class="mn-next" href="deepgaze-and-gaze.html"><span class="mn-dir">next →</span><span class="mn-name">M2 · Gaze &amp; DeepGaze</span></a>
+  <a class="mn-next" href="M2-deepgaze-and-gaze.html"><span class="mn-dir">next →</span><span class="mn-name">M2 · Gaze &amp; DeepGaze</span></a>
 </nav>
 
 <footer>
-  NTH bootcamp · M1 · <a href="deepgaze-and-gaze.html">next: M2 →</a>
+  NTH bootcamp · M1 · <a href="M2-deepgaze-and-gaze.html">next: M2 →</a> ·
+  Pipeline foundation:
+  <a href="https://doi.org/10.1142/S0129065720500458" style="color:inherit">Lozano et&nbsp;al.&nbsp;2020 &mdash; <em>Neurolight Alpha</em> (Int.&nbsp;J.&nbsp;Neural&nbsp;Syst.&nbsp;30(09):2050045)</a>.
 </footer>
 
 </main>

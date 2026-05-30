@@ -674,11 +674,11 @@ def esc(s: str) -> str:
 
 # module index -> (file, short pipeline label, full nav title)
 MODULE_FILES = {
-    1: "computer-vision.html",
-    2: "deepgaze-and-gaze.html",
-    3: "neuromod-and-stim.html",
-    4: "phosphene-simulation.html",
-    5: "decoding-and-closed-loop.html",
+    1: "M1-computer-vision.html",
+    2: "M2-deepgaze-and-gaze.html",
+    3: "M3-neuromod-and-stim.html",
+    4: "M4-phosphene-simulation.html",
+    5: "M5-decoding-and-closed-loop.html",
 }
 MODULE_NAV_TITLES = {
     1: "M1 &middot; Computer vision",
@@ -808,15 +808,15 @@ AGENDA_ROWS = [
 ]
 
 MODULES = [
-    ("M1", "computer-vision.html",          "Computer vision",                    "lefteris",
+    ("M1", "M1-computer-vision.html",          "Computer vision",                    "lefteris",
      ["Image input and preprocessing", "YOLO segmentation", "OpenCV edge detection"]),
-    ("M2", "deepgaze-and-gaze.html",        "Gaze &amp; DeepGaze",                "lefteris",
+    ("M2", "M2-deepgaze-and-gaze.html",        "Gaze &amp; DeepGaze",                "lefteris",
      ["DeepGaze III scanpath generation", "Extra gaze statistics", "Gaze dynamics simulation"]),
-    ("M3", "neuromod-and-stim.html",        "Neuromodulation &amp; stimulation",  "antonio",
+    ("M3", "M3-neuromod-and-stim.html",        "Neuromodulation &amp; stimulation",  "antonio",
      ["Neurolight stimulator and stim params", "Electrode coordinates and visual-field mapping", "Vimplant2 interactive electrode placement"]),
-    ("M4", "phosphene-simulation.html",     "Phosphene simulation",               "lefteris",
+    ("M4", "M4-phosphene-simulation.html",     "Phosphene simulation",               "lefteris",
      ["Dynaphos phosphene maps", "Stimulation -> phosphene conversion", "Temporal dynamics"]),
-    ("M5", "decoding-and-closed-loop.html", "Decoding &amp; closed loop",         "antonio",
+    ("M5", "M5-decoding-and-closed-loop.html", "Decoding &amp; closed loop",         "antonio",
      ["Pretrained decoder demo", "Train your own decoder", "Minimal closed-loop demo"]),
 ]
 
@@ -935,17 +935,17 @@ def build_plan() -> None:
     <div class='panel-sub'>{ROLES['antonio']}</div>
     <ul class='tight'>
       <li>Intro to the field (slides, incl. engram for neural recordings)</li>
-      <li><a href='modules/neuromod-and-stim.html'>M3 - Neuromodulation &amp; stimulation</a> (Neurolight + Vimplant2)</li>
-      <li><a href='modules/decoding-and-closed-loop.html'>M5 - Decoding &amp; closed loop</a></li>
+      <li><a href='modules/M3-neuromod-and-stim.html'>M3 - Neuromodulation &amp; stimulation</a> (Neurolight + Vimplant2)</li>
+      <li><a href='modules/M5-decoding-and-closed-loop.html'>M5 - Decoding &amp; closed loop</a></li>
     </ul>
   </div>
   <div class='panel'>
     <h4>Lefteris &amp; Jorge</h4>
     <div class='panel-sub'>{ROLES['lefteris']}</div>
     <ul class='tight'>
-      <li><a href='modules/computer-vision.html'>M1 - Computer vision</a> (YOLO + OpenCV)</li>
-      <li><a href='modules/deepgaze-and-gaze.html'>M2 - Gaze &amp; DeepGaze</a> (DeepGaze III + extras)</li>
-      <li><a href='modules/phosphene-simulation.html'>M4 - Phosphene simulation</a> (Dynaphos)</li>
+      <li><a href='modules/M1-computer-vision.html'>M1 - Computer vision</a> (YOLO + OpenCV)</li>
+      <li><a href='modules/M2-deepgaze-and-gaze.html'>M2 - Gaze &amp; DeepGaze</a> (DeepGaze III + extras)</li>
+      <li><a href='modules/M4-phosphene-simulation.html'>M4 - Phosphene simulation</a> (Dynaphos)</li>
     </ul>
   </div>
   <div class='panel'>
@@ -1137,7 +1137,7 @@ def build_plan() -> None:
 # --- module stubs -----------------------------------------------------------
 
 MODULE_CONTENT = {
-    "computer-vision.html": dict(
+    "M1-computer-vision.html": dict(
         eyebrow="NTH / M1",
         h1='Computer vision',
         lead="lefteris",
@@ -1157,7 +1157,7 @@ MODULE_CONTENT = {
              "Webcam input, batched preprocessing, custom edge operators, open-vocabulary detection."),
         ],
     ),
-    "deepgaze-and-gaze.html": dict(
+    "M2-deepgaze-and-gaze.html": dict(
         eyebrow="NTH / M2",
         h1='Gaze <span style="color:var(--muted-2);font-weight:500">&amp; DeepGaze</span>',
         lead="lefteris",
@@ -1177,7 +1177,7 @@ MODULE_CONTENT = {
              "Custom centerbias, real eye-tracking input, gaze jitter modeling."),
         ],
     ),
-    "neuromod-and-stim.html": dict(
+    "M3-neuromod-and-stim.html": dict(
         eyebrow="NTH / M3 - Interactive companion",
         h1='Neuromodulation <span style="color:var(--muted-2);font-weight:500">&amp; stimulation</span>',
         lead="antonio",
@@ -1218,10 +1218,10 @@ MODULE_CONTENT = {
                 "next": "M3_NEXT", "refs": "M3_REFS"},
         footer=("NTH bootcamp &middot; M3 &middot; "
                 '<a href="../bootcamp-plan.html">back to plan</a> &middot; '
-                '<a href="phosphene-simulation.html">next: M4 &rarr;</a> '
+                '<a href="M4-phosphene-simulation.html">next: M4 &rarr;</a> '
                 "&middot; safety helpers implemented in vanilla JS below, no Python required."),
     ),
-    "phosphene-simulation.html": dict(
+    "M4-phosphene-simulation.html": dict(
         eyebrow="NTH / M4",
         h1='Phosphene simulation',
         lead="lefteris",
@@ -1241,7 +1241,7 @@ MODULE_CONTENT = {
              "Custom electrode density, gaze jitter, electrode dropout - short sweeps over the same forward pass."),
         ],
     ),
-    "decoding-and-closed-loop.html": dict(
+    "M5-decoding-and-closed-loop.html": dict(
         eyebrow="NTH / M5",
         h1='Decoding <span style="color:var(--muted-2);font-weight:500">&amp; closed loop</span>',
         lead="antonio",
@@ -2838,10 +2838,10 @@ M3_SELFCHECK_HTML = r"""
 """
 
 M3_NEXT_HTML = r"""
-<p>Next module: <strong><a href="phosphene-simulation.html">M4 &mdash; Phosphene simulation</a></strong>,
+<p>Next module: <strong><a href="M4-phosphene-simulation.html">M4 &mdash; Phosphene simulation</a></strong>,
 where the stimulation parameters you just tuned become a perceived image.</p>
 <aside class="callout"><strong>Going deeper (optional).</strong>
-The companion notebook <a href="neuromod-and-stim.ipynb"><code>neuromod-and-stim.ipynb</code></a>
+The companion notebook <a href="M3-neuromod-and-stim/neuromod-and-stim.ipynb"><code>neuromod-and-stim.ipynb</code></a>
 revisits this material in Python &mdash; driving the same parameters from code, pushing them through
 the stimulator API, and inspecting the actual <code>(channels &times; time)</code> stimulation matrices,
 with the charge-balance and Shannon checks exposed as importable functions. It is a self-guided
@@ -3272,7 +3272,7 @@ def build_module(filename: str, spec: dict) -> None:
 # (M1 CV, M2 Gaze, M4 Phosphene, M5 Decoding) are hand-authored playgrounds
 # and must NOT be regenerated; this script refuses to overwrite them.
 OWNED_MODULES = {
-    "neuromod-and-stim.html",         # M3 - ours
+    "M3-neuromod-and-stim.html",         # M3 - ours
 }
 
 

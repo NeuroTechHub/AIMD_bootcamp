@@ -1,4 +1,4 @@
-"""One-shot builder for modules/decoding-and-closed-loop/decoding-and-closed-loop.ipynb.
+"""One-shot builder for modules/M5-decoding-and-closed-loop/decoding-and-closed-loop.ipynb.
 
 Run from anywhere; emits the notebook JSON in the canonical location.
 Re-run when the notebook content changes. Idempotent.
@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-OUT  = REPO / "modules" / "decoding-and-closed-loop" / "decoding-and-closed-loop.ipynb"
+OUT  = REPO / "modules" / "M5-decoding-and-closed-loop" / "decoding-and-closed-loop.ipynb"
 
 
 def md(text: str) -> dict:
@@ -38,7 +38,7 @@ CELLS.append(md(r"""# M5 — Decoding & closed loop
 
 **NTH bootcamp · Module 5**
 
-The interactive companion page `decoding-and-closed-loop.html` lets you
+The interactive companion page `M5-decoding-and-closed-loop.html` lets you
 move sliders, train a tiny MLP in your browser, and watch the whole
 closed loop tick at 30 fps. This notebook does the same thing in Python
 against the *real* [`dynaphos`](https://github.com/neuralcodinglab/dynaphos)
@@ -366,8 +366,8 @@ def synth_canvas2(I_amp_a, electrode_idx=None):
     amp[e] = float(I_amp_a)
     field = sim(amp).detach().cpu().numpy()
     va = params['run']['view_angle']
-    coords_x = sim.coordinates_visual_field.x
-    coords_y = sim.coordinates_visual_field.y
+    coords_x = np.asarray(getattr(coords, 'x', getattr(coords, '_x')))
+    coords_y = np.asarray(getattr(coords, 'y', getattr(coords, '_y')))
     cx = float(coords_x[e]) / (va / 2)
     cy = float(coords_y[e]) / (va / 2)
     return field, float(field.mean()), (cx, cy)
@@ -511,8 +511,8 @@ def sample_at_electrodes(image):
     """B,1,H,W image -> B,N_ELEC sampled amplitudes via bilinear grid_sample.
     Maps view-angle coordinates to normalised [-1, 1] for grid_sample."""
     B, _, H, W = image.shape
-    cx = sim.coordinates_visual_field.x
-    cy = sim.coordinates_visual_field.y
+    cx = np.asarray(getattr(coords, 'x', getattr(coords, '_x')))
+    cy = np.asarray(getattr(coords, 'y', getattr(coords, '_y')))
     xs = torch.as_tensor(np.asarray(cx.detach().cpu() if hasattr(cx, 'detach') else cx),
                          dtype=torch.float32, device=DEVICE)
     ys = torch.as_tensor(np.asarray(cy.detach().cpu() if hasattr(cy, 'detach') else cy),
@@ -619,7 +619,7 @@ for `c1` and `(1, 8, 5, 5)` + bias `(1,)` for `c2` — under 5 KB total.
 CELLS.append(code(r'''import json
 
 # Resolve modules/assets/ whether the notebook runs from its own folder
-# (modules/decoding-and-closed-loop/) or from the repo root.
+# (modules/M5-decoding-and-closed-loop/) or from the repo root.
 HERE = Path.cwd()
 candidates = [
     HERE / 'modules' / 'assets',                       # from repo root

@@ -1,8 +1,8 @@
-"""One-shot builder for the M3 neuromod-and-stim notebooks (workshop + solution).
+"""One-shot builder for the M3 M3-neuromod-and-stim notebooks (workshop + solution).
 
 Emits two paired Jupyter notebooks:
-  modules/neuromod-and-stim/neuromod-and-stim.ipynb            (stubs)
-  modules/neuromod-and-stim/neuromod-and-stim-solution.ipynb   (filled)
+  modules/M3-neuromod-and-stim/neuromod-and-stim.ipynb            (stubs)
+  modules/M3-neuromod-and-stim/neuromod-and-stim-solution.ipynb   (filled)
 
 Run from anywhere; idempotent. Mirrors the build/_build_m5_notebook.py pattern.
 """
@@ -12,7 +12,7 @@ import uuid
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-OUT_DIR = REPO / "modules" / "neuromod-and-stim"
+OUT_DIR = REPO / "modules" / "M3-neuromod-and-stim"
 OUT_WORKSHOP = OUT_DIR / "neuromod-and-stim.ipynb"
 OUT_SOLUTION = OUT_DIR / "neuromod-and-stim-solution.ipynb"
 
@@ -74,7 +74,7 @@ split_md(
 
 **NTH bootcamp · Module 3**
 
-Before a cortical visual prosthesis can light up the brain, it has to shape a current waveform that is *safe*, *targetable*, and *audible* to the nervous system. This notebook is the code companion to [`neuromod-and-stim.html`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/modules/neuromod-and-stim.html):
+Before a cortical visual prosthesis can light up the brain, it has to shape a current waveform that is *safe*, *targetable*, and *audible* to the nervous system. This notebook is the code companion to [`M3-neuromod-and-stim.html`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M3-neuromod-and-stim.html):
 
 1. Neuromodulation in one minute
 2. The five pulse parameters
@@ -90,7 +90,7 @@ Exercises are tagged **`[easy]`**, **`[intermediate]`**, or **`[challenge]`**.
 
 **NTH bootcamp · Module 3**
 
-Before a cortical visual prosthesis can light up the brain, it has to shape a current waveform that is *safe*, *targetable*, and *audible* to the nervous system. This notebook is the code companion to [`neuromod-and-stim.html`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/modules/neuromod-and-stim.html):
+Before a cortical visual prosthesis can light up the brain, it has to shape a current waveform that is *safe*, *targetable*, and *audible* to the nervous system. This notebook is the code companion to [`M3-neuromod-and-stim.html`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M3-neuromod-and-stim.html):
 
 1. Neuromodulation in one minute
 2. The five pulse parameters
@@ -812,7 +812,8 @@ Each stimulated electrode produces one **phosphene** in the visual field. As a f
    - linear rise from threshold up to `amp_max = 200` µA
    - multiplied by `min(freq_hz / 250.0, 1.0)` to capture the refractory plateau
 2. Render the 10×10 brightness map for your letter pattern.
-3. Optional next step: open [`phosphene-simulation.ipynb`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/modules/phosphene-simulation/phosphene-simulation.ipynb) and feed your activations into the real dynaphos forward model.
+3. Optional next step: open [`phosphene-simulation.ipynb`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M4-phosphene-simulation/phosphene-simulation.ipynb) and feed your activations into the real dynaphos forward model.
+4. Or design your own electrode placement first at [vimplant2](https://antonio-lozano.github.io/vimplant2/) (browser, no install), click **Export RFs (CSV)**, and load it via M4 §6 "Bring your own implant".
 """)
 
 split_code(

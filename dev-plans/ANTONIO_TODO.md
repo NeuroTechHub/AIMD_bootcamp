@@ -6,7 +6,7 @@ as items land. Living doc — not generated.
 ## Visible TODOs
 
 - **Replace M1 main figure (prosthesis system).**
-  [modules/computer-vision.html:285-293](../modules/computer-vision.html#L285-L293)
+  [modules/M1-computer-vision.html:285-293](../modules/M1-computer-vision.html#L285-L293)
   still wraps `assets/cortical_prosthesis_fig.jpg` (the de Ruyter van
   Steveninck 2022 schematic) in a loud dashed-red TODO banner. Swap the asset
   for the final overview figure, keep the figcaption / attribution accurate to
@@ -19,7 +19,7 @@ as items land. Living doc — not generated.
   next, refs. **Notebook companion also done** &mdash; 24 cells covering
   linear/CNN decoders, PID against dynaphos, end-to-end joint training,
   and a closed-loop demo
-  ([modules/decoding-and-closed-loop/decoding-and-closed-loop.ipynb](../modules/decoding-and-closed-loop/decoding-and-closed-loop.ipynb)
+  ([modules/M5-decoding-and-closed-loop/decoding-and-closed-loop.ipynb](../modules/M5-decoding-and-closed-loop/decoding-and-closed-loop.ipynb)
   rebuilt via [build/_build_m5_notebook.py](../build/_build_m5_notebook.py)).
   **Verification still owed:** open both in your environment and run
   end-to-end. §05 of the HTML still uses a hand-picked stand-in

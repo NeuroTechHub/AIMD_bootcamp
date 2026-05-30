@@ -3,8 +3,8 @@ import ast, json, sys
 sys.stdout.reconfigure(encoding='utf-8')
 
 errs = 0
-for path in ['phosphene-simulation/phosphene-simulation.ipynb',
-             'phosphene-simulation/phosphene-simulation-solution.ipynb']:
+for path in ['M4-phosphene-simulation/phosphene-simulation.ipynb',
+             'M4-phosphene-simulation/phosphene-simulation-solution.ipynb']:
     nb = json.load(open(path, encoding='utf-8'))
     n = 0
     for i, c in enumerate(nb['cells']):

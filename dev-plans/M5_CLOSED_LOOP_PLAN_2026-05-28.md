@@ -3,8 +3,8 @@
 **Status:** Working draft — 2026-05-28
 **Author / lead:** Antonio
 **Files:**
-- HTML (live playground): [modules/decoding-and-closed-loop.html](../modules/decoding-and-closed-loop.html)
-- Notebook (deeper dive): [modules/decoding-and-closed-loop/decoding-and-closed-loop.ipynb](../modules/decoding-and-closed-loop/decoding-and-closed-loop.ipynb)
+- HTML (live playground): [modules/M5-decoding-and-closed-loop.html](../modules/M5-decoding-and-closed-loop.html)
+- Notebook (deeper dive): [modules/M5-decoding-and-closed-loop/decoding-and-closed-loop.ipynb](../modules/M5-decoding-and-closed-loop/decoding-and-closed-loop.ipynb)
 
 ## One sentence
 

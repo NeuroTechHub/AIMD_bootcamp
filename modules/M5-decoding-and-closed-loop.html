@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NTH Bootcamp - NTH / M5</title>
+<title>M5 · Decoding &amp; closed loop — NTH Bootcamp</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -671,14 +671,14 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 
 <header class="masthead">
   <div class="eyebrow">NTH / M5</div>
-  <h1>Decoding <span style="color:var(--muted-2);font-weight:500">&amp; closed loop</span></h1>
+  <h1>M5 · Decoding <span style="color:var(--muted-2);font-weight:500">&amp; closed loop</span></h1>
   <p class="lede">Pretrained decoder demo first, then train your own. End-to-end co-optimization through the differentiable simulator, and the minimal closed-loop demo.</p>
   <div class="meta">
     <span><strong>Module:</strong> M5</span>
     <span><strong>Pair with:</strong>
       <code>decoding-and-closed-loop.ipynb</code> &middot;
-      <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/decoding-and-closed-loop/decoding-and-closed-loop.ipynb" target="_blank" rel="noopener">Colab</a>
-      <span class="vscode-wrap"> &middot; <a class="vscode-link" data-path="decoding-and-closed-loop/decoding-and-closed-loop.ipynb" href="#">VS Code</a></span>
+      <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M5-decoding-and-closed-loop/decoding-and-closed-loop.ipynb" target="_blank" rel="noopener">Colab</a>
+      <span class="vscode-wrap"> &middot; <a class="vscode-link" data-path="M5-decoding-and-closed-loop/decoding-and-closed-loop.ipynb" href="#">VS Code</a></span>
     </span>
   </div>
 </header>
@@ -688,10 +688,10 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   Some modules show <strong>simplified versions</strong> of the underlying models so they can run live in the browser without Python. For the full implementation and exact behaviour, see the paired notebook.
 </aside>
 
-<nav class='module-nav' aria-label='Module navigation'><a class='mn-prev' href='phosphene-simulation.html'><span class='mn-dir'>&larr; prev</span><span class='mn-name'>M4 &middot; Phosphenes</span></a><a class='mn-next' href='index.html'><span class='mn-dir'>next &rarr;</span><span class='mn-name'>Modules</span></a></nav>
+<nav class='module-nav' aria-label='Module navigation'><a class='mn-prev' href='M4-phosphene-simulation.html'><span class='mn-dir'>&larr; prev</span><span class='mn-name'>M4 &middot; Phosphenes</span></a><a class='mn-next' href='index.html'><span class='mn-dir'>next &rarr;</span><span class='mn-name'>Modules</span></a></nav>
 
 <h3 style="margin-top:0">The pipeline at a glance</h3>
-<div class='pipeline' aria-label='Bootcamp pipeline progress'><a class='step' href='computer-vision.html'><div class='lbl'>M1</div><div class='name'>Camera + CV</div></a><div class='arr'>&rarr;</div><a class='step' href='deepgaze-and-gaze.html'><div class='lbl'>M2</div><div class='name'>Gaze</div></a><div class='arr'>&rarr;</div><a class='step' href='neuromod-and-stim.html'><div class='lbl'>M3</div><div class='name'>Stimulation</div></a><div class='arr'>&rarr;</div><a class='step' href='phosphene-simulation.html'><div class='lbl'>M4</div><div class='name'>Phosphenes</div></a><div class='arr'>&rarr;</div><div class='step active'><div class='lbl'>M5 &middot; here</div><div class='name'>Decoding</div></div></div>
+<div class='pipeline' aria-label='Bootcamp pipeline progress'><a class='step' href='M1-computer-vision.html'><div class='lbl'>M1</div><div class='name'>Camera + CV</div></a><div class='arr'>&rarr;</div><a class='step' href='M2-deepgaze-and-gaze.html'><div class='lbl'>M2</div><div class='name'>Gaze</div></a><div class='arr'>&rarr;</div><a class='step' href='M3-neuromod-and-stim.html'><div class='lbl'>M3</div><div class='name'>Stimulation</div></a><div class='arr'>&rarr;</div><a class='step' href='M4-phosphene-simulation.html'><div class='lbl'>M4</div><div class='name'>Phosphenes</div></a><div class='arr'>&rarr;</div><div class='step active'><div class='lbl'>M5 &middot; here</div><div class='name'>Decoding</div></div></div>
 
 <nav class='toc' aria-label='Sections'>
   <a href='#concept'><span class='n'>01</span> The loop in one picture</a>
@@ -1463,18 +1463,18 @@ Training fits in three seconds on a laptop, and you can read what the network le
   <div class='e2e-blend'>
     <span class='e2e-blend-l'>Sobel</span>
     <input id='e2e-alpha' type='range' min='0' max='100' value='100' aria-label='Vision-model blend Sobel to trained'>
-    <span class='e2e-blend-r'>trained vision model</span>
+    <span class='e2e-blend-r'>vision model</span>
     <span class='e2e-blend-v' id='e2e-alpha-v'>blend &alpha; = 100%</span>
   </div>
   <div class='e2e-grid' id='e2e-grid'></div>
   <div class='e2e-footer'>
     <button id='e2e-shuffle' class='train-btn small'>shuffle inputs</button>
-    <span class='e2e-score' id='e2e-score'>L2 against input &middot; lower is better &middot; the decoded chip shows what the brain would &ldquo;see&rdquo;</span>
+    <span class='e2e-score' id='e2e-score'>L2 against input &middot; lower is better &middot; using documented stand-in until exported weights load</span>
   </div>
 </div>
 
 <aside class='callout'><strong>Caveat.</strong>
-Real end-to-end training takes minutes on a GPU and several thousand gradient steps. The comparison panel above uses illustrative precomputed weights to show the pattern; the actual training run lives in the notebook. The page shows what the end result looks like, not how to fit it in 50 ms.</aside>
+Real end-to-end training takes minutes on a GPU and several thousand gradient steps. This page first tries to load <code>assets/m5_e2e_weights.json</code>, exported by the notebook. If that file is absent or the page is opened via <code>file://</code>, the comparison panel uses a documented analytic stand-in so the demo still runs. The status line in the panel tells you which path is active.</aside>
 </section>
 
 
@@ -2118,16 +2118,28 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
     _e2eFetched = true;
     // file:// can't run fetch under CORS; the page still works with the
     // fallback stand-in, so don't even try.
-    if (location.protocol === 'file:') return;
+    if (location.protocol === 'file:'){
+      const score = document.getElementById('e2e-score');
+      if(score) score.textContent = 'L2 against input · lower is better · using documented analytic stand-in';
+      return;
+    }
     fetch('assets/m5_e2e_weights.json')
       .then(r => r.ok ? r.json() : null)
       .then(j => {
         if (j && j.c1 && j.c2 && Array.isArray(j.c1.w) && Array.isArray(j.c2.w)){
           _e2eWeights = j;
+          const score = document.getElementById('e2e-score');
+          if(score) score.textContent = 'L2 against input · lower is better · using exported notebook weights';
           try { renderRows(); } catch(_) {}
+        } else {
+          const score = document.getElementById('e2e-score');
+          if(score) score.textContent = 'L2 against input · lower is better · using documented analytic stand-in';
         }
       })
-      .catch(()=>{ /* fallback used */ });
+      .catch(()=>{
+        const score = document.getElementById('e2e-score');
+        if(score) score.textContent = 'L2 against input · lower is better · using documented analytic stand-in';
+      });
   }
   function _convPreproc(arr, W){
     // arr: NxN flat. W.c1.w: (F,1,5,5). W.c2.w: (1,F,5,5). Mirrors the
@@ -2319,7 +2331,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
 
       const colBlend = document.createElement('div');
       colBlend.className = 'e2e-row';
-      colBlend.innerHTML = `<div class='e2e-row-h'>blended phosphenes</div><canvas></canvas><div class='e2e-row-v'>follows the slider</div>`;
+      colBlend.innerHTML = `<div class='e2e-row-h'>blended phosphenes</div><canvas></canvas><div class='e2e-row-v'>${_e2eWeights ? 'exported weights' : 'analytic stand-in'}</div>`;
       grid.appendChild(colBlend);
       const blendCanvas = colBlend.querySelector('canvas');
 
@@ -2750,10 +2762,12 @@ The closed-loop pattern generalises beyond visual prostheses. The same loop (dec
 
 
 
-<nav class='module-nav' aria-label='Module navigation'><a class='mn-prev' href='phosphene-simulation.html'><span class='mn-dir'>&larr; prev</span><span class='mn-name'>M4 &middot; Phosphenes</span></a><a class='mn-next' href='index.html'><span class='mn-dir'>next &rarr;</span><span class='mn-name'>Modules</span></a></nav>
+<nav class='module-nav' aria-label='Module navigation'><a class='mn-prev' href='M4-phosphene-simulation.html'><span class='mn-dir'>&larr; prev</span><span class='mn-name'>M4 &middot; Phosphenes</span></a><a class='mn-next' href='index.html'><span class='mn-dir'>next &rarr;</span><span class='mn-name'>Modules</span></a></nav>
 
 <footer>
-  Internal planning document. Web to update once content is final: <a href="https://www.aanmelder.nl/aimdworkshop2026/bootcamp">aanmelder.nl/aimdworkshop2026/bootcamp</a>.
+  NTH bootcamp &middot; M5 &middot; <a href="index.html">back to modules &rarr;</a> &middot;
+  Pipeline foundation:
+  <a href="https://doi.org/10.1142/S0129065720500458" style="color:inherit">Lozano et&nbsp;al.&nbsp;2020 &mdash; <em>Neurolight Alpha</em> (Int.&nbsp;J.&nbsp;Neural&nbsp;Syst.&nbsp;30(09):2050045)</a>.
 </footer>
 
 </main>
