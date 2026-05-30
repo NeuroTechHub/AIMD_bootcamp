@@ -33,6 +33,9 @@ yarn-error.log*
 *.log
 .cache/
 tmp/
+# anything under build/ starting with `_` is scratch (logo hunts, frame
+# previews, extracted media for inspection — not part of the build pipeline).
+build/_*/
 
 # --- notebook runtime artefacts --------------------------------------------
 *.pt
