@@ -8,12 +8,15 @@ scipy
 scikit-image
 opencv-contrib-python
 torch
+# torchvision + einops kept: M2's gaze_workshop pip-installs both and they
+# are transitive runtime deps of deepgaze_pytorch even when no notebook
+# code explicitly imports them.
 torchvision
 einops
 ipywidgets
 dynaphos
 ultralytics
-timm
+# (timm pruned 2026-05 — no module imports it, no transitive consumer.)
 Pillow
 nbformat
 nbclient
