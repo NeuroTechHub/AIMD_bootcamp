@@ -220,6 +220,41 @@ def slide_image_focus(prs, title, image=None, caption=None, credit=None,
         _add_credit(s, credit)
 
 
+def slide_video_focus(prs, title, video_path, *, poster_path=None,
+                      caption=None, credit=None, max_h=Inches(4.4)):
+    """Hero video. Plays in PowerPoint slideshow mode; static poster shows in
+    PDF/print. Pick a representative mid-video frame for the poster."""
+    s = prs.slides.add_slide(prs.slide_layouts[6])
+    _chrome(s, title=title)
+    y = Inches(1.55)
+    if caption:
+        _add_text(s, Inches(0.8), y, SLIDE_W - Inches(1.6), Inches(0.7),
+                  caption, size=20, color=INK_MUTED)
+        y = Inches(2.35)
+    if poster_path is not None and Path(poster_path).exists():
+        from PIL import Image as PILImage
+        with PILImage.open(poster_path) as im:
+            iw, ih = im.size
+        ratio = iw / ih
+    else:
+        ratio = 16 / 9
+    max_w = SLIDE_W - Inches(1.6)
+    if max_w / max_h > ratio:
+        h = max_h
+        w = int(max_h * ratio)
+    else:
+        w = max_w
+        h = int(max_w / ratio)
+    x = (SLIDE_W - w) // 2
+    s.shapes.add_movie(
+        str(video_path), x, y, w, h,
+        poster_frame_image=str(poster_path) if poster_path else None,
+        mime_type="video/mp4",
+    )
+    if credit:
+        _add_credit(s, credit)
+
+
 def slide_bullets_image(prs, title, items, image, credit=None,
                         subhead=None, image_h=Inches(3.2)):
     """Compressed bullets at top, wide image below — for figure-heavy beats."""
@@ -463,16 +498,15 @@ def build(out_path: Path) -> Path:
             "Today: one working module per wall.",
         ])
 
-    # 4 — Animated phosphenes: what the patient actually perceives, over time.
-    #     fade_edges.gif: left panel shows an edge-map scene rendered as
-    #     phosphenes (recognizable even on the static first frame); right
-    #     panel shows brightness-over-time, so the dynamics read as dynamics.
-    slide_image_focus(
+    # 4 — Real phosphene simulation: the eLife Video 2 example, embedded as
+    #     a movie. Plays in slideshow mode (click). Three panels: real scene,
+    #     edge map, phosphene field. Poster frame at t=6s shows all three.
+    slide_video_focus(
         prs, "What patients actually see",
-        image_path=M4_ASSETS / "fade_edges.gif",
-        caption="Scene → edges → phosphenes on the left, brightness rising over the first ~300 ms on the right. Sparse, punctate, dynamic — not pixels. (Animates in slideshow mode.)",
-        credit="dynaphos forward model — van der Grinten, de Ruyter van Steveninck, Lozano et al. 2024 (CC BY)",
-        max_h=Inches(4.0),
+        video_path=M4_ASSETS / "elife-85812-video2.mp4",
+        poster_path=M4_ASSETS / "elife-85812-video2-poster.jpg",
+        caption="Real scene → edges → phosphenes. Sparse, punctate, dynamic — not pixels. (Click to play in slideshow mode.)",
+        credit="van der Grinten et al. 2024, eLife — Video 2 (CC BY, doi:10.7554/eLife.85812)",
     )
 
     # 4 — Stim & safety (divider cut for time; the title slide below carries it)
