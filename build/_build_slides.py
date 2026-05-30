@@ -396,6 +396,7 @@ def build(out_path: Path) -> Path:
                 "Synchron's endovascular Stentrode",
                 "Neuralink's first human implantations",
                 "Higher channels, closed loops — that's where the field is heading",
+                "Morgan Stanley 2024: ~$400B addressable market, but under 3% penetration even by 2045",
             ]),
             ("Where we live", [
                 "Cortical visual prostheses — restore sight by writing to V1",
