@@ -256,6 +256,54 @@ print('Look for filters with adjacent positive/negative lobes: those behave like
 print('Filters with a bright centre and darker surround respond to compact dots or local blobs.')
 print('The exact filter IDs vary because training is stochastic, so reason from the displayed pattern.')
 """,
+        "# your code here\n# Hint:\n#   tunings = [(0, 0, 0)": """# Exercise 2.2 — PID gain ablation solution
+tunings = [(0, 0, 0), (400, 0, 0), (400, 200, 0)]
+labels  = ['no control', 'P only', 'P + I']
+fig, ax = plt.subplots(figsize=(7, 3.2))
+for (Kp, Ki, Kd), name in zip(tunings, labels):
+    tgt, ach, _ = run_pid(Kp, Ki, Kd, target_fn=lambda t: 0.8)
+    ss_err = float(np.abs(tgt[-30:] - ach[-30:]).mean())
+    ax.plot(ach, label=f'{name} · SSE={ss_err:.3f}')
+    print(f'  {name:14s} Kp={Kp:3d} Ki={Ki:3d} Kd={Kd:3d}  steady-state |err|={ss_err:.4f}')
+ax.axhline(0.8, ls='--', color='gray', label='target')
+ax.set_xlabel('frame'); ax.set_ylabel('decoded brightness')
+ax.set_title('PID gain ablation · step target 0.8')
+ax.legend(fontsize=8); ax.grid(alpha=0.3)
+plt.tight_layout(); plt.show()
+# Pure P leaves a steady-state error; adding I drives it to zero.
+""",
+        "# your code here\n# Sketch:\n#   class TinyCNN_b": """# Exercise 3.2 — decoder ablation solution
+class TinyCNN_b(nn.Module):
+    '''Brightness-only variant of TinyCNN: same trunk, no centroid head.'''
+    def __init__(self):
+        super().__init__()
+        self.c1 = nn.Conv2d(1, 8, 5, stride=2, padding=2)
+        self.c2 = nn.Conv2d(8, 16, 5, stride=2, padding=2)
+        self.c3 = nn.Conv2d(16, 32, 5, stride=2, padding=2)
+        self.fc_b = nn.Linear(32, 1)
+    def forward(self, x):
+        x = F.relu(self.c1(x)); x = F.relu(self.c2(x)); x = F.relu(self.c3(x))
+        x = F.adaptive_avg_pool2d(x, 1).flatten(1)
+        return torch.sigmoid(self.fc_b(x))
+
+torch.manual_seed(0); np.random.seed(0)
+net_b = TinyCNN_b().to(DEVICE)
+opt_b = torch.optim.Adam(net_b.parameters(), lr=3e-3)
+for step in range(EPOCHS):
+    x, y_b, _ = make_batch_centroid(32)
+    pred_b = net_b(x)
+    loss = F.mse_loss(pred_b, y_b)
+    opt_b.zero_grad(); loss.backward(); opt_b.step()
+
+net_b.eval()
+with torch.no_grad():
+    mae_b_only = float(F.l1_loss(net_b(xt), yt_b))
+print(f'joint (brightness + centroid) test MAE = {brightness_mae:.4f}')
+print(f'brightness-only test MAE              = {mae_b_only:.4f}')
+delta = mae_b_only - brightness_mae
+verdict = 'helps' if delta > 0 else 'hurts'
+print(f'-> centroid auxiliary loss {verdict} brightness by {abs(delta):.4f}')
+""",
     }
 
     for cell in solution.get("cells", []):

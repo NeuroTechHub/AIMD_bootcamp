@@ -167,6 +167,24 @@ N_ELEC = 600
 coords = get_visual_field_coordinates_probabilistically(params, N_ELEC, rng=rng)
 sim = GaussianSimulator(params, coords)
 RES = tuple(params['run']['resolution'])
+
+
+def safe_coords():
+    """Return (x_deg, y_deg) numpy arrays for every electrode.
+
+    dynaphos exposes coordinates as either `coords.x`/`coords.y` (newer
+    versions) or the underscored `_x`/`_y` (older). Wrapping the
+    getattr-chain here once keeps every call site readable and lets us
+    update the policy in exactly one place if the dynaphos API drifts."""
+    cx = getattr(coords, 'x', getattr(coords, '_x', None))
+    cy = getattr(coords, 'y', getattr(coords, '_y', None))
+    if cx is None or cy is None:
+        raise AttributeError("dynaphos coords object has no x/y or _x/_y")
+    cx = cx.detach().cpu().numpy() if hasattr(cx, 'detach') else np.asarray(cx)
+    cy = cy.detach().cpu().numpy() if hasattr(cy, 'detach') else np.asarray(cy)
+    return cx, cy
+
+
 print(f'simulator: {sim.num_phosphenes} electrodes, render {RES} px')
 '''))
 
@@ -205,10 +223,19 @@ def make_dataset(n):
 
 X, y = make_dataset(200)
 
-# Linear decoder via ridge-regularised normal equations.
-Xd = X.astype(np.float64); yd = y.astype(np.float64)
-A = Xd.T @ Xd + 1e-3 * np.eye(Xd.shape[1])
-w_lin = np.linalg.solve(A, Xd.T @ yd).astype(np.float32)
+# Linear decoder via SVD-based least squares (np.linalg.lstsq).
+#
+# Why not roll our own normal equations? At 200 samples x 16384 features the
+# problem is rank-deficient (n_features >> n_samples); X.T @ X is singular
+# and np.linalg.solve would refuse. lstsq drops back to SVD and returns the
+# *minimum-norm* solution, which is the right default for any neural-data
+# regime where there are more pixels than trials. If you wanted explicit
+# ridge regularisation (e.g. to stabilise weights when columns of X are
+# strongly correlated, as they tend to be for spatially-adjacent pixels),
+# the one-liner is `sklearn.linear_model.Ridge(alpha=1e-3).fit(X, y)` — same
+# shape of answer, biases the solution toward zero norm with a known knob.
+w_lin, *_ = np.linalg.lstsq(X.astype(np.float64), y.astype(np.float64), rcond=None)
+w_lin = w_lin.astype(np.float32)
 
 mean_pred = X.mean(axis=1)
 lin_pred  = X @ w_lin
@@ -328,6 +355,32 @@ CELLS.append(code(r"""# your code here
 #       print(f'Kp={Kp:3d} Ki={Ki:3d} Kd={Kd:3d}  MAE={mae:.4f}')
 """))
 
+CELLS.append(md(r"""### Exercise 2.2 — PID gain ablation `[easy]`
+
+Most "PID is hard" intuition comes from removing terms one at a time and watching the failure mode. Run the same step target three times:
+
+1. **`(Kp = 0, Ki = 0, Kd = 0)`** — open-loop. Nothing moves. Why is `achieved` not zero?
+2. **`(Kp = 400, Ki = 0, Kd = 0)`** — pure proportional. Steady-state error should be non-zero — the loop settles to whatever current cancels the error, not to the target.
+3. **`(Kp = 400, Ki = 200, Kd = 0)`** — add integral. The steady-state error should disappear.
+
+Plot the three `achieved` traces on the same axes. Report the steady-state error (mean over the last 30 frames) for each.
+
+> Hint: `run_pid(Kp, Ki, Kd, target_fn=lambda t: 0.8)` already returns `(target, achieved, current)`; you just need three calls and one plot.
+"""))
+
+CELLS.append(code(r"""# your code here
+# Hint:
+#   tunings = [(0, 0, 0), (400, 0, 0), (400, 200, 0)]
+#   labels  = ['no control', 'P only', 'P + I']
+#   fig, ax = plt.subplots(figsize=(7, 3.2))
+#   for (Kp, Ki, Kd), name in zip(tunings, labels):
+#       tgt, ach, _ = run_pid(Kp, Ki, Kd, target_fn=lambda t: 0.8)
+#       ss_err = float(np.abs(tgt[-30:] - ach[-30:]).mean())
+#       ax.plot(ach, label=f'{name} · SSE={ss_err:.3f}')
+#   ax.axhline(0.8, ls='--', color='gray', label='target')
+#   ax.legend(fontsize=8); plt.show()
+"""))
+
 CELLS.append(md(r"""## 3 · Train a CNN decoder
 
 The §1 linear decoder works for absolute brightness, but it can't tell
@@ -366,8 +419,7 @@ def synth_canvas2(I_amp_a, electrode_idx=None):
     amp[e] = float(I_amp_a)
     field = sim(amp).detach().cpu().numpy()
     va = params['run']['view_angle']
-    coords_x = np.asarray(getattr(coords, 'x', getattr(coords, '_x')))
-    coords_y = np.asarray(getattr(coords, 'y', getattr(coords, '_y')))
+    coords_x, coords_y = safe_coords()
     cx = float(coords_x[e]) / (va / 2)
     cy = float(coords_y[e]) / (va / 2)
     return field, float(field.mean()), (cx, cy)
@@ -464,6 +516,35 @@ CELLS.append(code(r"""# your notes here
 #              cmap='RdBu_r'); plt.colorbar(); plt.show()
 """))
 
+CELLS.append(md(r"""### Exercise 3.2 — Decoder ablation `[intermediate]`
+
+The decoder above has two heads (brightness + centroid) trained jointly with a 0.5 weighting on the centroid loss. Does the centroid head help or hurt brightness MAE?
+
+Train a *brightness-only* variant of `TinyCNN` for the same 100 steps with the same seed and held-out test set, and compare the final held-out brightness MAE against the joint model. Report whether the joint task is helping or hurting on brightness alone.
+
+If you want to go further: try removing the *last* conv layer (drop `c3`), retrain, and report whether capacity or auxiliary loss was the bigger factor.
+
+> Hint: a brightness-only network is the same `TinyCNN` with `self.fc_c` deleted and the forward returning only `torch.sigmoid(self.fc_b(x))`. Train it with `loss = F.mse_loss(pred_b, y_b)` — no `0.5 * F.mse_loss(pred_c, y_c)` term. Reuse `xt, yt_b` and the same Adam/`lr=3e-3` setup.
+"""))
+
+CELLS.append(code(r"""# your code here
+# Sketch:
+#   class TinyCNN_b(nn.Module):
+#       def __init__(self):
+#           super().__init__()
+#           self.c1 = nn.Conv2d(1, 8, 5, stride=2, padding=2)
+#           self.c2 = nn.Conv2d(8, 16, 5, stride=2, padding=2)
+#           self.c3 = nn.Conv2d(16, 32, 5, stride=2, padding=2)
+#           self.fc_b = nn.Linear(32, 1)
+#       def forward(self, x):
+#           x = F.relu(self.c1(x)); x = F.relu(self.c2(x)); x = F.relu(self.c3(x))
+#           x = F.adaptive_avg_pool2d(x, 1).flatten(1)
+#           return torch.sigmoid(self.fc_b(x))
+#   ... train 100 steps, F.mse_loss only ...
+#   ... final = float(F.l1_loss(net_b(xt), yt_b))
+#   ... print joint vs brightness-only MAE
+"""))
+
 CELLS.append(md(r"""## 4 · End-to-end co-optimization
 
 The headline. Because dynaphos is differentiable, you can train a
@@ -478,7 +559,10 @@ cell exports the preprocessor weights to
 `modules/assets/m5_e2e_weights.json` for the HTML §05 comparison.
 """))
 
-CELLS.append(code(r'''class Preproc(nn.Module):
+CELLS.append(code(r'''# §4a — Model definitions + scene generator. Both preproc and recon are
+# tiny (two 5x5 conv layers each); the dynaphos forward pass sits between
+# them and gradients flow through it via autograd.
+class Preproc(nn.Module):
     def __init__(self):
         super().__init__()
         self.c1 = nn.Conv2d(1, 8, 5, padding=2)
@@ -494,8 +578,9 @@ class Recon(nn.Module):
     def forward(self, x):
         return torch.sigmoid(self.c2(F.relu(self.c1(x))))
 
+
 def random_scene(B):
-    """Synthesise B simple natural-looking inputs: 3–5 overlapping bright blobs."""
+    """Synthesise B simple natural-looking inputs: 3-5 overlapping bright blobs."""
     H, W = RES
     x = np.zeros((B, 1, H, W), dtype=np.float32)
     for b in range(B):
@@ -507,16 +592,14 @@ def random_scene(B):
             x[b, 0] = np.minimum(1.0, x[b, 0] + amp*np.exp(-((ys-cy)**2 + (xs-cx)**2)/(2*r*r)))
     return torch.from_numpy(x).to(DEVICE)
 
+
 def sample_at_electrodes(image):
     """B,1,H,W image -> B,N_ELEC sampled amplitudes via bilinear grid_sample.
     Maps view-angle coordinates to normalised [-1, 1] for grid_sample."""
     B, _, H, W = image.shape
-    cx = np.asarray(getattr(coords, 'x', getattr(coords, '_x')))
-    cy = np.asarray(getattr(coords, 'y', getattr(coords, '_y')))
-    xs = torch.as_tensor(np.asarray(cx.detach().cpu() if hasattr(cx, 'detach') else cx),
-                         dtype=torch.float32, device=DEVICE)
-    ys = torch.as_tensor(np.asarray(cy.detach().cpu() if hasattr(cy, 'detach') else cy),
-                         dtype=torch.float32, device=DEVICE)
+    cx, cy = safe_coords()
+    xs = torch.as_tensor(cx, dtype=torch.float32, device=DEVICE)
+    ys = torch.as_tensor(cy, dtype=torch.float32, device=DEVICE)
     va = params['run']['view_angle']
     grid = torch.stack([xs / (va/2), ys / (va/2)], dim=-1).view(1, 1, -1, 2)
     grid = grid.expand(B, 1, -1, 2)
@@ -524,16 +607,19 @@ def sample_at_electrodes(image):
                             padding_mode='zeros', align_corners=False)
     return 10e-6 + sampled.squeeze(1).squeeze(1) * 240e-6
 
+
 preproc = Preproc().to(DEVICE)
 recon   = Recon().to(DEVICE)
 opt_e2e = torch.optim.Adam(list(preproc.parameters()) + list(recon.parameters()), lr=3e-3)
+print(f'preproc params: {sum(p.numel() for p in preproc.parameters())}')
+print(f'recon   params: {sum(p.numel() for p in recon.parameters())}')
+'''))
 
-# Capture (scene, preprocessed, phosphene field, reconstruction) at the
-# chosen snapshot steps so learning shows up as four image rows below
-# the loss curve.
+CELLS.append(code(r'''# §4b — Training loop. Loss = L2 between scene and reconstruction.
+# Snapshots are captured at SNAP_STEPS so the §4c progression grid can
+# show learning visually instead of just as a loss-curve number.
 SNAP_STEPS = [0, 50, 100, 199]
-snapshots = []
-losses_e2e = []
+snapshots, losses_e2e = [], []
 STEPS = 200
 for step in range(STEPS):
     scenes = random_scene(8)
@@ -561,9 +647,11 @@ ax.plot(losses_e2e, color='C0'); ax.set_xlabel('step'); ax.set_ylabel('MSE')
 ax.set_title('End-to-end preproc + decoder'); ax.grid(alpha=0.3)
 plt.tight_layout(); plt.show()
 print(f'final loss: {losses_e2e[-1]:.5f}')
+'''))
 
-# Progression grid: 4 rows × 4 cols (scene | preproc | phosphenes | recon)
-# per snapshot step. The reconstruction column should visibly sharpen.
+CELLS.append(code(r'''# §4c — Progression grid: 4 rows x 4 cols (scene | preproc | phosphenes |
+# recon) per snapshot step. The reconstruction column should visibly
+# sharpen across the rows as the encoder learns to encode for the decoder.
 fig, axes = plt.subplots(len(snapshots), 4, figsize=(10, 2.5*len(snapshots)))
 col_titles = ['input scene', 'preprocessed', 'phosphenes', 'reconstruction']
 for i, snap in enumerate(snapshots):
@@ -575,36 +663,71 @@ for i, snap in enumerate(snapshots):
         if i == 0: ax.set_title(col_titles[j], fontsize=10)
     axes[i, 0].set_ylabel(f'step {snap["step"]}', fontsize=10)
 plt.tight_layout(); plt.show()
+'''))
 
-# Out-of-distribution validation: training saw random overlapping blobs.
-# Feed a structured grid pattern instead and see what survives.
+CELLS.append(md(r"""### 4d · Out-of-distribution stress test — three clinical modes
+
+Training saw random overlapping bright blobs. A real implant patient encounters all three of the following **out-of-distribution (OOD) modes** routinely, and the pair (preproc, recon) we just trained has seen none of them:
+
+1. **Structured spatial pattern** — text, doorframes, road markings — i.e. things with periodic high-frequency structure the training blobs lacked.
+2. **Illumination shift** — same scene, halved global brightness (dusk, indoor, sunglasses). The preprocessor sees a different intensity range from training.
+3. **Gaze offset** — head-mounted camera mis-aligned by a few degrees relative to where the patient is looking; the scene is shifted on the retina.
+
+A robust pipeline should degrade *gracefully* across all three; a brittle one collapses on at least one. The cell below evaluates all three and reports MSE per mode.
+""")
+)
+
+CELLS.append(code(r'''# §4d — Three explicit OOD modes (clinical motivations in the markdown above).
 H, W = RES
+
+# Mode 1: structured grid (periodic spatial pattern).
 grid_pattern = np.zeros((H, W), dtype=np.float32)
 for r in range(20, H-20, 24):
     grid_pattern[r-1:r+1, 20:W-20] = 1.0
 for c in range(20, W-20, 24):
     grid_pattern[20:H-20, c-1:c+1] = 1.0
-val_scene = torch.from_numpy(grid_pattern)[None, None].to(DEVICE)
-with torch.no_grad():
-    val_pre = preproc(val_scene)
-    val_amps = sample_at_electrodes(val_pre)
-    sim.reset()
-    val_field = sim(val_amps[0]).unsqueeze(0).unsqueeze(0)
-    val_rec = recon(val_field)
-val_mse = float(F.mse_loss(val_rec, val_scene))
 
-fig, ax = plt.subplots(1, 4, figsize=(11, 2.8))
-panels = [val_scene.cpu().numpy().squeeze(),
-          val_pre.cpu().numpy().squeeze(),
-          val_field.cpu().numpy().squeeze(),
-          val_rec.cpu().numpy().squeeze()]
-titles = ['OOD input (grid)', 'preprocessed', 'phosphenes', 'reconstruction']
-for a, im, t in zip(ax, panels, titles):
-    a.imshow(im, cmap='gray', vmin=0, vmax=1); a.set_title(t, fontsize=10)
-    a.set_xticks([]); a.set_yticks([])
-fig.suptitle(f'Out-of-distribution validation · MSE {val_mse:.4f}', fontsize=10)
+# Reference in-distribution sample for the other two modes — a scene the
+# trained pair *should* know how to reconstruct, then perturb.
+torch.manual_seed(7); np.random.seed(7)
+base_scene = random_scene(1).cpu().numpy().squeeze()
+
+# Mode 2: global illumination shift (halve all pixel intensities).
+dim_scene = (base_scene * 0.5).clip(0, 1)
+
+# Mode 3: gaze offset — shift the scene 20 px to the right + 10 px up.
+gaze_offset = np.zeros_like(base_scene)
+gaze_offset[:H-10, 20:] = base_scene[10:, :W-20]
+
+modes = [
+    ('M1 spatial structure',   grid_pattern),
+    ('M2 illumination shift',  dim_scene),
+    ('M3 gaze offset',         gaze_offset),
+]
+
+fig, axes = plt.subplots(len(modes), 4, figsize=(11, 2.8 * len(modes)))
+col_titles = ['OOD input', 'preprocessed', 'phosphenes', 'reconstruction']
+for row, (name, scene_np) in enumerate(modes):
+    val_scene = torch.from_numpy(scene_np)[None, None].to(DEVICE)
+    with torch.no_grad():
+        val_pre = preproc(val_scene)
+        val_amps = sample_at_electrodes(val_pre)
+        sim.reset()
+        val_field = sim(val_amps[0]).unsqueeze(0).unsqueeze(0)
+        val_rec = recon(val_field)
+    val_mse = float(F.mse_loss(val_rec, val_scene))
+    panels = [val_scene.cpu().numpy().squeeze(),
+              val_pre.cpu().numpy().squeeze(),
+              val_field.cpu().numpy().squeeze(),
+              val_rec.cpu().numpy().squeeze()]
+    for col, im in enumerate(panels):
+        ax = axes[row, col]
+        ax.imshow(im, cmap='gray', vmin=0, vmax=1)
+        ax.set_xticks([]); ax.set_yticks([])
+        if row == 0: ax.set_title(col_titles[col], fontsize=10)
+    axes[row, 0].set_ylabel(f'{name}\nMSE {val_mse:.4f}', fontsize=9)
+    print(f'{name:24s} MSE = {val_mse:.5f}')
 plt.tight_layout(); plt.show()
-print(f'OOD grid-pattern MSE: {val_mse:.5f}')
 '''))
 
 CELLS.append(md(r"""### 4.1 · Export weights to the HTML page
@@ -827,12 +950,35 @@ print(f'closed loop · phosphene contrast {c_c*100:5.1f}% · MAE {mae_c:.4f}')
 print(f'closed-loop improvement: contrast +{(c_c-c_o)*100:.1f} pp  ·  MAE {(mae_o-mae_c)/max(mae_o,1e-6)*100:+.0f}%')
 '''))
 
+CELLS.append(md(r"""## 6 · Reflection — what would change for on-implant FPGA deployment?
+
+The preprocessor we just trained is ~250 floats (`c1`: 8x1x5x5 = 200 weights + 8 biases, `c2`: 1x8x5x5 = 200 weights + 1 bias). That's well within budget for an on-implant FPGA or a low-power microcontroller running next to the electrode array — exactly the deployment target for a real visual prosthesis where camera frames cannot make a round-trip to a phone before being stimulated.
+
+Use this cell to **write a short prose answer** (markdown or comments) to two questions:
+
+1. **What would need to change in the model?** Think: float32 → int8 quantisation, ReLU vs hardsigmoid, stride/padding to match a streaming line-buffer architecture, removing the sigmoid in favour of a clipped activation that synthesises cleaner on hardware.
+2. **What would need to change in the loss?** Think: budgeting *charge* not just MSE (every µA delivered shortens battery life), penalising electrodes near the safety frontier, encouraging temporal smoothness so the patient does not see flicker, robustness to the three OOD modes you measured in §4d.
+
+This is a research question, not a coded exercise — but writing the answer down forces the framing every real implant team faces by month 3 of clinical translation.
+"""))
+
+CELLS.append(code(r"""# your reflection here (free-form)
+# Suggested skeleton:
+#   * float32 -> int8: how much MAE / SSIM do you lose?
+#   * stride/padding so the conv is a streaming line-buffer: cleaner on FPGA?
+#   * lock activation_threshold / rheobase to the dynaphos paper values from
+#     M4's PARAMS_YAML, then re-train -- does the preproc shift?
+#   * add a `charge_budget` term to the loss: sum(amps) <= budget
+"""))
+
+
 CELLS.append(md(r"""---
 
 **Done.** You decoded brightness with a linear model, closed the loop
 with PID, trained a CNN decoder, co-optimised a preprocessor + decoder
-end-to-end through the dynaphos simulator, and ran a minimal closed
-loop with adaptation. The workshop tracks pick up here:
+end-to-end through the dynaphos simulator, ran a minimal closed
+loop with adaptation, and stress-tested the result against three
+clinical out-of-distribution modes. The workshop tracks pick up here:
 
 * **Experimental.** Pick a target image; compare phosphene renders from
   hand-tuned vs end-to-end preprocessors; collect subjective ratings.
@@ -843,6 +989,21 @@ loop with adaptation. The workshop tracks pick up here:
   the unit of design.
 
 Module lead: Antonio. Edit this notebook directly.
+"""))
+
+
+CELLS.append(md(r"""## References
+
+The dynaphos simulator and the closed-loop framing in this notebook trace back to a small set of primary sources. Cite these in your own write-ups; the cortical-prosthesis literature is concentrated enough that everyone in the field reads the same papers.
+
+- **van der Grinten, M., de Ruyter van Steveninck, J., Lozano, A., Pijnacker, L., Berenschot, B., Bauer, M., Reith, M. J. M., Cox, D., Güçlü, U., Güçlütürk, Y., Roelfsema, P. R., & van Gerven, M.** (2024). Towards biologically plausible phosphene simulation for the differentiable optimization of visual cortical prostheses. *eLife*, **13**, e85812. [doi:10.7554/eLife.85812](https://doi.org/10.7554/eLife.85812) — the dynaphos forward model used in every cell of this notebook; Table 2 gives the parameters in our `PARAMS_YAML`.
+- **de Ruyter van Steveninck, J., van Gestel, T., Koenders, P., van der Ham, G., Vereecken, F., Güçlü, U., van Gerven, M., Güçlütürk, Y., & van Wezel, R.** (2022). Real-world indoor mobility with simulated prosthetic vision: the benefits and feasibility of contour-based scene simplification at different phosphene resolutions. *Journal of Vision*, **22**(2):1. [doi:10.1167/jov.22.2.1](https://doi.org/10.1167/jov.22.2.1) — the end-to-end differentiable-prosthesis pipeline that motivates §4 here.
+- **Lozano, A., Suárez, J. S., Soto-Sánchez, C., Garrigós, J., Martínez-Álvarez, J. J., Ferrández, J. M., & Fernández, E.** (2020). Neurolight: A deep learning neural interface for cortical visual prostheses. *International Journal of Neural Systems*, **30**(09), 2050045. [doi:10.1142/S0129065720500458](https://doi.org/10.1142/S0129065720500458) — pipeline foundation for the AI-side of CORTIVIS.
+- **Granley, J., Relic, L., & Beyeler, M.** (2023). Hybrid neural autoencoders for stimulus encoding in visual and other sensory neuroprostheses. *Advances in Neural Information Processing Systems*, **36**. [arXiv:2205.13623](https://arxiv.org/abs/2205.13623) — the end-to-end encoder/decoder framing.
+- **Polimeni, J. R., Balasubramanian, M., & Schwartz, E. L.** (2006). Multi-area visuotopic map complexes in macaque striate and extra-striate cortex. *Vision Research*, **46**(20), 3336–3359. — the dipole-cortex magnification map (parameters `k`, `a`, `b` in our `cortex_model` block).
+- **Shannon, R. V.** (1992). A model of safe levels for electrical stimulation. *IEEE Trans. Biomed. Eng.*, **39**(4), 424–426. — inherited from M3 (the per-frame current clip at 280 µA matches the Shannon-k frontier for a Utah tip).
+
+For the implementation references behind §2 (PID) and §3 (CNN training), the standard textbooks apply: Aström & Hägglund's *PID Controllers: Theory, Design, and Tuning* (2nd ed., 1995) for the controller side, and any modern deep-learning intro for the network side.
 """))
 
 
