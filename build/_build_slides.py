@@ -416,7 +416,7 @@ def build(out_path: Path) -> Path:
         items=["Profound blindness: millions of people, many causes, no treatment for most",
                "Retinal and optic-nerve implants need everything above them still working",
                "Cortical stim skips everything upstream — straight to V1",
-               "It's invasive. It's also the only approach that reaches the broadest population"],
+               "It's invasive, and the trade-off (penetrating vs surface arrays) is still open. But cortical reaches the broadest population"],
         image="s39_p01_ee164db1.png",
         subhead="The visual world is complex. Our bandwidth to represent it is limited.",
         credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
@@ -431,17 +431,6 @@ def build(out_path: Path) -> Path:
         image="s15_p01_ed547d2f.png",
         subhead="V1 is a map of the visual field. That map is what we'll be writing to.",
         credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
-        image_h=Inches(2.6),
-    )
-    slide_bullets_image(
-        prs, "Why intracortical",
-        items=["Retinal implants (Argus II, PRIMA): work, but only if the pathway above the retina still does",
-               "Optic-nerve and LGN approaches: small populations, harder surgery",
-               "Cortical implants: reach acquired blindness across most causes",
-               "Penetrating vs surface arrays: resolution vs invasiveness, still an open trade-off"],
-        image="s07_p01_dd31ff76.png",
-        subhead="Why now: channel counts went up, implants got more flexible, simulation got predictive.",
-        credit="from A. Lozano, Brain & the Chip II (Elche 2024) — neurotech matures",
         image_h=Inches(2.6),
     )
     slide_bullets_image(
@@ -485,8 +474,7 @@ def build(out_path: Path) -> Path:
         max_h=Inches(4.0),
     )
 
-    # 4 — Stim & safety divider
-    slide_section(prs, "Stim & safety", kicker="What every electrode actually does")
+    # 4 — Stim & safety (divider cut for time; the title slide below carries it)
     slide_bullets_image(
         prs, "Stim parameters that matter",
         items=["Amplitude (µA): how bright the phosphene looks",
@@ -504,9 +492,7 @@ def build(out_path: Path) -> Path:
                    "Total charge across a whole session",
                    "M3 enforces all of these live, before the stim button does anything"])
 
-    # 5 — Pipeline tour
-    slide_section(prs, "Today's pipeline",
-                  kicker="Image in, perception out, loop closed.")
+    # 5 — Pipeline tour (divider cut; the loop figure carries the section)
     slide_image_focus(
         prs, "Vision implant — the loop in one figure",
         image="s09_p01_6614a827.png",
