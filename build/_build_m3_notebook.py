@@ -121,15 +121,66 @@ both_code(r"""%pip install --user -q numpy matplotlib ipywidgets
 both_code(r"""# Imports + inline mock Ripple stimulator + plot_pulse helper.
 # Mirror of neurolight2.stim.factory.create_stimulator("mock_ripple").
 import math
+from collections import namedtuple
 from dataclasses import dataclass, field
 from typing import List, Optional
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-CYCLE_US = 33.3           # Ripple Grapevine ticks at 30 kHz (1 cycle = 33.3 us)
-SHANNON_K_LIMIT = 1.85    # conservative; microelectrodes routinely exceed
-DEFAULT_UTAH_AREA_CM2 = 2.0e-5   # ~1900 um^2 Utah-array tip
+# --- named constants (every literal in this notebook traces back to one
+# of these or to a referenced paper) -----------------------------------------
+
+# Ripple Grapevine schedules everything on a 30 kHz tick. One cycle is
+# 1/30000 s = 33.333... us. Computed (not rounded) so the quantisation math
+# in Exercise 2.2 is exact.
+CLOCK_HZ = 30_000
+CYCLE_US = 1e6 / CLOCK_HZ          # ≈ 33.333 us per Ripple tick
+
+# Shannon's safety bound for cortical microstimulation:
+#   k = log10(Q_uC) + log10(D_uC/cm^2)  ≤  k_max
+# k_max = 1.85 is the conservative macroelectrode limit (Shannon, IEEE TBME
+# 1992; see also Cogan et al., J Neural Eng 2016 for the modern review and
+# why microelectrodes routinely operate above this line in research settings
+# while still being characterised as safe).
+SHANNON_K_LIMIT = 1.85
+
+# Blackrock / Utah array — the de-facto cortical microelectrode for human
+# visual-prosthesis programs (Fernández et al., J Clin Invest 2021).
+UtahGeometry = namedtuple(
+    "UtahGeometry",
+    ["sites", "rows", "cols", "pitch_um", "shank_len_um", "tip_area_cm2"],
+)
+UTAH_GEOMETRY = UtahGeometry(
+    sites        = 96,        # 10x10 minus 4 inactive corners
+    rows         = 10,
+    cols         = 10,
+    pitch_um     = 400.0,     # centre-to-centre electrode spacing
+    shank_len_um = 1500.0,    # standard 1.5 mm shank
+    tip_area_cm2 = 2.0e-5,    # ~1900 um^2 iridium-oxide tip
+)
+DEFAULT_UTAH_AREA_CM2 = UTAH_GEOMETRY.tip_area_cm2  # kept for back-compat
+
+# Default per-electrode waveform — picked to land safely under Shannon's
+# limit for a fresh Utah tip. The HTML M3 page exposes these as slider
+# anchors; we keep them here so a student tweaking one default propagates
+# the change through every example below.
+DEFAULT_AMP_UA  = 80      # uA, cathodic amplitude
+DEFAULT_PW_US   = 170     # us per phase (Fernández cohort uses 170 us routinely)
+DEFAULT_GAP_US  = 60      # us interphase gap (prevents reversible reactions)
+DEFAULT_FREQ_HZ = 200     # Hz, well below the ~250 Hz refractory ceiling
+
+
+def quantize_to_ticks(us: float, tick_us: float = CYCLE_US) -> tuple[int, float]:
+    '''Quantise a duration in microseconds to the nearest hardware tick.
+
+    Returns (n_ticks, quantised_us). The Ripple Grapevine clocks at 30 kHz
+    so every requested duration lands on a 33.33 us boundary; this helper
+    lets you preview how big the rounding error is for any value before you
+    push it to the driver. Minimum 1 tick (matches the real driver minimum-
+    phase rule).'''
+    n = max(1, round(us / tick_us))
+    return n, n * tick_us
 
 
 @dataclass(frozen=True)
@@ -199,6 +250,23 @@ class MockRipple:
         self.history: List[StimEvent] = []
 
     def stimulate(self, params: StimParams) -> StimEvent:
+        '''Run one stimulation trial through the safety checker.
+
+        The headline computation is Shannon k inequality for cortical
+        microstimulation (Shannon, IEEE TBME 1992; reviewed in Cogan,
+        Ludwig, Welle & Takmakov, J Neural Eng 2016):
+
+            k = log10(Q_uC) + log10(Q_uC / A_cm^2)   should stay <= k_max
+
+        Two failure modes the inequality protects against:
+          * k too low  -- sub-threshold; the electrode is firing
+            but no neuron crosses recruitment.
+          * k too high -- supra-threshold tissue damage (electrode
+            corrosion, irreversible electrochemistry, neural injury).
+
+        We evaluate the worst-case electrode in the trial -- that is what
+        the real driver does because injury risk is set by the single
+        most-charged contact, not the per-electrode average.'''
         # Worst-case across electrodes — that's what the safety checker uses.
         worst = max(range(len(params.electrodes)),
                     key=lambda i: params.amplitudes_ua[i] * params.pulse_widths_us[i])
@@ -208,7 +276,7 @@ class MockRipple:
         q_nc = amp_ua * pw_us / 1000.0                          # uA * us -> pC * 1000 = nC
         d_uc_cm2 = (q_nc / 1000.0) / self.electrode_area_cm2    # convert nC->uC then per cm^2
         if q_nc > 0 and d_uc_cm2 > 0:
-            k = math.log10(q_nc / 1000.0) + math.log10(d_uc_cm2)  # Shannon: log10(Q_uC) + log10(D_uC/cm^2)
+            k = math.log10(q_nc / 1000.0) + math.log10(d_uc_cm2)
         else:
             k = -math.inf
 
@@ -230,19 +298,44 @@ class MockRipple:
         return ev
 
 
-def plot_pulse(amp_ua: float = 80, pw_us: float = 170, interphase_us: float = 60,
-               freq_hz: Optional[float] = None, num_pulses: int = 1,
+def _stamp_phase(i_ua: np.ndarray, t: np.ndarray, t_start_us: float,
+                 width_us: float, amp_ua: float) -> None:
+    '''Set the current array to amp_ua over [t_start_us, t_start_us + width_us).
+    Used to build the three labelled segments of a charge-balanced biphasic
+    pulse without rewriting the same numpy mask three times.'''
+    i_ua[(t >= t_start_us) & (t < t_start_us + width_us)] = amp_ua
+
+
+def plot_pulse(amp_ua: float = DEFAULT_AMP_UA, pw_us: float = DEFAULT_PW_US,
+               interphase_us: float = DEFAULT_GAP_US,
+               freq_hz: Optional[float] = None,
+               num_pulses: int = 1,
                title: Optional[str] = None, ax=None):
-    '''Plot a biphasic train as current vs time (uA vs ms). Cathodic-first.'''
+    '''Plot a biphasic, charge-balanced train as current vs time (uA vs ms).
+
+    Each pulse has three segments:
+      1) cathodic phase at -amp_ua for pw_us -- depolarises the axon
+         hillock and is the part that recruits a spike.
+      2) interphase gap at 0 uA for interphase_us -- lets the
+         electrode-tissue interface relax; prevents reversible electro-
+         chemical reactions from cascading into irreversible ones.
+      3) anodic phase at +amp_ua for pw_us -- recovers exactly the
+         charge injected in (1) so net DC delivered to the tissue is zero
+         (the "charge-balanced" half of the pulse name; without it the
+         electrode corrodes and tissue accumulates a DC drift).
+    '''
     period_us = 1e6 / freq_hz if freq_hz else 2 * pw_us + interphase_us + 200
     total_us  = period_us * num_pulses
     t = np.linspace(0, total_us, max(2000, int(total_us / 5)))
     i_ua = np.zeros_like(t)
     for k in range(num_pulses):
         t0 = k * period_us
-        i_ua[(t >= t0) & (t < t0 + pw_us)] = -amp_ua
-        i_ua[(t >= t0 + pw_us + interphase_us) &
-             (t <  t0 + pw_us + interphase_us + pw_us)] = +amp_ua
+        # cathodic first: depolarises the axon hillock, recruits a spike
+        _stamp_phase(i_ua, t, t0, pw_us, -amp_ua)
+        # interphase gap: i_ua already 0 here; the gap is the time between
+        # the cathodic and anodic stamps (no stamp call needed).
+        # anodic second: recovers the cathodic charge, net DC = 0
+        _stamp_phase(i_ua, t, t0 + pw_us + interphase_us, pw_us, +amp_ua)
     if ax is None:
         fig, ax = plt.subplots(figsize=(8, 2.4))
     ax.plot(t / 1000.0, i_ua, lw=1.3, color='#1c1c1a')
@@ -256,9 +349,22 @@ def plot_pulse(amp_ua: float = 80, pw_us: float = 170, interphase_us: float = 60
     return ax
 
 
-print('mock-ripple ready · numpy', np.__version__,
-      '· Shannon-k limit', SHANNON_K_LIMIT,
-      '· electrode area', DEFAULT_UTAH_AREA_CM2, 'cm^2')
+print(f'mock-ripple ready · numpy {np.__version__}')
+print(f'  Shannon k limit:   {SHANNON_K_LIMIT}  (Shannon 1992; Cogan 2016)')
+print(f'  Utah array:        {UTAH_GEOMETRY.sites} sites · '
+      f'{UTAH_GEOMETRY.rows}x{UTAH_GEOMETRY.cols} grid · '
+      f'{UTAH_GEOMETRY.pitch_um:.0f} um pitch · '
+      f'{UTAH_GEOMETRY.shank_len_um/1000:.1f} mm shanks · '
+      f'tip {UTAH_GEOMETRY.tip_area_cm2:.1e} cm^2')
+print(f'  Defaults:          {DEFAULT_AMP_UA} uA  ·  {DEFAULT_PW_US} us PW  ·  '
+      f'{DEFAULT_GAP_US} us gap  ·  {DEFAULT_FREQ_HZ} Hz')
+
+# What the hardware actually delivers vs. what you asked for:
+print(f'  30 kHz quantisation (tick = {CYCLE_US:.2f} us):')
+for us in [DEFAULT_PW_US, DEFAULT_GAP_US, 500]:
+    n, q = quantize_to_ticks(us)
+    print(f'    {us:4d} us requested -> {n:2d} ticks -> {q:6.2f} us '
+          f'(rounding error {abs(us - q):.2f} us)')
 """)
 
 # ---------------------------------------------------------------------------
@@ -279,8 +385,12 @@ Electrical stim modulates spike timing by injecting charge across an electrode. 
 The waveform we use is **biphasic, charge-balanced** — a cathodic phase, an interphase gap, then an equal-and-opposite anodic phase. Net DC delivered to the tissue: zero.
 """)
 
-both_code(r"""plot_pulse(amp_ua=80, pw_us=170, interphase_us=60,
-           title='one biphasic pulse · 80 uA · 170 us · 60 us gap')
+both_code(r"""# Every literal here is the named-constant default — change DEFAULT_AMP_UA
+# / DEFAULT_PW_US / DEFAULT_GAP_US once in the setup cell and every demo
+# downstream picks up the new value.
+plot_pulse(amp_ua=DEFAULT_AMP_UA, pw_us=DEFAULT_PW_US, interphase_us=DEFAULT_GAP_US,
+           title=f'one biphasic pulse · {DEFAULT_AMP_UA} uA · '
+                 f'{DEFAULT_PW_US} us · {DEFAULT_GAP_US} us gap')
 plt.tight_layout(); plt.show()
 """)
 
@@ -313,9 +423,10 @@ both_code(r"""params = StimParams(
 print(params.to_dict())
 """)
 
-both_code(r"""plot_pulse(amp_ua=100, pw_us=170, interphase_us=60,
-           freq_hz=200, num_pulses=4,
-           title='train · 100 uA · 170 us · 200 Hz · 4 pulses')
+both_code(r"""plot_pulse(amp_ua=100, pw_us=DEFAULT_PW_US, interphase_us=DEFAULT_GAP_US,
+           freq_hz=DEFAULT_FREQ_HZ, num_pulses=4,
+           title=f'train · 100 uA · {DEFAULT_PW_US} us · '
+                 f'{DEFAULT_FREQ_HZ} Hz · 4 pulses')
 plt.tight_layout(); plt.show()
 """)
 
@@ -481,26 +592,32 @@ def _sweep(area_um2=1900, k_limit=1.85):
 
 both_md(r"""## 3 · Configure a Utah array
 
-A Utah array is a 10×10 grid of microelectrodes — 96 active sites, 400 µm pitch — implanted in cortex. The mock indexes sites 1–96. The real driver maps each site to a Ripple channel via a fixed lookup (see [`neurolight2.stim.electrode_map`](https://github.com/) for the table). For workshop purposes we treat the site IDs as the addressable handle.
+A **Utah array** (Blackrock Microsystems; first reported in Normann et al., *Vision Res.* 1999; the human-prosthesis cohort used by Fernández et al. 2021) is a 10×10 grid of penetrating microelectrodes implanted into cortex. The mock indexes sites 1–96; the real driver maps each site to a Ripple channel via a fixed lookup (see [`neurolight2.stim.electrode_map`](https://github.com/) for the table). For workshop purposes we treat the site IDs as the addressable handle.
 
-| Attribute | Value |
-|---|---|
-| sites | 96 active |
-| layout | 10 × 10 (corners missing) |
-| pitch | 400 µm |
-| tip area | ~1900 µm² (= `DEFAULT_UTAH_AREA_CM2`) |
+The numbers in the table below come from the `UTAH_GEOMETRY` named tuple in the setup cell — change one constant there and every example below moves with it.
+
+| Attribute | Value | Source |
+|---|---|---|
+| sites | 96 active | Blackrock standard |
+| layout | 10 × 10 (corners inactive) | Blackrock standard |
+| pitch | 400 µm | electrode centre-to-centre |
+| shank length | 1.5 mm | depth into cortex |
+| tip area | ~1900 µm² ≈ 2.0 × 10⁻⁵ cm² | iridium-oxide finish (Cogan 2016) |
 """)
 
-both_code(r"""# Visualise the Utah grid. The four corners of a 10x10 layout are inactive on the
-# standard Blackrock/Utah; here we just show the canonical 96 numbered sites.
-def utah_grid_positions():
+both_code(r"""# Visualise the Utah grid. The four corners of a rows x cols layout are
+# inactive on the standard Blackrock/Utah; we just show the canonical
+# UTAH_GEOMETRY.sites numbered sites.
+def utah_grid_positions(geom: UtahGeometry = UTAH_GEOMETRY):
+    rows, cols = geom.rows, geom.cols
+    corners = {(0, 0), (0, cols - 1), (rows - 1, 0), (rows - 1, cols - 1)}
     positions = {}
     site = 1
-    for r in range(10):
-        for c in range(10):
-            if (r, c) in {(0, 0), (0, 9), (9, 0), (9, 9)}:
+    for r in range(rows):
+        for c in range(cols):
+            if (r, c) in corners:
                 continue
-            positions[site] = (c, 9 - r)   # x right, y up
+            positions[site] = (c, rows - 1 - r)   # x right, y up
             site += 1
     return positions
 
@@ -510,8 +627,12 @@ fig, ax = plt.subplots(figsize=(5, 5))
 ax.scatter(xs, ys, s=120, facecolors='#fde7ef', edgecolors='#d86f91')
 for sid, (x, y) in POS.items():
     ax.text(x, y, str(sid), ha='center', va='center', fontsize=7, color='#1c1c1a')
-ax.set_xticks([]); ax.set_yticks([]); ax.set_xlim(-0.6, 9.6); ax.set_ylim(-0.6, 9.6)
-ax.set_aspect('equal'); ax.set_title('Utah array · 96 sites')
+ax.set_xticks([]); ax.set_yticks([])
+ax.set_xlim(-0.6, UTAH_GEOMETRY.cols - 0.4)
+ax.set_ylim(-0.6, UTAH_GEOMETRY.rows - 0.4)
+ax.set_aspect('equal')
+ax.set_title(f'Utah array · {UTAH_GEOMETRY.sites} sites · '
+             f'{UTAH_GEOMETRY.pitch_um:.0f} um pitch')
 plt.tight_layout(); plt.show()
 """)
 
@@ -848,15 +969,86 @@ print(f'max brightness {bright.max():.2f} · active phosphenes {(bright > 0).sum
 """,
 )
 
+# Ex 5.2 - max safe charge for an arbitrary electrode size
+both_md(r"""### Exercise 5.2 — max safe charge per phase `[intermediate]`
+
+The Shannon-k bound is a *constraint*; you usually want the inverse: **given an electrode tip area and the safety limit, what's the largest charge per phase you can legally deliver?** This matters in practice because as electrodes shrink (e.g. Neuralink threads at ~250 µm² or denser Utah variants), the safety frontier shifts under your feet.
+
+Rearrange Shannon's inequality
+
+```
+k = log10(Q_uC) + log10(Q_uC / A_cm2)   should stay <= k_max
+```
+
+to solve for `Q_uC` as a function of `k_max` and `A_cm2`. Then implement `max_safe_charge_nc(area_cm2, k_limit=SHANNON_K_LIMIT)`.
+
+1. Solve symbolically: with `Q = Q_uC` and `A = A_cm2`, the inequality says `2 * log10(Q) - log10(A) <= k_max`. So `log10(Q^2 / A) <= k_max`, hence `Q <= sqrt(A * 10^k_max)` in µC.
+2. Implement the function returning the answer in nanocoulombs (`* 1000`).
+3. Compute the safe ceiling for **three** electrode tips:
+   - The Utah standard (`UTAH_GEOMETRY.tip_area_cm2`, ~1900 µm²)
+   - A 200 µm diameter disc (compute area as π·r², convert µm² → cm²)
+   - A small 500 µm² Neuralink-class tip
+4. Comment on whether all three could deliver the default `(DEFAULT_AMP_UA, DEFAULT_PW_US)` pulse safely.
+
+> Hint: `math.sqrt(area_cm2 * 10**k_limit)` gives µC; multiply by 1000 for nC. The Utah standard at k=1.85 should land around 22 nC, well above the default's 13.6 nC.
+""")
+
+split_code(
+    r"""# Exercise 5.2 — max safe charge per phase
+# def max_safe_charge_nc(area_cm2: float, k_limit: float = SHANNON_K_LIMIT) -> float: ...
+#
+# Then print the ceiling for three electrode tips and compare against
+# DEFAULT_AMP_UA * DEFAULT_PW_US / 1000 (the default pulse's charge in nC).
+
+# your code here
+""",
+    r"""# Exercise 5.2 — max safe charge per phase
+def max_safe_charge_nc(area_cm2, k_limit=SHANNON_K_LIMIT):
+    '''Invert Shannon's k = log10(Q_uC) + log10(Q_uC/A_cm2) <= k_limit.
+    Returns the maximum safe charge per phase in nanocoulombs.'''
+    q_uc = math.sqrt(area_cm2 * (10 ** k_limit))
+    return q_uc * 1000.0  # uC -> nC
+
+default_q_nc = DEFAULT_AMP_UA * DEFAULT_PW_US / 1000.0
+print(f'default pulse delivers Q = {default_q_nc:.1f} nC per phase\n')
+
+tips = [
+    ('Utah standard',     UTAH_GEOMETRY.tip_area_cm2),
+    ('200 um disc',        math.pi * (100e-4) ** 2),   # r = 100 um = 1e-2 cm
+    ('Neuralink-class',    500e-8),                    # 500 um^2
+]
+for name, area in tips:
+    q_max = max_safe_charge_nc(area)
+    ok = 'OK' if default_q_nc <= q_max else 'OVER LIMIT'
+    print(f'  {name:18s} area={area:.2e} cm^2 -> Q_max={q_max:6.1f} nC  '
+          f'[default pulse: {ok}]')
+""",
+)
+
+
 # ---------------------------------------------------------------------------
 # Close
 # ---------------------------------------------------------------------------
 
 both_md(r"""---
 
-**Done.** You've parameterised a biphasic train, quantised it to 30 kHz cycles, drawn a letter on a Utah array, staggered its electrodes to share a single 300 Hz slot, and fired the whole pattern through a Shannon-k safety checker. Swapping the inline mock for the real Grapevine is a one-line import: `from neurolight2.stim.factory import create_stimulator; stim = create_stimulator("mock_ripple")` — same `stimulate(params) -> StimEvent` contract, no other changes.
+**Done.** You've parameterised a biphasic train, quantised it to 30 kHz cycles, drawn a letter on a Utah array, staggered its electrodes to share a single 300 Hz slot, fired the whole pattern through a Shannon-k safety checker, and inverted that same safety bound to find the upper charge ceiling for an arbitrary electrode tip. Swapping the inline mock for the real Grapevine is a one-line import: `from neurolight2.stim.factory import create_stimulator; stim = create_stimulator("mock_ripple")` — same `stimulate(params) -> StimEvent` contract, no other changes.
 
 Module lead: see [`bootcamp-plan.html`](https://github.com/NeuroTechHub/AIMD_bootcamp/blob/main/bootcamp-plan.html). Edit this notebook directly; commit your additions to the bootcamp repo at the end of the day.
+""")
+
+both_md(r"""## References
+
+The constants and formulas in this notebook trace back to a small set of published sources. Cite these in your own write-ups; the field's safety norms come from a very specific (and small) body of work.
+
+- **Shannon, R. V.** (1992). A model of safe levels for electrical stimulation. *IEEE Transactions on Biomedical Engineering*, **39**(4), 424–426. [doi:10.1109/10.126616](https://doi.org/10.1109/10.126616) — original Shannon-k inequality.
+- **Cogan, S. F., Ludwig, K. A., Welle, C. G., & Takmakov, P.** (2016). Tissue damage thresholds during therapeutic electrical stimulation. *Journal of Neural Engineering*, **13**(2), 021001. [doi:10.1088/1741-2560/13/2/021001](https://doi.org/10.1088/1741-2560/13/2/021001) — modern review; why microelectrodes operate above k = 1.85 in research and what that means clinically.
+- **Lapicque, L.** (1907). Recherches quantitatives sur l'excitation électrique des nerfs traitée comme une polarisation. *Journal de Physiologie et de Pathologie Générale*, **9**, 620–635. — strength-duration curve referenced in §1.
+- **Normann, R. A., Maynard, E. M., Rousche, P. J., & Warren, D. J.** (1999). A neural interface for a cortical vision prosthesis. *Vision Research*, **39**(15), 2577–2587. [doi:10.1016/S0042-6989(99)00040-1](https://doi.org/10.1016/S0042-6989\(99\)00040-1) — the Utah array as a cortical-prosthesis interface.
+- **Fernández, E., Alfaro, A., Soto-Sánchez, C., et al.** (2021). Visual percepts evoked with an intracortical 96-channel microelectrode array inserted in human occipital cortex. *Journal of Clinical Investigation*, **131**(23), e151331. [doi:10.1172/JCI151331](https://doi.org/10.1172/JCI151331) — the human cortical visual-prosthesis trial whose 170 µs / 200 Hz / 100 µA pulse anchors the defaults in this notebook (the "Moran" cohort).
+- **Granley, J., & Beyeler, M.** (2023). A computational model of phosphene appearance for epiretinal prostheses (relevant for the temporal-pattern parameters used in M3 and inherited by M4). See also: Granley, Pelegrini-Issac, Beyeler, *J Neural Eng* 2024.
+
+For the real-hardware side, the Ripple Grapevine driver documentation lives at <https://rippleneuro.com/> and the `xipppy` Python bindings ship with the device.
 """)
 
 
