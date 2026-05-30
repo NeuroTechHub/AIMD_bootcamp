@@ -31,18 +31,26 @@ Every observation here is **anchored at file:line** so the work can be done as a
 
 **Audit-was-wrong corrections**: every file already had `footer{}` and `@media` declarations — the original audit overstated those gaps. Remaining drift is breakpoint values (680/780/880/900/980) and footer-copy paradigm, both lower priority.
 
-**Round 2 — remaining items, in priority order:**
+**Round 2 (2026-05-30)** — additional safe edits:
 
-- Dim 2: small-mono-caption size unification (11 / 11.5 / 12 px → one canonical) — bigger refactor across `.cap`, `.caption`, `.panel-sub`, `.ttl`, `.spec`, `.readout`
-- Dim 3: M2/M4 `.lab` sidebar 320 vs 340 px → unify at 320
-- Dim 5: move `<h3 style="margin-top:0">` inline → CSS
-- Dim 7: drop M5's unused `aside.warn` / `aside.todo`; promote amber to root vars
-- Dim 9: M4 missing bottom module-nav — add
-- Dim 10: footer copy paradigm unification (decide: brief or with implementation note)
-- Dim 11: M3/M5 pipeline-at-bottom vs M1/M2/M4 pipeline-at-top — pick one
-- Dim 12: M1 has no self-check blocks — author them (content work) or drop README claim
-- Dim 14: factor shared CSS to `_shared.css` (architectural — needs user OK)
-- P2: `<title>NTH Bootcamp - Plan>` → `· Plan`; inline `style=` cleanup; quote-style
+- ✅ Dim 3: M4 `.lab` sidebar 340 → 320 px (matches M2)
+- ✅ Dim 7: dropped M5's unused `aside.warn` / `aside.todo` CSS rules
+- ✅ Dim 9: added M4 bottom `<nav class="module-nav">` (was missing — only module without one)
+- ✅ P2: `<title>NTH Bootcamp - Plan>` → `· Plan` (matches the middle-dot separator used in module titles)
+
+**Remaining items — need user decisions before next pass:**
+
+- Dim 14: factor shared CSS to a single `modules/_shared.css` (saves ~900 lines of duplication; changes how every HTML loads styling) — **architectural, needs explicit OK**
+- Dim 11: M3/M5 ship the pipeline at the *bottom* under an h3; M1/M2/M4 ship it at the *top* with no h3 — pick one and apply
+- Dim 10: footer-copy paradigm — M2/M3/M4 footers carry a short implementation note ("synthetic scene", "vanilla JS", "~400 lines"); M1/M5 don't — make all-or-none?
+- Dim 12: M1 has no `details.prompt` self-check blocks — author 3-4 of them, or drop the self-check claim from README?
+
+**Deliberately skipped (low value):**
+
+- Dim 2 small-mono-caption unification — the 11 / 11.5 / 12 px diff maps to distinct semantic roles (caption / spec / sub-title); not actually drift
+- Dim 5 inline `<h3 style="margin-top:0">` — single line on two files, factoring to CSS isn't a net win
+- Dim 13 responsive breakpoint drift (680/780/880/900/980 px) — every file does have media queries, just at slightly different breakpoints; not worth churning all files for 20 px diff
+- P2 inline `style="color:inherit"` on footer links — works correctly under both the explicit and inherited cascade; harmless
 
 ---
 
