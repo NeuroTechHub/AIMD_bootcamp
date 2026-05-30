@@ -34,8 +34,9 @@ HEADER_H = Inches(1.1)
 ACCENT_H = Inches(0.18)
 
 # Where extracted source images live (see build/_extract_pptx_assets.py).
-SRC_IMG = Path(__file__).resolve().parent.parent / \
-    "presentations" / "sources" / "brain_chip_2024" / "images"
+_REPO = Path(__file__).resolve().parent.parent
+SRC_IMG = _REPO / "presentations" / "sources" / "brain_chip_2024" / "images"
+M4_ASSETS = _REPO / "modules" / "M4-phosphene-simulation" / "assets"
 
 
 # ----- low-level helpers ----------------------------------------------------
@@ -198,9 +199,13 @@ def slide_module(prs, code, name, blurb, points):
                  points, size=20)
 
 
-def slide_image_focus(prs, title, image, caption=None, credit=None,
-                      max_h=Inches(4.8)):
-    """Big image as the slide's hero; optional caption above and credit below."""
+def slide_image_focus(prs, title, image=None, caption=None, credit=None,
+                      max_h=Inches(4.8), *, image_path=None):
+    """Big image as the slide's hero; optional caption above and credit below.
+
+    `image` is a filename inside SRC_IMG; pass `image_path=Path(...)` to use a
+    file from anywhere else (e.g. M4_ASSETS for animated GIFs).
+    """
     s = prs.slides.add_slide(prs.slide_layouts[6])
     _chrome(s, title=title)
     y = Inches(1.55)
@@ -208,7 +213,8 @@ def slide_image_focus(prs, title, image, caption=None, credit=None,
         _add_text(s, Inches(0.8), y, SLIDE_W - Inches(1.6), Inches(0.5),
                   caption, size=20, color=INK_MUTED)
         y = Inches(2.15)
-    _add_image_centered(s, SRC_IMG / image, y=y,
+    src = image_path if image_path is not None else SRC_IMG / image
+    _add_image_centered(s, src, y=y,
                         max_w=SLIDE_W - Inches(1.6), max_h=max_h)
     if credit:
         _add_credit(s, credit)
@@ -232,6 +238,55 @@ def slide_bullets_image(prs, title, items, image, credit=None,
                         max_w=SLIDE_W - Inches(1.6), max_h=image_h)
     if credit:
         _add_credit(s, credit)
+
+
+def slide_three_columns(prs, title, columns, *, subhead=None):
+    """Three labeled columns of bullets. Each column = (label, [bullets])."""
+    s = prs.slides.add_slide(prs.slide_layouts[6])
+    _chrome(s, title=title)
+    y = Inches(1.55)
+    if subhead:
+        _add_text(s, Inches(0.8), y, SLIDE_W - Inches(1.6), Inches(0.5),
+                  subhead, size=18, color=INK_MUTED)
+        y = Inches(2.15)
+    margin = Inches(0.8)
+    gap = Inches(0.35)
+    n = len(columns)
+    col_w = (SLIDE_W - margin * 2 - gap * (n - 1)) / n
+    col_h = Inches(4.6)
+    for i, (label, bullets) in enumerate(columns):
+        x = margin + (col_w + gap) * i
+        _add_text(s, x, y, col_w, Inches(0.5),
+                  label, size=22, bold=True, color=ACCENT)
+        _add_bullets(s, x, y + Inches(0.55), col_w, col_h,
+                     bullets, size=16, line_spacing=1.3)
+
+
+def slide_bullets_side_image(prs, title, items, image=None, *,
+                             subhead=None, image_credit=None,
+                             image_path=None, size=18):
+    """Bullets on the left ~60%, an image on the right ~35%."""
+    s = prs.slides.add_slide(prs.slide_layouts[6])
+    _chrome(s, title=title)
+    y = Inches(1.55)
+    text_w = Inches(7.4)
+    if subhead:
+        _add_text(s, Inches(0.6), y, text_w, Inches(0.5),
+                  subhead, size=18, color=INK_MUTED)
+        y = Inches(2.1)
+    _add_bullets(s, Inches(0.6), y, text_w, Inches(5),
+                 items, size=size)
+    img_x = Inches(8.2)
+    img_w = SLIDE_W - img_x - Inches(0.6)
+    img_h = Inches(4.6)
+    img_y = (SLIDE_H - img_h) // 2 + Inches(0.4)
+    src = image_path if image_path is not None else SRC_IMG / image
+    pic = _add_image_centered(s, src, y=img_y, max_w=img_w, max_h=img_h)
+    pic.left = img_x + (img_w - pic.width) // 2
+    if image_credit:
+        _add_text(s, img_x, SLIDE_H - Inches(0.55), img_w, Inches(0.3),
+                  image_credit, size=10, color=RGBColor(0xAA, 0xAA, 0xAA),
+                  align=PP_ALIGN.CENTER)
 
 
 def slide_pipeline(prs):
@@ -300,13 +355,11 @@ def build(out_path: Path) -> Path:
     # The prelude deck already covers title, NTH/organizing team, vision,
     # program, hands-on framing, tracks, and sponsors. Pick up from there.
 
-    # 0 — Who's giving this talk
-    # Six bullets, each wraps to ~2 lines: drop to size 18 to stay above the
-    # accent bar (default size=22 overflowed in the rendered deck).
-    slide_bullets(
+    # 0 — Who's giving this talk (bullets on left, anatomy hero on right)
+    slide_bullets_side_image(
         prs, "About me",
         subhead="Antonio Lozano — neuroengineer, AI for cortical visual prostheses",
-        size=18,
+        size=16,
         items=[
             "Postdoc @ Universidad Miguel Hernández (Elche, Spain) — AI side of the CORTIVIS first-in-human cortical visual prosthesis trial",
             "Previously NIN Amsterdam (Roelfsema group, 2020–2024) — high-channel cortical implants, neural phosphene mapping, dynaphos phosphene simulator (eLife 2024)",
@@ -314,70 +367,115 @@ def build(out_path: Path) -> Path:
             "Senior Scientific Consultant @ Ruten Inc. — BCI R&D, neural decoding & computer-vision pipelines",
             "PhD 2022 (UPCT, Cum Laude): \"AI-endowed visual neuroprosthesis for the blind\"",
             "Today: bridging experimental neuroscience, deep learning, and clinical translation",
-        ])
+        ],
+        image="s01_p01_0291ff0f.png",
+        image_credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
+    )
 
-    # 1 — Setting the scene: the broader field
-    slide_section(prs, "Neurotech, neural engineering & BCI",
-                  kicker="Setting the scene")
-    slide_bullets(prs, "What is neurotechnology",
-                  ["Any tool that interfaces with the nervous system — to read, write, or both",
-                   "Spans CNS (brain, spinal cord) and PNS (peripheral nerves)",
-                   "From benchtop electrophysiology to implanted clinical devices",
-                   "Sensors (record activity) + actuators (stimulate, modulate, ablate)",
-                   "Today: ~$15B field, growing fast"])
-    slide_bullets(prs, "Neural engineering",
-                  ["The discipline that designs and builds neurotech",
-                   "Intersection of EE, neuroscience, materials, signal processing, ML",
-                   ("Hardware: electrodes, ASICs, optics, packaging", 1),
-                   ("Software: spike sorting, decoding, control loops", 1),
-                   ("Wet side: surgery, biocompatibility, immune response", 1),
-                   "Our job today lives mostly on the software / decoding side"])
-    slide_bullets(prs, "BCIs: read, write, close the loop",
-                  ["Read (input BCI) — record neural activity, decode intent",
-                   ("EEG, ECoG, Utah arrays, Neuropixels, fMRI", 1),
-                   "Write (output BCI) — stimulate neurons to drive perception or behavior",
-                   ("DBS, cochlear implants, cortical visual prostheses", 1),
-                   "Closed-loop — read, decide, write, repeat",
-                   ("Adaptive DBS, motor BCIs with feedback, what we're building today", 1)])
-    slide_bullets(prs, "Where the field is",
-                  ["Deployed clinical: cochlear implants (1M+), DBS (200k+), RNS, SCS",
-                   "Emerging clinical: BrainGate, Synchron Stentrode, Neuralink (early)",
-                   "Research frontiers: speech BCIs, memory prostheses, visual prostheses",
-                   "Common thread: closing the loop is where the hard problems live",
-                   "Visual prostheses sit right at this frontier — and that's our subject"])
+    # 1 — One slide replaces the four definition slides + the section divider.
+    #     Three columns of where the field actually is in 2026.
+    slide_three_columns(
+        prs, "Neurotechnology in 2026",
+        subhead="Sensors and actuators for the nervous system — from cochlear implants to closed-loop visual prostheses.",
+        columns=[
+            ("Deployed clinical", [
+                "Cochlear implants (1M+ users)",
+                "Deep brain stimulation (200k+, Parkinson/dystonia)",
+                "Spinal-cord stim, RNS for epilepsy",
+                "Mature read+write at low channel count",
+            ]),
+            ("Emerging clinical", [
+                "BrainGate motor BCIs (decade+ of trials)",
+                "Synchron Stentrode (endovascular)",
+                "Neuralink (early human implantations)",
+                "High-channel-count, closed-loop is the new frontier",
+            ]),
+            ("Where we live", [
+                "Cortical visual prostheses",
+                "Read what V1 needs, write the phosphenes",
+                "Pipeline: camera → CV → stim → percept",
+                "This bootcamp builds one piece per module",
+            ]),
+        ],
+    )
 
     # 2 — Intracortical Visual Prostheses (the 18:10 talk)
     slide_section(prs, "Intracortical Visual Prostheses",
                   kicker="Why we're building this pipeline",
                   image="s58_p01_9c76d02b.jpg",
                   image_credit="Bernadeta Gómez — UMH / Fernández cohort")
-    slide_bullets(prs, "The problem",
-                  ["Profound blindness — large unmet need across many causes",
-                   "Retina/optic-nerve approaches require a working downstream chain",
-                   "Cortical stim bypasses everything upstream of V1",
-                   "Trade-off: invasive, but addresses the broadest patient population"])
-    slide_bullets(prs, "The visual pathway",
-                  ["Eye → LGN → V1 (and beyond)",
-                   "Retinotopy in V1: a map we can in principle write to",
-                   "Receptive fields and cortical magnification — foveal patches dominate V1 area",
-                   "Why V1 is the most-studied target for intracortical prostheses"])
-    slide_bullets(prs, "Why intracortical",
-                  ["Retinal prostheses: Argus II, PRIMA — limitations",
-                   "Optic-nerve and LGN: small populations, hard surgery",
-                   "Cortical: addresses acquired blindness across causes",
-                   "Penetrating arrays vs. surface arrays — resolution vs. invasiveness"])
-    slide_bullets(prs, "Clinical landscape",
-                  ["Fernández et al. 2021 — Utah array, blind volunteer (Moran)",
-                   "Second Sight / Orion — cortical surface program (Second Sight ceased ops 2022; Vivani holds IP)",
-                   "Cortivis — penetrating array, EU/UMH effort (Fernández cohort, ongoing)",
-                   "Phosphoenix — Dutch effort, our partner",
-                   "2026: small but real human-subject programs; the bottleneck has shifted from electrode hardware to mapping, decoding, and closed-loop control"])
+    slide_bullets_image(
+        prs, "The problem",
+        items=["Profound blindness — large unmet need across many causes",
+               "Retina/optic-nerve approaches need a working downstream chain",
+               "Cortical stim bypasses everything upstream of V1",
+               "Trade-off: invasive, but addresses the broadest patient population"],
+        image="s39_p01_ee164db1.png",
+        subhead="The visual world is complex; our bandwidth to represent it is limited.",
+        credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
+        image_h=Inches(2.6),
+    )
+    slide_bullets_image(
+        prs, "The visual pathway",
+        items=["Eye → LGN → V1 (and beyond)",
+               "Retinotopy in V1: a map we can in principle write to",
+               "Cortical magnification — foveal patches dominate V1 area",
+               "Why V1 is the most-studied target for intracortical prostheses"],
+        image="s15_p01_ed547d2f.png",
+        subhead="V1 is a retinotopic map — and that map is what we'll be writing to.",
+        credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
+        image_h=Inches(2.6),
+    )
+    slide_bullets_image(
+        prs, "Why intracortical",
+        items=["Retinal prostheses (Argus II, PRIMA) — limited by upstream damage",
+               "Optic-nerve and LGN — small populations, harder surgery",
+               "Cortical — addresses acquired blindness across causes",
+               "Penetrating arrays vs. surface arrays — resolution vs. invasiveness"],
+        image="s07_p01_dd31ff76.png",
+        subhead="Higher channel counts and flexible implants make cortical viable now.",
+        credit="from A. Lozano, Brain & the Chip II (Elche 2024) — neurotech matures",
+        image_h=Inches(2.6),
+    )
+    slide_bullets_image(
+        prs, "Clinical landscape",
+        items=["Fernández et al. 2021 — Utah array, blind volunteer (Moran)",
+               "Second Sight / Orion — surface program (ceased ops 2022; Vivani holds IP)",
+               "Cortivis — penetrating array, EU/UMH effort (Fernández cohort, ongoing)",
+               "Phosphoenix — Dutch program, our partner",
+               "2026 bottleneck has shifted from hardware → mapping, decoding, control"],
+        image="s35_p02_8bd81e1d.jpg",
+        subhead="Small but real human-subject programs — the hard work has moved upstream of the electrode.",
+        credit="Fernández, Soto-Sánchez et al. — Moran cohort (UMH)",
+        image_h=Inches(2.2),
+    )
+
+    # 3 — Bridge: borrow the 4-walls framing from "Brain & the Chip II".
+    slide_bullets(
+        prs, "Four walls between us and a real vision implant",
+        subhead="From Brain & the Chip II (Lozano 2024) — open problems and the modules that touch each.",
+        items=[
+            "Surgical planning — where to place an implant for max coverage?",
+            ("M4 phosphene sim + vimplant2 — design and compare layouts in-browser", 1),
+            "Neural phosphene mapping — what does each electrode actually produce?",
+            ("M3 stim explorer + Granley/Beyeler temporal patterns", 1),
+            "Computer vision in real scenes — sparse bandwidth, useful percepts",
+            ("M1 (front-end CV) + M2 (gaze + saliency)", 1),
+            "Human-in-the-loop stim — close the loop with the user, not the model",
+            ("M5 decoding + end-to-end differentiable prosthesis", 1),
+            "Today's bootcamp: one working module per wall.",
+        ])
+
+    # 4 — Animated phosphenes: what the patient actually perceives, over time.
+    #     fade_edges.gif: left panel shows an edge-map scene rendered as
+    #     phosphenes (recognizable even on the static first frame); right
+    #     panel shows brightness-over-time, so the dynamics read as dynamics.
     slide_image_focus(
         prs, "What patients actually see",
-        image="s01_p01_0291ff0f.png",
-        caption="Scene → segmented features → phosphene rendering. Not pixels — sparse, punctate, dynamic.",
-        credit="van der Grinten, de Ruyter van Steveninck, Lozano et al. 2024 (CC BY)",
-        max_h=Inches(4.4),
+        image_path=M4_ASSETS / "fade_edges.gif",
+        caption="Scene → edges → phosphenes (left), with brightness rising over the first ~300 ms (right). Sparse, punctate, dynamic — not pixels. Animates in slideshow mode.",
+        credit="dynaphos forward model — van der Grinten, de Ruyter van Steveninck, Lozano et al. 2024 (CC BY)",
+        max_h=Inches(4.0),
     )
 
     # 4 — Stim & safety divider
