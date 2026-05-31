@@ -400,6 +400,64 @@ def slide_three_columns(prs, title, columns, *, subhead=None):
                      bullets, size=16, line_spacing=1.25)
 
 
+def slide_logos(prs, title, columns, *, subhead=None):
+    """3-column 'who's building' grid: light tiles holding program logos.
+
+    Each column is ``(header, entries)`` where each entry is
+    ``(short_label, caption, logo_path_or_None)``. ``logo_path=None`` renders
+    the label centred inside the tile (text-only); otherwise the logo is
+    placed inside the tile and the label appears as the caption."""
+    from PIL import Image as PILImage
+    s = prs.slides.add_slide(prs.slide_layouts[6])
+    _chrome(s, title=title)
+    y = Inches(1.55)
+    if subhead:
+        _add_text(s, Inches(0.8), y, SLIDE_W - Inches(1.6), Inches(0.5),
+                  subhead, size=18, color=INK_MUTED)
+        y = Inches(2.15)
+    margin = Inches(0.8)
+    gap = Inches(0.35)
+    n = len(columns)
+    col_w = (SLIDE_W - margin * 2 - gap * (n - 1)) / n
+    tile_h = Inches(0.7)
+    cap_h = Inches(0.28)
+    row_gap = Inches(0.05)
+    row_h = tile_h + cap_h + row_gap
+    pad = Inches(0.1)
+    inner_w = col_w - pad * 2
+    inner_h = tile_h - pad * 2
+    tile_fill = RGBColor(0xF2, 0xF2, 0xF2)
+    for i, (header, entries) in enumerate(columns):
+        x = margin + (col_w + gap) * i
+        _add_text(s, x, y, col_w, Inches(0.4),
+                  header, size=20, bold=True, color=ACCENT,
+                  align=PP_ALIGN.CENTER)
+        ey = y + Inches(0.55)
+        for label, caption, logo in entries:
+            _add_rect(s, x, ey, col_w, tile_h, tile_fill)
+            if logo is not None and Path(logo).exists():
+                with PILImage.open(logo) as im:
+                    iw, ih = im.size
+                ratio = iw / ih
+                if inner_w / inner_h > ratio:
+                    h = inner_h
+                    w = int(inner_h * ratio)
+                else:
+                    w = inner_w
+                    h = int(inner_w / ratio)
+                lx = x + (col_w - w) // 2
+                ly = ey + (tile_h - h) // 2
+                s.shapes.add_picture(str(logo), lx, ly, w, h)
+            else:
+                _add_text(s, x, ey, col_w, tile_h, label,
+                          size=22, bold=True, color=INK_DARK,
+                          align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+            _add_text(s, x, ey + tile_h + Inches(0.02),
+                      col_w, cap_h, caption,
+                      size=10, color=INK_MUTED, align=PP_ALIGN.CENTER)
+            ey += row_h
+
+
 def slide_bullets_side_image(prs, title, items, image=None, *,
                              subhead=None, image_credit=None,
                              image_path=None, size=18):
@@ -700,6 +758,35 @@ def build(out_path: Path) -> Path:
             "In 2026 the bottleneck isn't the electrode — it's mapping, decoding, and control",
         ],
         size=16,
+    )
+
+    # Who's building — logo grid by tissue. Visual recap of the field-map
+    # text on the previous two slides. Logos sourced from each program's
+    # public press kit / homepage (see presentations/sources/
+    # vision_restoration_field_map.md for URLs). White wordmarks were
+    # inverted to dark variants so they read on the light tiles.
+    _P = LOGOS_DIR / "programs"
+    slide_logos(
+        prs, "Who's building",
+        subhead="Active programs in 2026 by target tissue. Logos via each program's homepage / press kit.",
+        columns=[
+            ("Retina", [
+                ("PRIMA",        "PRIMA · Science Corp · subretinal",          _P / "science_prima.png"),
+                ("Argus II",     "Argus II · Cortigent · epi-retinal",         _P / "cortigent_dark.png"),
+                ("GS030",        "GS030 · GenSight · optogenetics + NIR",      _P / "gensight_dark.png"),
+                ("Bionic Sight", "Bionic Sight · Nirenberg · optogenetics",    _P / "bionicsight_dark.png"),
+            ]),
+            ("LGN (thalamus)", [
+                ("SIGHTED",      "SIGHTED · EIC consortium · >1000-ch",        _P / "sighted.jpg"),
+                ("NeuraViPeR",   "NeuraViPeR · EU H2020 · concluded Feb 2025", _P / "neuraviper.png"),
+            ]),
+            ("V1 cortex — this bootcamp", [
+                ("CORTIVIS",     "Fernández / UMH Elche · penetrating 96-ch", None),
+                ("Orion",        "Orion · Cortigent · surface 60-ch",          _P / "cortigent_dark.png"),
+                ("Blindsight",   "Blindsight · Neuralink · threads · FDA BD 2024",   _P / "neuralink.png"),
+                ("ReVision",     "ReVision · KU Leuven · thin-film · FDA BD 2026",   _P / "revision_implant_dark.png"),
+            ]),
+        ],
     )
 
     # 3 — Bridge: borrow the 4-walls framing from "Brain & the Chip II".
