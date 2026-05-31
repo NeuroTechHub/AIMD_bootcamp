@@ -40,6 +40,8 @@ M4_ASSETS = _REPO / "modules" / "M4-phosphene-simulation" / "assets"
 NTH_LOGO = _REPO / "build" / "assets" / "nth_logo.png"
 LOGOS_DIR = _REPO / "build" / "assets" / "logos"
 TEAM_DIR = _REPO / "build" / "assets" / "team"
+QRS_DIR = _REPO / "build" / "assets" / "qrs"
+SHOTS_DIR = _REPO / "build" / "assets" / "module_shots"
 
 # Title-slide footer logos, left→right. White marks on the dark title background.
 TITLE_FOOTER_LOGOS = [
@@ -117,6 +119,23 @@ def _add_image_centered(slide, path, *, y, max_w, max_h):
         h = int(max_w / ratio)
     x = (SLIDE_W - w) // 2
     return slide.shapes.add_picture(str(path), x, y, w, h)
+
+
+def _add_qr_corner(slide, qr_path, label):
+    """Stamp a QR + tiny italic label in the bottom-right corner. Sits high
+    enough above the accent bar that it doesn't collide with the slide-number
+    stamp (`i / N` at SLIDE_H - 0.55 in)."""
+    if qr_path is None or not Path(qr_path).exists():
+        return
+    qr_size = Inches(0.9)
+    x = SLIDE_W - qr_size - Inches(0.4)
+    # Lift the QR so caption ends ~0.15in above the slide-number stamp.
+    y = SLIDE_H - ACCENT_H - qr_size - Inches(0.8)
+    slide.shapes.add_picture(str(qr_path), x, y, qr_size, qr_size)
+    tb = _add_text(slide, x - Inches(0.4), y + qr_size, qr_size + Inches(0.8),
+                   Inches(0.22), label, size=9, color=INK_MUTED,
+                   align=PP_ALIGN.CENTER)
+    tb.text_frame.paragraphs[0].runs[0].font.italic = True
 
 
 def _add_credit(slide, text):
@@ -350,13 +369,18 @@ def slide_video_focus(prs, title, video_path, *, poster_path=None,
         _add_credit(s, credit)
 
 
-def slide_bullets_image(prs, title, items, image, credit=None,
-                        subhead=None, image_h=Inches(3.2)):
+def slide_bullets_image(prs, title, items, image=None, credit=None,
+                        subhead=None, image_h=Inches(3.2),
+                        image_path=None, qr_path=None, qr_label=None):
     """Compressed bullets at top, wide image below — for figure-heavy beats.
 
     Reserves vertical space for wrapped lines: long bullets get a 2-line
     budget so the image below doesn't ride up onto a wrapped second line.
-    Heuristic: ~95 chars per line at the current 18 pt font and slide width."""
+    Heuristic: ~95 chars per line at the current 18 pt font and slide width.
+
+    Pass ``image_path=Path(...)`` to load an image from outside SRC_IMG
+    (e.g. a module HTML screenshot). Pass ``qr_path`` + ``qr_label`` to
+    stamp a QR code with an italic caption in the bottom-right corner."""
     s = prs.slides.add_slide(prs.slide_layouts[6])
     _chrome(s, title=title)
     y = Inches(1.55)
@@ -370,10 +394,14 @@ def slide_bullets_image(prs, title, items, image, credit=None,
     _add_bullets(s, Inches(0.8), y, SLIDE_W - Inches(1.6), bullet_h,
                  items, size=18, line_spacing=1.2)
     img_y = y + bullet_h + Inches(0.15)
-    _add_image_centered(s, SRC_IMG / image, y=img_y,
-                        max_w=SLIDE_W - Inches(1.6), max_h=image_h)
+    src = image_path if image_path is not None else SRC_IMG / image
+    # Narrow the image's max width if a QR is present so the corner stays clear.
+    max_w = SLIDE_W - Inches(2.6) if qr_path else SLIDE_W - Inches(1.6)
+    _add_image_centered(s, src, y=img_y, max_w=max_w, max_h=image_h)
     if credit:
         _add_credit(s, credit)
+    if qr_path:
+        _add_qr_corner(s, qr_path, qr_label or "scan to open")
 
 
 def slide_three_columns(prs, title, columns, *, subhead=None):
@@ -843,6 +871,12 @@ def build(out_path: Path) -> Path:
         max_h=Inches(4.6),
     )
     slide_pipeline(prs)
+    # Each M1–M5 spotlight is duplicated: original (figure from Antonio's
+    # Brain & the Chip talk) followed by a v2 with a live screenshot of the
+    # corresponding HTML playground + a QR pointing to the hosted page.
+    # User to pick which version to keep and delete the other.
+
+    # --- M1 ---
     slide_bullets_image(
         prs, "M1 — Computer vision",
         items=["OpenCV.js in the browser: Sobel, Canny, thresholding",
@@ -854,6 +888,21 @@ def build(out_path: Path) -> Path:
         credit="real-scene → edges → sparse phosphenes (from A. Lozano, Brain & the Chip II)",
         image_h=Inches(2.1),
     )
+    slide_bullets_image(
+        prs, "M1 — Computer vision",
+        items=["OpenCV.js in the browser: Sobel, Canny, thresholding",
+               "YOLO + COCO-SSD via TF.js — live object detection from your webcam",
+               "Five processing modes you can flip between live",
+               "Owners: Lefteris & Jorge"],
+        image_path=SHOTS_DIR / "M1.png",
+        subhead="Pixels in, features out. The front end of any prosthesis.",
+        credit="screenshot from modules/M1-computer-vision.html",
+        image_h=Inches(2.8),
+        qr_path=QRS_DIR / "M1.png",
+        qr_label="scan ▶ M1 live",
+    )
+
+    # --- M2 ---
     slide_module(prs, "M2", "Gaze & DeepGaze",
                  "Where the user looks. The camera is on the glasses, so head and eye movements still steer what gets stimulated.",
                  ["Heatmaps vs scanpaths; inhibition of return",
@@ -861,6 +910,22 @@ def build(out_path: Path) -> Path:
                   "Scanpath sampler with stat histograms",
                   "Why gaze still applies when the eyes still move but can't see",
                   "Owners: Lefteris & Jorge"])
+    slide_bullets_image(
+        prs, "M2 — Gaze & DeepGaze",
+        items=["Heatmaps vs scanpaths; inhibition of return",
+               "DeepGaze III pipeline, plus a synthetic toy model you can play with",
+               "Scanpath sampler with stat histograms",
+               "Why gaze still applies when the eyes move but can't see",
+               "Owners: Lefteris & Jorge"],
+        image_path=SHOTS_DIR / "M2.png",
+        subhead="Where the user looks. The camera is on the glasses, so head and eye movements still steer what gets stimulated.",
+        credit="screenshot from modules/M2-deepgaze-and-gaze.html",
+        image_h=Inches(2.8),
+        qr_path=QRS_DIR / "M2.png",
+        qr_label="scan ▶ M2 live",
+    )
+
+    # --- M3 ---
     slide_bullets_image(
         prs, "M3 — Neuromodulation & stimulation",
         items=["Biphasic pulse explorer: amp, width, frequency, train shape",
@@ -873,6 +938,21 @@ def build(out_path: Path) -> Path:
         image_h=Inches(2.0),
     )
     slide_bullets_image(
+        prs, "M3 — Neuromodulation & stimulation",
+        items=["Biphasic pulse explorer: amp, width, frequency, train shape",
+               "Utah array config table you draft and add to",
+               "Conductor view: Utah flashing, channels×time, live safety chips",
+               "Configure → connect → stim"],
+        image_path=SHOTS_DIR / "M3.png",
+        subhead="From a clean visual feature to a safe pulse train on an electrode.",
+        credit="screenshot from modules/M3-neuromod-and-stim.html",
+        image_h=Inches(2.8),
+        qr_path=QRS_DIR / "M3.png",
+        qr_label="scan ▶ M3 live",
+    )
+
+    # --- M4 ---
+    slide_bullets_image(
         prs, "M4 — Phosphene simulation",
         items=["Single-phosphene explorer to feel the basis function",
                "Population viewer with a layout selector",
@@ -884,6 +964,21 @@ def build(out_path: Path) -> Path:
         image_h=Inches(2.4),
     )
     slide_bullets_image(
+        prs, "M4 — Phosphene simulation",
+        items=["Single-phosphene explorer to feel the basis function",
+               "Population viewer with a layout selector",
+               "Full image → phosphenes demo, with an animate-drift toggle",
+               "Temporal dynamics: leaky integrator + adaptation trace"],
+        image_path=SHOTS_DIR / "M4.png",
+        subhead="The forward model: stim in, phosphenes out. dynaphos, in the browser.",
+        credit="screenshot from modules/M4-phosphene-simulation.html",
+        image_h=Inches(2.8),
+        qr_path=QRS_DIR / "M4.png",
+        qr_label="scan ▶ M4 live",
+    )
+
+    # --- M5 ---
+    slide_bullets_image(
         prs, "M5 — Decoding & closed loop",
         items=["Closed-loop pipeline with a live mean-pixel brightness readout",
                "Classical PID on dynaphos's leaky integrator, with Kp/Ki/Kd sliders",
@@ -894,6 +989,20 @@ def build(out_path: Path) -> Path:
         subhead="Encoder → simulator → phosphenes → decoder. Reconstruction loss closes the loop end to end.",
         credit="de Ruyter van Steveninck et al. — end-to-end differentiable prosthesis pipeline",
         image_h=Inches(2.3),
+    )
+    slide_bullets_image(
+        prs, "M5 — Decoding & closed loop",
+        items=["Closed-loop pipeline with a live mean-pixel brightness readout",
+               "Classical PID on dynaphos's leaky integrator, with Kp/Ki/Kd sliders",
+               "TF.js MLP trained on synthetic phosphene canvases",
+               "Hand-tuned vs end-to-end preprocessor, side by side",
+               "Live 2×2 quad: the full loop with an open/closed toggle"],
+        image_path=SHOTS_DIR / "M5.png",
+        subhead="Encoder → simulator → phosphenes → decoder. Reconstruction loss closes the loop end to end.",
+        credit="screenshot from modules/M5-decoding-and-closed-loop.html",
+        image_h=Inches(2.6),
+        qr_path=QRS_DIR / "M5.png",
+        qr_label="scan ▶ M5 live",
     )
 
     # 6 — Where the field is heading + closing
