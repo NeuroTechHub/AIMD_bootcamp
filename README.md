@@ -177,6 +177,19 @@ its own clickable `Tools & references` block; the full list:
   (2022), doi:10.1167/jov.22.2.20 (CC BY 4.0); Fernández et al. (2021),
   doi:10.1172/JCI151331.
 
+## Vision-restoration field
+
+Long-form reference for the broader vision-restoration field — every
+active program by target tissue (retina · LGN · V1), with company /
+consortium links and a primary-sources list. Useful for placing this
+bootcamp's V1 / cortical scope in context:
+
+- [docs/vision-restoration-field.md](docs/vision-restoration-field.md)
+
+Linked from every module's `Further reading` block and from slides 7–9
+of [presentations/bootcamp_talk_AL.pptx](presentations/bootcamp_talk_AL.pptx)
+("Where to intervene", "Cortical landscape", "Who's building").
+
 ## Web to update
 
 Once the content is final, update the public schedule page at

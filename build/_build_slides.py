@@ -713,9 +713,9 @@ def build(out_path: Path) -> Path:
         image_h=Inches(2.6),
     )
     # Field-map slide: puts cortical in context against retina + LGN.
-    # See presentations/sources/vision_restoration_field_map.md for the
-    # long-form reference with primary-source links. Bullets kept tight
-    # (single line each) — slide_three_columns can't reflow at this width.
+    # See docs/vision-restoration-field.md for the long-form reference
+    # with primary-source links. Bullets kept tight (single line each)
+    # — slide_three_columns can't reflow at this width.
     slide_three_columns(
         prs, "Where to intervene",
         subhead="Each tissue target reaches a different patient population. This bootcamp builds the V1 piece.",
@@ -762,9 +762,9 @@ def build(out_path: Path) -> Path:
 
     # Who's building — logo grid by tissue. Visual recap of the field-map
     # text on the previous two slides. Logos sourced from each program's
-    # public press kit / homepage (see presentations/sources/
-    # vision_restoration_field_map.md for URLs). White wordmarks were
-    # inverted to dark variants so they read on the light tiles.
+    # public press kit / homepage (see docs/vision-restoration-field.md
+    # for URLs). White wordmarks were inverted to dark variants so they
+    # read on the light tiles.
     _P = LOGOS_DIR / "programs"
     slide_logos(
         prs, "Who's building",
@@ -930,6 +930,18 @@ def build(out_path: Path) -> Path:
 
     # (Groups, tracks, prizes, GitHub already covered in the prelude.)
     slide_closing(prs)
+
+    # AIMD highlights — appendix slide after the call-to-action. Names and
+    # contributions are first drafts; RV to curate during AIMD prep.
+    slide_bullets(
+        prs, "AIMD highlights",
+        subhead="Vision-restoration contributions worth flagging at AIMD — RV to curate.",
+        items=[
+            "Eduardo Fernández — UMH Elche · CORTIVIS first-in-human intracortical visual prosthesis (NEJM 2021 Gómez et al.; Sci Adv 2025)",
+            "Nick Ramsey — UMC Utrecht · long-term cortical BCI for locked-in communication (NEJM 2016 Vansteensel et al.) and motor decoding",
+            "Bert Lourens — [contribution + affiliation TBC by RV]",
+        ],
+    )
 
     _stamp_slide_numbers(prs)
 
