@@ -32,17 +32,23 @@ of causes — the only option for glaucoma, optic-nerve atrophy, end-stage RP.
 
 ### Retinal
 
-| Program            | Org                                  | Tissue        | Status                                                                                          |
-|--------------------|--------------------------------------|---------------|-------------------------------------------------------------------------------------------------|
-| **PRIMA**          | Pixium (FR) → **Science Corp** (US)  | subretinal    | **Photovoltaic; PRIMAvera trial NEJM Oct 2025; 38 GA patients; CE/FDA path through 2026.**     |
-|                    | Daniel Palanker, Stanford            |               | 2x2 mm chip, 378 photovoltaic pixels (100 µm each), 30 µm thick. Wireless — NIR glasses.        |
-| Argus II           | Second Sight                         | epi-retinal   | Discontinued 2019; ~350 implanted. Patients largely unsupported.                                |
-| Alpha IMS / AMS    | Retina Implant AG                    | subretinal    | Discontinued 2019.                                                                              |
-| Optogenetic        | GenSight (FR), Bionic Sight (US)     | retina (gene) | Sahel 2021 NEJM — first optogenetic vision restoration in a human.                              |
+| Program             | Org                                          | Tissue          | Status                                                                                              |
+|---------------------|----------------------------------------------|-----------------|-----------------------------------------------------------------------------------------------------|
+| **PRIMA**           | Pixium (FR) → **Science Corp** (US)          | subretinal      | **Photovoltaic, 2×2 mm chip, 378 pixels (100 µm each), 30 µm thick. Wireless — NIR glasses.**       |
+|                     | Daniel Palanker, Stanford                    |                 | **PRIMAvera trial — NEJM Oct 2025: 38 GA patients, 80% gained meaningful acuity.**                  |
+|                     |                                              |                 | CE expected mid-2026, Germany first market. Series C $230M closed March 2026 ($1.5B valuation).     |
+| Argus II            | Second Sight → **Cortigent** (Valencia, CA)  | epi-retinal     | First HDE-approved retinal implant. FDA HDE Feb 2013; CE 2011. **>350 implanted, $150K each.**      |
+|                     | Founded by Alfred Mann; CEO Robert Greenberg |                 | **Discontinued 2019** (support ended 2020). IP → Cortigent 2023, repurposed for cortex (Orion).     |
+|                     |                                              |                 | Most patients no longer using the device per 2024 follow-up — cognitive load + cessation of support.|
+| **BVT** / Bionic    | Bionic Vision Technologies (AU)              | suprachoroidal  | **44-channel second-gen prosthesis; 2-year safety + efficacy in advanced RP (Allen 2025, CEO).**    |
+| Vision Australia    |                                              |                 | 4-pt pilot; functional vision + ADL improvements. FDA path next.                                    |
+| Alpha IMS / AMS     | Retina Implant AG                            | subretinal      | Discontinued 2019.                                                                                  |
+| **GenSight GS030**  | GenSight Biologics (FR)                      | retina (gene)   | **Optogenetic — AAV2.7m8 + ChrimsonR + light-stim goggles. PIONEER Phase I/II ongoing 2025.**       |
+|                     | José-Alain Sahel                             |                 | Nature Medicine 2021 — first optogenetic vision restoration in a human (single-pt case).            |
+| Bionic Sight        | Sheila Nirenberg (US)                        | retina (gene)   | Optogenetic + encoder approach.                                                                     |
 
-Note: Pixium also has roots in Palanker's Stanford lab. Diego Ghezzi
-(EPFL → ophthalmology) has parallel photovoltaic work but is not directly
-on the PRIMA program (open per chat — needs confirmation).
+Note: Pixium roots back to Palanker's Stanford lab. Diego Ghezzi (EPFL → ophthalmology) has
+parallel photovoltaic work but not on PRIMA directly (open per chat — needs confirmation).
 
 ### LGN
 
@@ -52,15 +58,32 @@ on the PRIMA program (open per chat — needs confirmation).
 
 ### V1 cortex
 
-| Program            | Org                                          | Approach                       | Status                                                                                                            |
-|--------------------|----------------------------------------------|--------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| **CORTIVIS**       | **Eduardo Fernández, UMH Elche** + IMED, EU  | Penetrating Utah, 96–100 ch    | **Active first-in-human. Bernadeta Gómez (2021 NEJM). Sci Adv 2025: real-time bidirectional implant in 2 volunteers.** |
-| **Orion**          | **Cortigent** (ex–Second Sight, CA)          | Subdural surface, 60 ch        | EFS (NCT03344848). Mike Beauchamp (Baylor) — "drawing on cortex" approach: dynamic sequential stim for shape recognition (Cell 2020). Argus stack repurposed for cortex; needs mA currents → large phosphenes, occasional seizures.* |
-| NeuraViPeR (H2020) | 7-org EU consortium                          | Penetrating, flexible probes   | Concluded Feb 2025. Antonio's NIN work fed dynaphos here.                                                          |
+| Program                  | Org                                                 | Approach                              | Status                                                                                                                                                                              |
+|--------------------------|-----------------------------------------------------|---------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **CORTIVIS**             | **Eduardo Fernández, UMH Elche** + IMED, EU         | Penetrating Utah, 96–100 ch           | **Active first-in-human. Bernadeta Gómez (NEJM 2021). Sci Adv 2025 — real-time bidirectional implant in 2 volunteers.**                                                             |
+| **Orion**                | **Cortigent** (ex–Second Sight, Valencia CA)        | Subdural surface, 60 ch               | EFS (NCT03344848). Mike Beauchamp (Baylor) — *drawing on cortex*: dynamic sequential stim for shape recognition (Cell 2020). Argus stack repurposed; needs ~mA → large phosphenes.* |
+| **Neuralink Blindsight** | **Neuralink** (US)                                  | Penetrating threads (N1-style)        | **FDA Breakthrough Device designation, Sept 2024. First human trials planned 2026** (pending IDE). Initially low-resolution. Requires intact V1; targets patients without eyes + optic nerve. Musk has stated congenital-blind candidates. IEEE Spectrum notes likely-modest early acuity. |
+| **ReVision Implant**     | **ReVision Implant** (Leuven, BE; KU Leuven spin-off) | Penetrating, ultra-thin-film flexible | **FDA Breakthrough Device, 2026.** Founded 2020 by Frederik Ceyssens (microelectronics) + Peter Janssen (neurophysiology). **€4M oversubscribed seed.** Short-term clinical trial during scheduled brain surgery planned **Q3–Q4 2026**; FIH in blind volunteers targeted summer 2027. Product name **Occular**. |
+| NeuraViPeR (H2020)       | 7-org EU consortium                                 | Penetrating, flexible probes          | Concluded Feb 2025. Antonio's NIN work fed dynaphos here. SIGHTED is the LGN follow-on.                                                                                              |
+| Utah Sci Adv (CORTIVIS)  | UMH Elche (Soto-Sánchez, Fernández)                 | Penetrating Utah                      | A blind volunteer **spontaneously regained partial natural vision** ~3 yr after stim; unrelated to the implant (Nov 2025 press).                                                     |
 
 \* The "Argus to Orion" lineage is a tech-transfer story: epi-retinal hardware
 on a different organ. Per Cesc, currents and electrode size are mismatched
 for the cortex — the drawing-on-cortex trick is the workaround.
+
+#### What's different across the V1 programs
+
+| Axis                    | Orion              | CORTIVIS              | Neuralink Blindsight   | ReVision Occular        |
+|-------------------------|--------------------|-----------------------|------------------------|-------------------------|
+| Approach                | Surface            | Penetrating Utah      | Penetrating threads    | Penetrating thin-film   |
+| Channel count           | 60                 | 96                    | thousands (claimed)    | high (thin-film array)  |
+| Tissue damage profile   | Lowest (surface)   | Moderate (rigid)      | Low (flex threads)     | Lowest (thin-film)      |
+| Phosphene size          | Large (mA)         | Small (µA)            | Small (µA)             | Small (µA)              |
+| Clinical stage 2026-05  | EFS                | FIH                   | IDE pending → FIH 2026 | Acute peri-surgical Q4 26 |
+
+Trend: every newcomer post-Orion bets on **penetrating, higher-density,
+lower-current** stim, with electrode flexibility as the lever for chronic
+viability.
 
 ### Adjacent (non-electrical)
 
@@ -76,10 +99,19 @@ for the cortex — the drawing-on-cortex trick is the workaround.
   spin-off; Roelfsema, Chen, Monna). It coordinates the SIGHTED consortium.
 - **PRIMA ≠ Argus successor.** PRIMA is photovoltaic, ex-Pixium, now
   Science Corp. Argus → Cortigent → Orion is the other lineage entirely.
-- **Pixium IP → Science Corp** (Max Hodak, ex-Neuralink co-founder) in 2024.
+- **Pixium IP → Science Corp** (Max Hodak, ex-Neuralink co-founder) in April 2024.
+  Science also has a biohybrid BCI sensor (skull-mounted, sits on top of brain)
+  — Murat Günel (Yale) leading first US human trials, planned 2027.
 - **CORTIVIS is alive.** The "expired?" question in the chat — no, it's
-  the active first-in-human European cortical program.
-- **Second Sight → Vivani is wrong.** The Argus/Orion IP went to **Cortigent**.
+  the active first-in-human European cortical program (Sci Adv 2025).
+- **Second Sight → Cortigent.** Not Vivani. Cortigent took over Argus II
+  support in 2023 and runs Orion.
+- **Neuralink Blindsight is a V1 program, not a generic BCI.** Different
+  from the N1 motor BCI in human trials now. Blindsight uses the same
+  threads platform but with V1 as the target.
+- **ReVision Implant Occular is the European answer to Blindsight.**
+  Belgian, thin-film penetrating, FDA Breakthrough 2026, more clinical-near
+  than Neuralink in some pathways (peri-surgical Q4 2026).
 
 ## Where this bootcamp lives
 
@@ -92,12 +124,29 @@ ticks) and M4 (dynaphos forward model).
 
 ## Primary sources
 
-- PRIMA — Palanker, Cusumano et al. *NEJM* 2025: <https://www.nejm.org/doi/full/10.1056/NEJMoa2501396>
-- PRIMA acquisition — Science Corp press release 2024-04-25: <https://science.xyz/news/>
-- Orion "drawing on cortex" — Beauchamp et al. *Cell* 2020: <https://www.sciencedirect.com/science/article/pii/S0092867420304967>
-- CORTIVIS NEJM — Fernández et al. 2021: <https://www.nejm.org/doi/10.1056/NEJMc2034731>
-- CORTIVIS Sci Adv 2025 — UMH press: <https://www.eurekalert.org/news-releases/1104900>
-- CORTIVIS recent partial recovery — UMH press: <https://www.eurekalert.org/news-releases/1114969>
+### Retinal
+- PRIMA NEJM 2025 — Palanker, Cusumano et al.: <https://www.nejm.org/doi/full/10.1056/NEJMoa2501396>
+- PRIMA acquisition (April 2024) — Science Corp: <https://www.businesswire.com/news/home/20240425683676/en/>
+- Science Corp Series C $230M (March 2026): <https://science.xyz/news/series-c/>
+- Argus II history — Wikipedia: <https://en.wikipedia.org/wiki/Argus_retinal_prosthesis>
+- Argus II long-term outcomes 2024: <https://pmc.ncbi.nlm.nih.gov/articles/PMC12496445/>
+- Cortigent Argus II page: <https://www.cortigent.com/argus-ii>
+- BVT 44-ch suprachoroidal — Allen 2025 (Clin & Exp Ophthalmol): <https://onlinelibrary.wiley.com/doi/10.1111/ceo.14502>
+- GenSight GS030 Nature Med 2021 (Sahel et al.): <https://www.gensight-biologics.com/2021/05/25/>
+
+### LGN
 - SIGHTED — CORDIS: <https://cordis.europa.eu/project/id/101212687>
+
+### V1 cortex
+- Orion "drawing on cortex" — Beauchamp et al. *Cell* 2020: <https://www.sciencedirect.com/science/article/pii/S0092867420304967>
+- Cortigent Orion page: <https://www.cortigent.com/orion>
+- CORTIVIS NEJM 2021 — Fernández et al.: <https://www.nejm.org/doi/10.1056/NEJMc2034731>
+- CORTIVIS Sci Adv 2025 — UMH press: <https://www.eurekalert.org/news-releases/1104900>
+- CORTIVIS spontaneous recovery (Nov 2025): <https://www.eurekalert.org/news-releases/1114969>
+- Neuralink Blindsight — Neuralink trials page: <https://neuralink.com/trials/visual-prosthesis/>
+- Neuralink Blindsight IEEE Spectrum (acuity caveats): <https://spectrum.ieee.org/neuralink-blindsight>
+- ReVision Implant — site: <https://www.revision-implant.com/>
+- ReVision Implant €4M round: <https://techfundingnews.com/the-bionic-eye-revision-implant-lands-e4m-for-a-vision-device-that-feeds-directly-into-your-brain/>
+- ReVision Implant FDA Breakthrough (March 2026): <https://eyewire.news/news/belgian-neurotech-startup-revision-implant-secures-fda-breakthrough-status-for-brain-implant-vision-technology>
 - NeuraViPeR — CORDIS: <https://cordis.europa.eu/project/id/899287>
 - Phosphoenix — <https://www.phosphoenix.nl/>

@@ -654,44 +654,52 @@ def build(out_path: Path) -> Path:
         credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
         image_h=Inches(2.6),
     )
-    # Field-map slide: puts the cortical work in context against retina + LGN.
-    # Added after a 2026-05-31 review chat clarified PRIMA / Cortigent / SIGHTED.
+    # Field-map slide: puts cortical in context against retina + LGN.
+    # See presentations/sources/vision_restoration_field_map.md for the
+    # long-form reference with primary-source links. Bullets kept tight
+    # (single line each) — slide_three_columns can't reflow at this width.
     slide_three_columns(
         prs, "Where to intervene",
         subhead="Each tissue target reaches a different patient population. This bootcamp builds the V1 piece.",
         columns=[
             ("Retina", [
-                "PRIMA (Pixium → Science Corp, Palanker/Stanford): subretinal photovoltaic, 378 px, wireless NIR glasses",
-                "PRIMAvera trial, NEJM Oct 2025: 38 GA patients; 80% gained meaningful acuity; CE/FDA path through 2026",
-                "Reaches: photoreceptor loss (AMD, RP)",
-                "Needs intact optic nerve, LGN, V1",
+                "Photoreceptor loss (AMD/RP). Needs intact downstream path.",
+                "PRIMA (Pixium → Science Corp): subretinal photovoltaic, NEJM 2025",
+                "Argus II (Second Sight → Cortigent): epi-retinal; 350+; ended 2019",
+                "BVT (Australia): suprachoroidal 44-ch; 2025 RP safety data",
+                "GenSight GS030: optogenetic + NIR goggles; PIONEER",
             ]),
             ("LGN (thalamus)", [
-                "SIGHTED (EIC Transition, Phosphoenix-coordinated): >1000-electrode LGN implant",
-                "Builds on NeuraViPeR (H2020, concluded Feb 2025); preparing first-in-human",
-                "Reaches: retinal + optic-nerve causes",
-                "Needs intact V1; deeper surgical target",
+                "Retinal + optic-nerve causes. Needs intact V1.",
+                "SIGHTED (EIC, Phosphoenix-coordinated): >1000-ch LGN",
+                "Builds on NeuraViPeR (concluded Feb 2025)",
+                "Preclinical; preparing first-in-human",
             ]),
-            ("V1 cortex", [
-                "Orion (Cortigent, ex-Second Sight): surface array, 60 ch — 'drawing on cortex' approach (Beauchamp, Cell 2020)",
-                "CORTIVIS (Fernández/UMH Elche): penetrating Utah, 96 ch; Sci Adv 2025 — bidirectional in 2 volunteers",
-                "Reaches: broadest population, anything upstream of V1",
-                "This bootcamp lives here",
+            ("V1 cortex — this bootcamp", [
+                "Broadest population — anything upstream of V1.",
+                "Orion (Cortigent): surface 60-ch; drawing on cortex (Cell 2020)",
+                "CORTIVIS (Fernández/UMH Elche): penetrating 96-ch; Sci Adv 2025",
+                "Neuralink Blindsight: threads; FDA Breakthrough Sept 2024",
+                "ReVision Occular (KU Leuven, BE): thin-film; FDA Breakthrough 2026",
             ]),
         ],
     )
 
-    slide_bullets_image(
+    # Cortical landscape: bullet-only slide (no portrait) so the six
+    # programs each get a full line. Was hitting image-overlap clipping
+    # under slide_bullets_image's vertical budget.
+    slide_bullets(
         prs, "Cortical landscape",
-        items=["Fernández et al. NEJM 2021: 96-ch Utah array in a blind volunteer (Moran cohort)",
-               "CORTIVIS (UMH Elche): active first-in-human; Sci Adv 2025 — bidirectional implant, 2 volunteers",
-               "Orion (Cortigent, ex–Second Sight): surface array; ~mA currents → Beauchamp draws letters on cortex (Cell 2020)",
-               "Phosphoenix (NL spin-off of NIN): coordinates SIGHTED (LGN) + the concluded NeuraViPeR (V1)",
-               "In 2026 the bottleneck isn't the electrode — it's mapping, decoding, and control"],
-        image="s35_p02_8bd81e1d.jpg",
-        subhead="Small but real human-subject programs. The hard work has moved upstream of the electrode.",
-        credit="Fernández, Soto-Sánchez et al. — Moran cohort (UMH)",
-        image_h=Inches(1.9),
+        subhead="Crowded V1 cortex: surface + 3 penetrating approaches; thin-film and threads are the trend.",
+        items=[
+            "CORTIVIS (Fernández / UMH Elche): active first-in-human; Sci Adv 2025 — bidirectional implant in 2 volunteers (NEJM 2021, Gómez)",
+            "Orion (Cortigent, ex–Second Sight): EFS; Argus-derived surface electrodes need ~mA → Beauchamp draws on cortex (Cell 2020)",
+            "Neuralink Blindsight: penetrating threads; FDA Breakthrough Sept 2024; first humans planned 2026 (IEEE Spectrum: expect low-res early on)",
+            "ReVision Implant Occular (Ceyssens & Janssen, KU Leuven, BE): ultra-thin-film flexible; FDA Breakthrough 2026; FIH Q4 2026",
+            "Phosphoenix (NL spin-off of NIN): coordinates SIGHTED (LGN) + the concluded NeuraViPeR (V1)",
+            "In 2026 the bottleneck isn't the electrode — it's mapping, decoding, and control",
+        ],
+        size=16,
     )
 
     # 3 — Bridge: borrow the 4-walls framing from "Brain & the Chip II".
