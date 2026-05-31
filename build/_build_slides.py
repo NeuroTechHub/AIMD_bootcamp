@@ -383,13 +383,15 @@ def slide_three_columns(prs, title, columns, *, subhead=None):
     gap = Inches(0.35)
     n = len(columns)
     col_w = (SLIDE_W - margin * 2 - gap * (n - 1)) / n
-    col_h = Inches(4.6)
+    # Use all the space between subhead and the accent bar — the longest
+    # column may carry six bullets.
+    col_h = SLIDE_H - (y + Inches(0.55)) - Inches(0.35)
     for i, (label, bullets) in enumerate(columns):
         x = margin + (col_w + gap) * i
         _add_text(s, x, y, col_w, Inches(0.5),
                   label, size=22, bold=True, color=ACCENT)
         _add_bullets(s, x, y + Inches(0.55), col_w, col_h,
-                     bullets, size=16, line_spacing=1.3)
+                     bullets, size=16, line_spacing=1.25)
 
 
 def slide_bullets_side_image(prs, title, items, image=None, *,
@@ -571,7 +573,7 @@ def build(out_path: Path) -> Path:
     # 1 — Who's giving this talk (bullets on left, anatomy hero on right).
     slide_bullets_side_image(
         prs, "About me",
-        subhead="Antonio Lozano. Vision neural engineer.",
+        subhead="Antonio Lozano. Neural engineer for vision.",
         size=16,
         items=[
             "Postdoc at UMH in Elche. I run the AI side of CORTIVIS — the first cortical visual prosthesis trial in human volunteers.",
@@ -587,24 +589,29 @@ def build(out_path: Path) -> Path:
 
     # 2 — One slide replaces the four definition slides + the section divider.
     #     Three columns of where the field actually is in 2026.
+    # TODO (RV review 2026-05-31): this slide is text-heavy across three
+    # columns. Consider folding in a small graphic (e.g. an implant-class
+    # photo strip or the addressable-market chart) — would require a
+    # two-column-plus-image layout, not a code-level tweak.
     slide_three_columns(
         prs, "Neurotechnology in 2026",
         subhead="Where the field is today — what's deployed, what's emerging, and where this bootcamp lives.",
         columns=[
             ("Deployed clinical", [
                 "Cochlear implants — over a million people hearing",
-                "Deep brain stim for Parkinson and dystonia (200k+ implants)",
-                "Spinal-cord stim, and RNS for epilepsy",
+                "Deep brain stim for Parkinson, dystonia, OCD (200k+ implants)",
+                "Spinal-cord stim, and responsive neurostimulation (RNS) for epilepsy",
                 "Mature read-and-write, but at low channel count",
             ]),
             ("Emerging clinical", [
-                "BrainGate motor BCIs — running trials for over a decade",
+                "BrainGate motor BCIs — trials for over a decade",
                 "Synchron's endovascular Stentrode",
                 "Neuralink's first human implantations",
-                "Higher channels, closed loops — that's where the field is heading",
-                "Morgan Stanley 2024: ~$400B addressable market, but under 3% penetration even by 2045",
+                "CEA-Leti / WIMAGINE; Cortec Brain Interchange",
+                "Higher channels + closed loops (stim responding to brain state)",
+                "Morgan Stanley 2024: ~$400B market, <3% penetration by 2045",
             ]),
-            ("Where we live", [
+            ("Scope of this bootcamp", [
                 "Cortical visual prostheses — restore sight by writing to V1",
                 "Read what V1 needs, write the percept",
                 "Camera → computer vision → stimulation → percept",
@@ -621,9 +628,10 @@ def build(out_path: Path) -> Path:
     slide_bullets_image(
         prs, "The problem",
         items=["Profound blindness: millions of people, many causes, no treatment for most",
-               "Retinal and optic-nerve implants need everything above them still working",
-               "Cortical stim skips everything upstream — straight to V1",
-               "It's invasive, and the trade-off (penetrating vs surface arrays) is still open. But cortical reaches the broadest population"],
+               "Retinal and optic-nerve implants need everything downstream still working",
+               "Cortical stim skips everything upstream — addressing V1 directly",
+               "Electrode design (penetrating vs surface): optimal intervention strategy is still open",
+               "Cortical is invasive, but reaches the broadest blind population"],
         image="s39_p01_ee164db1.png",
         subhead="The visual world is complex. Our bandwidth to represent it is limited.",
         credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
