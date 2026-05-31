@@ -352,7 +352,11 @@ def slide_video_focus(prs, title, video_path, *, poster_path=None,
 
 def slide_bullets_image(prs, title, items, image, credit=None,
                         subhead=None, image_h=Inches(3.2)):
-    """Compressed bullets at top, wide image below — for figure-heavy beats."""
+    """Compressed bullets at top, wide image below — for figure-heavy beats.
+
+    Reserves vertical space for wrapped lines: long bullets get a 2-line
+    budget so the image below doesn't ride up onto a wrapped second line.
+    Heuristic: ~95 chars per line at the current 18 pt font and slide width."""
     s = prs.slides.add_slide(prs.slide_layouts[6])
     _chrome(s, title=title)
     y = Inches(1.55)
@@ -360,10 +364,12 @@ def slide_bullets_image(prs, title, items, image, credit=None,
         _add_text(s, Inches(0.8), y, SLIDE_W - Inches(1.6), Inches(0.5),
                   subhead, size=18, color=INK_MUTED)
         y = Inches(2.05)
-    bullet_h = Inches(0.45) * len(items)
+    chars_per_line = 95
+    line_h = Inches(0.4)
+    bullet_h = sum(max(1, -(-len(item) // chars_per_line)) for item in items) * line_h
     _add_bullets(s, Inches(0.8), y, SLIDE_W - Inches(1.6), bullet_h,
                  items, size=18, line_spacing=1.2)
-    img_y = y + bullet_h + Inches(0.1)
+    img_y = y + bullet_h + Inches(0.15)
     _add_image_centered(s, SRC_IMG / image, y=img_y,
                         max_w=SLIDE_W - Inches(1.6), max_h=image_h)
     if credit:
@@ -648,17 +654,44 @@ def build(out_path: Path) -> Path:
         credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
         image_h=Inches(2.6),
     )
+    # Field-map slide: puts the cortical work in context against retina + LGN.
+    # Added after a 2026-05-31 review chat clarified PRIMA / Cortigent / SIGHTED.
+    slide_three_columns(
+        prs, "Where to intervene",
+        subhead="Each tissue target reaches a different patient population. This bootcamp builds the V1 piece.",
+        columns=[
+            ("Retina", [
+                "PRIMA (Pixium → Science Corp, Palanker/Stanford): subretinal photovoltaic, 378 px, wireless NIR glasses",
+                "PRIMAvera trial, NEJM Oct 2025: 38 GA patients; 80% gained meaningful acuity; CE/FDA path through 2026",
+                "Reaches: photoreceptor loss (AMD, RP)",
+                "Needs intact optic nerve, LGN, V1",
+            ]),
+            ("LGN (thalamus)", [
+                "SIGHTED (EIC Transition, Phosphoenix-coordinated): >1000-electrode LGN implant",
+                "Builds on NeuraViPeR (H2020, concluded Feb 2025); preparing first-in-human",
+                "Reaches: retinal + optic-nerve causes",
+                "Needs intact V1; deeper surgical target",
+            ]),
+            ("V1 cortex", [
+                "Orion (Cortigent, ex-Second Sight): surface array, 60 ch — 'drawing on cortex' approach (Beauchamp, Cell 2020)",
+                "CORTIVIS (Fernández/UMH Elche): penetrating Utah, 96 ch; Sci Adv 2025 — bidirectional in 2 volunteers",
+                "Reaches: broadest population, anything upstream of V1",
+                "This bootcamp lives here",
+            ]),
+        ],
+    )
+
     slide_bullets_image(
-        prs, "Clinical landscape",
-        items=["Fernández et al. 2021: Utah array in a blind volunteer (Moran cohort)",
-               "Second Sight / Orion: surface program. Ceased ops 2022; Vivani holds the IP",
-               "CORTIVIS: penetrating array, EU and UMH, Fernández cohort, ongoing",
-               "Phosphoenix (NL company, NIN spin-off): partner; coordinates the NeuraViPeR + SIGHTED EU consortiums",
-               "In 2026 the bottleneck isn't the electrode anymore. It's mapping, decoding, and control"],
+        prs, "Cortical landscape",
+        items=["Fernández et al. NEJM 2021: 96-ch Utah array in a blind volunteer (Moran cohort)",
+               "CORTIVIS (UMH Elche): active first-in-human; Sci Adv 2025 — bidirectional implant, 2 volunteers",
+               "Orion (Cortigent, ex–Second Sight): surface array; ~mA currents → Beauchamp draws letters on cortex (Cell 2020)",
+               "Phosphoenix (NL spin-off of NIN): coordinates SIGHTED (LGN) + the concluded NeuraViPeR (V1)",
+               "In 2026 the bottleneck isn't the electrode — it's mapping, decoding, and control"],
         image="s35_p02_8bd81e1d.jpg",
         subhead="Small but real human-subject programs. The hard work has moved upstream of the electrode.",
         credit="Fernández, Soto-Sánchez et al. — Moran cohort (UMH)",
-        image_h=Inches(2.2),
+        image_h=Inches(1.9),
     )
 
     # 3 — Bridge: borrow the 4-walls framing from "Brain & the Chip II".
