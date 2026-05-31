@@ -38,6 +38,15 @@ _REPO = Path(__file__).resolve().parent.parent
 SRC_IMG = _REPO / "presentations" / "sources" / "brain_chip_2024" / "images"
 M4_ASSETS = _REPO / "modules" / "M4-phosphene-simulation" / "assets"
 NTH_LOGO = _REPO / "build" / "assets" / "nth_logo.png"
+LOGOS_DIR = _REPO / "build" / "assets" / "logos"
+TEAM_DIR = _REPO / "build" / "assets" / "team"
+
+# Title-slide footer logos, left→right. White marks on the dark title background.
+TITLE_FOOTER_LOGOS = [
+    LOGOS_DIR / "adcorpus_white.png",
+    LOGOS_DIR / "nth_wordmark_white.png",
+    LOGOS_DIR / "tudelft_white.png",
+]
 
 
 # ----- low-level helpers ----------------------------------------------------
@@ -188,15 +197,45 @@ def _chrome(slide, title=None, *, dark_full=False, nth_logo=True):
 # ----- slide builders -------------------------------------------------------
 
 
-def slide_title(prs, big, sub):
+def slide_title(prs, big, sub, byline=None, footer_logos=None):
     s = prs.slides.add_slide(prs.slide_layouts[6])
     # Title slide is intentionally unbranded — the NTH chrome starts on slide 2.
     _chrome(s, dark_full=True, nth_logo=False)
     _add_rect(s, 0, SLIDE_H - ACCENT_H, SLIDE_W, ACCENT_H, ACCENT)
-    _add_text(s, Inches(1), Inches(2.4), SLIDE_W - Inches(2), Inches(1.2),
+    _add_text(s, Inches(1), Inches(2.0), SLIDE_W - Inches(2), Inches(1.2),
               big, size=60, bold=True, color=PAPER, align=PP_ALIGN.CENTER)
-    _add_text(s, Inches(1), Inches(3.7), SLIDE_W - Inches(2), Inches(0.7),
+    _add_text(s, Inches(1), Inches(3.3), SLIDE_W - Inches(2), Inches(0.7),
               sub, size=28, color=PAPER, align=PP_ALIGN.CENTER)
+    if byline:
+        tb = _add_text(s, Inches(1), Inches(4.1), SLIDE_W - Inches(2), Inches(0.5),
+                       byline, size=18, color=PAPER, align=PP_ALIGN.CENTER)
+        # Italicise the byline run.
+        tb.text_frame.paragraphs[0].runs[0].font.italic = True
+    if footer_logos:
+        _add_footer_logos(s, footer_logos)
+
+
+def _add_footer_logos(slide, paths, *, row_h=Inches(0.75), gap=Inches(0.8)):
+    """Lay out a horizontal row of logos centred along the bottom of the slide,
+    sitting just above the accent bar. Each logo is scaled to the same height;
+    its width follows the source aspect ratio."""
+    from PIL import Image as PILImage
+    widths = []
+    for p in paths:
+        if not Path(p).exists():
+            widths.append(0)
+            continue
+        with PILImage.open(p) as im:
+            iw, ih = im.size
+        widths.append(int(row_h * (iw / ih)))
+    total = sum(widths) + gap * max(0, len(paths) - 1)
+    x = (SLIDE_W - total) // 2
+    y = SLIDE_H - ACCENT_H - row_h - Inches(0.4)
+    for p, w in zip(paths, widths):
+        if w == 0:
+            continue
+        slide.shapes.add_picture(str(p), x, y, w, row_h)
+        x += w + gap
 
 
 def slide_section(prs, label, kicker=None, image=None, image_credit=None):
@@ -418,6 +457,79 @@ def slide_pipeline(prs):
             arrow.line.fill.background()
 
 
+def slide_team(prs, title, members, *, cols=None):
+    """Team-portrait grid: circular-cropped headshots with a name caption.
+
+    `members` is a list of ``(display_name, image_path)`` tuples. ``cols``
+    controls the row width; defaults to 3 when len>=4, 2 otherwise. Rows
+    of fewer portraits centre themselves."""
+    s = prs.slides.add_slide(prs.slide_layouts[6])
+    _chrome(s, title=title)
+
+    n = len(members)
+    if cols is None:
+        cols = 3 if n >= 4 else n
+    rows = (n + cols - 1) // cols
+
+    margin_x = Inches(0.8)
+    avail_w = SLIDE_W - 2 * margin_x
+    cell_w = avail_w // cols
+    portrait = min(cell_w - Inches(0.4), Inches(2.0))  # cap so labels fit
+    row_h = portrait + Inches(0.9)                     # portrait + name caption
+    top_y = Inches(1.7)
+    avail_h = SLIDE_H - top_y - Inches(0.7)
+    if rows > 1 and row_h * rows > avail_h:
+        row_h = avail_h // rows
+        portrait = row_h - Inches(0.9)
+
+    for i, (name, img) in enumerate(members):
+        r = i // cols
+        c = i % cols
+        members_this_row = min(cols, n - r * cols)
+        row_total_w = cell_w * members_this_row
+        row_x_start = (SLIDE_W - row_total_w) // 2
+        cx = row_x_start + cell_w * c + (cell_w - portrait) // 2
+        cy = top_y + r * row_h
+        _add_circular_portrait(s, img, cx, cy, portrait)
+        _add_text(
+            s, row_x_start + cell_w * c, cy + portrait + Inches(0.1),
+            cell_w, Inches(0.7),
+            name, size=16, color=INK_BODY,
+            align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.TOP,
+        )
+
+
+def _add_circular_portrait(slide, image_path, x, y, size):
+    """Place an image as a centred circular crop of side `size`.
+
+    Centre-crops the source to a square (so faces aren't stretched), then
+    swaps the picture's preset geometry from rect → ellipse to clip it
+    inside a circle."""
+    from PIL import Image as PILImage
+    from pptx.oxml.ns import qn
+
+    image_path = Path(image_path)
+    if not image_path.exists():
+        return None
+    with PILImage.open(image_path) as im:
+        iw, ih = im.size
+    pic = slide.shapes.add_picture(str(image_path), x, y, size, size)
+    if ih > iw:
+        cut = (ih - iw) / ih / 2
+        pic.crop_top = cut
+        pic.crop_bottom = cut
+    elif iw > ih:
+        cut = (iw - ih) / iw / 2
+        pic.crop_left = cut
+        pic.crop_right = cut
+    spPr = pic._element.find(qn("p:spPr"))
+    if spPr is not None:
+        prstGeom = spPr.find(qn("a:prstGeom"))
+        if prstGeom is not None:
+            prstGeom.set("prst", "ellipse")
+    return pic
+
+
 def slide_closing(prs):
     s = prs.slides.add_slide(prs.slide_layouts[6])
     # No NTH logo on the sign-off — the call-to-action stays the only thing on screen.
@@ -451,13 +563,15 @@ def build(out_path: Path) -> Path:
     # 0 — Title slide for this talk.
     slide_title(
         prs, "Cortical visual prostheses",
-        "An afternoon to build the pipeline.",
+        "Brain Writing with the Neurotech Hub",
+        byline="Antonio Lozano 2026",
+        footer_logos=TITLE_FOOTER_LOGOS,
     )
 
     # 1 — Who's giving this talk (bullets on left, anatomy hero on right).
     slide_bullets_side_image(
         prs, "About me",
-        subhead="Antonio Lozano. I work on the AI side of cortical visual prostheses.",
+        subhead="Antonio Lozano. Vision neural engineer.",
         size=16,
         items=[
             "Postdoc at UMH in Elche. I run the AI side of CORTIVIS — the first cortical visual prosthesis trial in human volunteers.",
@@ -616,8 +730,7 @@ def build(out_path: Path) -> Path:
         items=["Biphasic pulse explorer: amp, width, frequency, train shape",
                "Utah array config table you draft and add to",
                "Conductor view: Utah flashing, channels×time, live safety chips",
-               "Surprise-me randomiser → configure → connect → stim",
-               "Owner: Antonio"],
+               "Configure → connect → stim"],
         image="s55_p03_1ff3d95a.png",
         subhead="From a clean visual feature to a safe pulse train on an electrode.",
         credit="Granley & Beyeler — temporal microstim patterns (constant / ramp / biomimetic)",
@@ -655,6 +768,30 @@ def build(out_path: Path) -> Path:
         credit="Chris Klink — advanced-pipelines schematic, NIN",
         max_h=Inches(4.6),
     )
+    # Team credits — two slides of circular portraits + names. Sources are the
+    # same images the prelude deck uses; centralised under build/assets/team/.
+    slide_team(
+        prs, "NTH team",
+        members=[
+            ("Samantha Wolff",       TEAM_DIR / "samantha_wolff.png"),
+            ("Francesc Varkevisser", TEAM_DIR / "francesc_varkevisser.png"),
+            ("Patricija Burgar",     TEAM_DIR / "patricija_burgar.png"),
+            ("Antonio Lozano",       TEAM_DIR / "antonio_lozano.png"),
+            ("Stijn Balk",           TEAM_DIR / "stijn_balk.png"),
+        ],
+        cols=3,
+    )
+    slide_team(
+        prs, "Organizing team",
+        members=[
+            ("Lefteris Papadopoulos", TEAM_DIR / "lefteris_papadopoulos.png"),
+            ("Jorge Sanmartin",       TEAM_DIR / "jorge_sanmartin.png"),
+            ("Radovan Vodila",        TEAM_DIR / "radovan_vodila.jpg"),
+            ("Milan ten Bosch",       TEAM_DIR / "milan_ten_bosch.jpg"),
+        ],
+        cols=4,
+    )
+
     # (Groups, tracks, prizes, GitHub already covered in the prelude.)
     slide_closing(prs)
 
