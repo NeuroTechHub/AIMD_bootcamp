@@ -116,6 +116,35 @@ def _add_credit(slide, text):
               text, size=11, color=INK_MUTED)
 
 
+def _stamp_slide_numbers(prs):
+    """Add a small ``i / N`` page indicator to every slide except the title.
+
+    Sits just above the accent bar in the bottom-right corner. Colour
+    auto-adapts to dark vs light slide backgrounds (dark = full-slide rect
+    added first by ``_chrome(dark_full=True)``)."""
+    n = len(prs.slides)
+    for i, slide in enumerate(prs.slides, 1):
+        if i == 1:
+            continue  # title slide stays unnumbered
+        first = next(iter(slide.shapes), None)
+        is_dark = first is not None and first.width == SLIDE_W and first.height == SLIDE_H
+        color = RGBColor(0xCC, 0xCC, 0xCC) if is_dark else INK_MUTED
+        tb = slide.shapes.add_textbox(
+            SLIDE_W - Inches(1.1), SLIDE_H - Inches(0.55),
+            Inches(0.85), Inches(0.3),
+        )
+        tf = tb.text_frame
+        tf.margin_left = tf.margin_right = Emu(0)
+        tf.margin_top = tf.margin_bottom = Emu(0)
+        p = tf.paragraphs[0]
+        p.alignment = PP_ALIGN.RIGHT
+        run = p.add_run()
+        run.text = f"{i} / {n}"
+        run.font.name = FONT_FAMILY
+        run.font.size = Pt(10)
+        run.font.color.rgb = color
+
+
 def _add_nth_logo(slide):
     """Place the NTH brand mark in the top-right corner, inside the dark header
     band. Sits at the same height regardless of dark_full vs. header-only chrome
@@ -391,7 +420,8 @@ def slide_pipeline(prs):
 
 def slide_closing(prs):
     s = prs.slides.add_slide(prs.slide_layouts[6])
-    _chrome(s, dark_full=True)
+    # No NTH logo on the sign-off — the call-to-action stays the only thing on screen.
+    _chrome(s, dark_full=True, nth_logo=False)
     _add_rect(s, 0, SLIDE_H - ACCENT_H, SLIDE_W, ACCENT_H, ACCENT)
     _add_text(s, Inches(1), Inches(2.6), SLIDE_W - Inches(2), Inches(1.0),
               "Let's build.", size=60, bold=True, color=PAPER,
@@ -501,7 +531,7 @@ def build(out_path: Path) -> Path:
         items=["Fernández et al. 2021: Utah array in a blind volunteer (Moran cohort)",
                "Second Sight / Orion: surface program. Ceased ops 2022; Vivani holds the IP",
                "CORTIVIS: penetrating array, EU and UMH, Fernández cohort, ongoing",
-               "Phosphoenix: Dutch program, the one we partner with",
+               "Phosphoenix (NL company, NIN spin-off): partner; coordinates the NeuraViPeR + SIGHTED EU consortiums",
                "In 2026 the bottleneck isn't the electrode anymore. It's mapping, decoding, and control"],
         image="s35_p02_8bd81e1d.jpg",
         subhead="Small but real human-subject programs. The hard work has moved upstream of the electrode.",
@@ -627,6 +657,8 @@ def build(out_path: Path) -> Path:
     )
     # (Groups, tracks, prizes, GitHub already covered in the prelude.)
     slide_closing(prs)
+
+    _stamp_slide_numbers(prs)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     prs.save(out_path)
