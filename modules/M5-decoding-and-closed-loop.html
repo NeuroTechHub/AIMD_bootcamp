@@ -1257,11 +1257,11 @@ Training fits in three seconds on a laptop, and you can read what the network le
         <span>loss &middot; cross-entropy</span>
         <span class='train-loss-v' id='train-loss-v'>&mdash;</span>
       </div>
-      <canvas id='train-loss' width='640' height='110'></canvas>
+      <canvas id='train-loss' width='640' height='110' aria-label='Loss curve over training steps'></canvas>
     </div>
     <div class='train-weights-panel'>
       <div class='train-weights-h'>first-layer weights <span class='train-weights-sub'>32 hidden units &middot; 28&times;28 each</span></div>
-      <canvas id='train-weights' width='448' height='224'></canvas>
+      <canvas id='train-weights' width='448' height='224' aria-label='First-layer weight visualisations, 28x28 receptive fields'></canvas>
     </div>
   </div>
 </div>
@@ -1366,15 +1366,15 @@ Real end-to-end training takes minutes on a GPU and several thousand gradient st
   <div class='loop-row'>
     <div class='loop-cell'>
       <div class='loop-h'>1 &middot; input <span class='loop-sub'>after gaze crop</span></div>
-      <canvas id='loop-input-canvas' width='180' height='180'></canvas>
+      <canvas id='loop-input-canvas' width='180' height='180' aria-label='Input image after gaze crop'></canvas>
     </div>
     <div class='loop-cell'>
       <div class='loop-h'>2 &middot; activation mask <span class='loop-sub'>vision model out</span></div>
-      <canvas id='loop-mask-canvas' width='180' height='180'></canvas>
+      <canvas id='loop-mask-canvas' width='180' height='180' aria-label='Activation mask from vision model'></canvas>
     </div>
     <div class='loop-cell'>
       <div class='loop-h'>3 &middot; phosphene field <span class='loop-sub'>dynaphos with state</span></div>
-      <canvas id='loop-phos-canvas' width='180' height='180'></canvas>
+      <canvas id='loop-phos-canvas' width='180' height='180' aria-label='Phosphene field rendered by dynaphos'></canvas>
     </div>
   </div>
   <div class='loop-trace-wrap'>
@@ -1382,7 +1382,7 @@ Real end-to-end training takes minutes on a GPU and several thousand gradient st
       <span>4 &middot; decoded brightness <em>target vs achieved &middot; error band colored by magnitude</em></span>
       <span id='loop-status' class='loop-status ok'>&check; tracking</span>
     </div>
-    <canvas id='loop-trace' width='760' height='180'></canvas>
+    <canvas id='loop-trace' width='760' height='180' aria-label='Decoded brightness target vs achieved over time, with error band'></canvas>
     <div class='loop-stat' id='loop-stat'>&mdash;</div>
   </div>
 </div>
