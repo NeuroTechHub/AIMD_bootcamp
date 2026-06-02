@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NTH Bootcamp - NTH / M3 - Interactive companion</title>
+<title>NTH Bootcamp - NTH / M3 &amp;middot; Interactive companion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -662,10 +662,10 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 <main class="page">
 
 <header class="masthead">
-  <div class="eyebrow">NTH / M3 - Interactive companion</div>
+  <div class="eyebrow">NTH / M3 &middot; Interactive companion</div>
   <h1>Neuromodulation <span style="color:var(--muted-2);font-weight:500">&amp; stimulation</span></h1>
   <p class="lede">How a cortical prosthesis turns numbers into neuronal firing. Three live playgrounds &mdash; one biphasic pulse, one Utah-array configuration table, one real-time stimulator with safety chips and a cumulative-charge readout &mdash; let you build intuition before (or alongside) the notebook.</p>
-  <div class="meta"><span><strong>Lead:</strong> <span class="role">Antonio</span></span><span><strong>Status:</strong> alpha</span><span>part of the <a href="../bootcamp-plan.html">NTH bootcamp plan</a></span></div>
+  <div class="meta"><span><strong>Lead:</strong> <span class="role">Antonio</span></span><span><strong>Notebook:</strong> <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M3-neuromod-and-stim/neuromod-and-stim.ipynb" target="_blank" rel="noopener">Colab</a></span><span>part of the <a href="../bootcamp-plan.html">NTH bootcamp plan</a></span></div>
 </header>
 
 <nav class='module-nav' aria-label='Module navigation'><a class='mn-prev' href='M2-deepgaze-and-gaze.html'><span class='mn-dir'>&larr; prev</span><span class='mn-name'>M2 &middot; Gaze &amp; DeepGaze</span></a><a class='mn-next' href='M4-phosphene-simulation.html'><span class='mn-dir'>next &rarr;</span><span class='mn-name'>M4 &middot; Phosphenes</span></a></nav>
@@ -685,22 +685,20 @@ an inert electrode into a controllable knob on neuronal firing. The rest of the 
 building intuition for what each knob does, scaling up from one electrode to a hundred, and
 keeping an eye on safety while doing it.</aside>
 
-<aside class="callout"><strong>The Shannon limit, in passing.</strong>
-We compute <code>k = log10(Q) + log10(Qd)</code> per channel, where <code>Q</code> is charge per phase
-in <strong>microcoulombs</strong> (uA &times; us / 10<sup>6</sup>) and <code>Qd</code> is charge density in
-&micro;C/cm&sup2; (Q divided by the electrode area). Both terms must use the same charge unit for this formula
-to make sense &mdash; Shannon (1992) reports it with Q in &micro;C.</aside>
-
-<aside class="callout"><strong>...but read the fine print.</strong>
-The <code>k &le; 1.85</code> rule comes from Shannon's 1992 fit to <em>large surface electrodes</em> in chronic
-animal work &mdash; areas orders of magnitude bigger than the 2000&nbsp;&micro;m&sup2; intracortical site simulated
-here. Applied to microelectrodes the line is widely understood to be <em>conservative and not directly
-transferable</em>: penetrating microelectrodes routinely operate at charge densities well above it, and
-modern reviews (Cogan 2008; Cogan, Ludwig, Welle &amp; Takmakov 2016) treat tissue-damage thresholds as
-electrode-, waveform-, and duty-cycle-dependent rather than a single universal cutoff. So in this module
-<code>k</code> is a <strong>caution flag, not a safety verdict</strong> &mdash; useful for spotting which
-channels sit in the aggressive corner of the parameter space, not a pass/fail gate. See the references at
-the foot of the page.</aside>
+<aside class="callout"><strong>Safety, in passing.</strong>
+We compute <code>k = log<sub>10</sub>(Q) + log<sub>10</sub>(Qd)</code> per channel &mdash; charge per
+phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&sup2;. Above
+<code>k &approx; 1.85</code> Shannon (1992) flagged a damage-risk corner. Treat it as a
+<strong>caution flag, not a pass/fail gate</strong>.
+<details style="margin-top:10px">
+  <summary style="cursor:pointer;color:var(--ink);font-weight:500">Why <code>k &le; 1.85</code> is only a flag</summary>
+  <p style="margin:8px 0 0">Shannon's 1992 fit comes from <em>large surface electrodes</em> in chronic
+  animal work &mdash; areas orders of magnitude bigger than the 2000&nbsp;&micro;m&sup2; intracortical
+  site simulated here. Penetrating microelectrodes routinely operate at charge densities well above
+  the line, and modern reviews (Cogan&nbsp;2008; Cogan, Ludwig, Welle&nbsp;&amp; Takmakov&nbsp;2016)
+  treat tissue-damage thresholds as electrode-, waveform-, and duty-cycle-dependent rather than a
+  single universal cutoff. See the references at the foot of the page.</p>
+</details></aside>
 
 
 </section>
@@ -2409,7 +2407,6 @@ the foot of the page.</aside>
     }
     channels = chs;
     phase = 0;
-    stimRunCount = 0;
     logLine('configure &middot; ' + chs.length + ' channel' + (chs.length>1?'s':'') + ' allocated', 'info');
     chs.slice(0, 6).forEach(ch => {
       logLine('  ' + eLabel(ch.i) + ' &middot; ' + paramSummaryStr(ch.params), 'dim');
@@ -2610,14 +2607,23 @@ resource, not a workshop step: open it whenever you want the hands-on version.</
   <a href="https://doi.org/10.1146/annurev.bioeng.10.061807.160518" target="_blank" rel="noopener">doi:10.1146/annurev.bioeng.10.061807.160518</a>.</li>
   <li><span class="rk">review</span> Cogan, Ludwig, Welle &amp; Takmakov (2016), <em>Tissue damage
   thresholds during therapeutic electrical stimulation</em>, Journal of Neural Engineering
-  13(2):021001 &mdash; why microelectrode safety limits are electrode-, waveform-, and
-  duty-cycle-dependent rather than a single universal cutoff.</li>
+  13(2):021001. <a href="https://doi.org/10.1088/1741-2560/13/2/021001" target="_blank" rel="noopener">doi:10.1088/1741-2560/13/2/021001</a>
+  &mdash; why microelectrode safety limits are electrode-, waveform-, and duty-cycle-dependent
+  rather than a single universal cutoff.</li>
   <li><span class="rk">tool</span> The stimulator panel is a mock modelled on real research
   stimulation APIs (e.g. <a href="https://rippleneuro.com/" target="_blank" rel="noopener">Ripple
   Neuro</a> systems); the parameters and the configure &rarr; connect &rarr; stim &rarr; disconnect
   lifecycle mirror a real device manual.</li>
 </ul>
 </div>
+
+<h3>Further reading &mdash; vision-restoration field</h3>
+<ul>
+  <li><span class="rk">overview</span> <a href="../docs/vision-restoration-field.md" target="_blank" rel="noopener">docs/vision-restoration-field.md</a> &mdash; programs by tissue (retina &middot; LGN &middot; V1), with links to each company / consortium. The configure-array workflow you just used mirrors the V1 cortical-implant cohorts most directly.</li>
+  <li><span class="rk">paper</span> Fern&aacute;ndez, Alfaro, Soto-S&aacute;nchez, <em>et al.</em> (2021), <em>Visual percepts evoked with an intracortical 96-channel microelectrode array inserted in human occipital cortex</em>, J. Clinical Investigation 131(23):e151331. <a href="https://doi.org/10.1172/JCI151331" target="_blank" rel="noopener">doi:10.1172/JCI151331</a> &mdash; the human Utah-array cohort whose pulse-parameter ranges this module's defaults sit inside.</li>
+  <li><span class="rk">paper</span> Granley &amp; Beyeler (2021), <em>A computational model of phosphene appearance for epiretinal prostheses</em>, IEEE EMBC. <a href="https://doi.org/10.1109/EMBC46164.2021.9629663" target="_blank" rel="noopener">doi:10.1109/EMBC46164.2021.9629663</a> &mdash; how pulse-amplitude / width / frequency map to perceived size and brightness; the parameter space M4 picks up from here.</li>
+  <li><span class="rk">program</span> <a href="https://cortivis.umh.es/" target="_blank" rel="noopener">CORTIVIS (Fern&aacute;ndez / UMH Elche)</a> &mdash; active first-in-human cortical-implant trial; the configure &rarr; connect &rarr; stim lifecycle of this module is modelled on the bedside protocol.</li>
+</ul>
 
 
 </section>
@@ -2626,7 +2632,7 @@ resource, not a workshop step: open it whenever you want the hands-on version.</
 <nav class='module-nav' aria-label='Module navigation'><a class='mn-prev' href='M2-deepgaze-and-gaze.html'><span class='mn-dir'>&larr; prev</span><span class='mn-name'>M2 &middot; Gaze &amp; DeepGaze</span></a><a class='mn-next' href='M4-phosphene-simulation.html'><span class='mn-dir'>next &rarr;</span><span class='mn-name'>M4 &middot; Phosphenes</span></a></nav>
 
 <footer>
-  NTH bootcamp &middot; M3 &middot; <a href="../bootcamp-plan.html">back to plan</a> &middot; <a href="M4-phosphene-simulation.html">next: M4 &rarr;</a> &middot; safety helpers implemented in vanilla JS below, no Python required.
+  NTH bootcamp &middot; M3 &middot; <a href="../bootcamp-plan.html">back to plan</a> &middot; <a href="M4-phosphene-simulation.html">next: M4 &rarr;</a> &middot; safety helpers implemented in <code>~400 lines of vanilla JS</code> below; for the Python version see the <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M3-neuromod-and-stim/neuromod-and-stim.ipynb" target="_blank" rel="noopener">companion notebook</a>.
 </footer>
 
 </main>
