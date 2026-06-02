@@ -741,10 +741,10 @@ def page(title: str, eyebrow: str, h1_html: str, lede: str,
          nav_html: str = "",
          shared_css_path: str = "_shared.css") -> str:
     default_footer = (
-        'Internal planning document. '
-        'Web to update once content is final: '
-        '<a href="https://www.aanmelder.nl/aimdworkshop2026/bootcamp">'
-        'aanmelder.nl/aimdworkshop2026/bootcamp</a>.'
+        'NTH Bootcamp &middot; '
+        '<a href="https://neurotechhub.org/">neurotechhub.org</a> &middot; '
+        '<a href="https://github.com/NeuroTechHub/AIMD_bootcamp">github.com/NeuroTechHub/AIMD_bootcamp</a> &middot; '
+        'event page <a href="https://www.aanmelder.nl/aimdworkshop2026/bootcamp">aanmelder.nl/aimdworkshop2026/bootcamp</a>.'
     )
     return f"""<!doctype html>
 <html lang="en">
@@ -823,12 +823,18 @@ MODULES = [
 ]
 
 TRACKS = [
-    ("Experimental", "Build a fun, visually compelling demo. Punch, clarity, demo value.",
-     ["Visual or short video output", "Reuse any module's building blocks", "No need to be performant"]),
-    ("Developer", "Build or improve the real-time / closed-loop pipeline. Performance, device handling, structure.",
-     ["Profiling and optimization", "Real-time or near-real-time target", "Clean code, tests welcome"]),
-    ("Open neurotech", "Original neurotech application. Connect to the bootcamp theme however you like.",
-     ["Original idea allowed", "Reuse any building blocks", "Define your own success criterion"]),
+    ("Design", "Pitch an idea. No coding required.",
+     ["Sketches, a written tool description, a 3-slide pitch",
+      "Reuse any module's framing",
+      "Output: an idea worth building, judged on clarity and ambition"]),
+    ("Vibe", "Prompt-led prototyping. Build something with LLM support.",
+     ["High-level prompts &rarr; running prototype",
+      "Reuse any module's building blocks",
+      "We help if you're new to vibe coding"]),
+    ("Code", "Open the notebooks and work the exercises directly.",
+     ["Run the notebooks; extend them; or build an original demo",
+      "Output: a working notebook, script, or app",
+      "Mentors walk the room for help"]),
 ]
 
 TOOLS = [
@@ -842,12 +848,14 @@ TOOLS = [
      "Object detection and segmentation."),
     ("OpenCV",                "https://opencv.org/",
      "Edge detection and general image processing."),
-    ("Neurolight",            "",
-     "Stimulator and parameter explanation (Antonio)."),
+    ("Neurolight",            "modules/M3-neuromod-and-stim.html",
+     "In-browser stimulator and parameter explorer (M3)."),
     ("Vimplant2",             "https://antonio-lozano.github.io/vimplant2/",
-     "Interactive electrode-placement simulation (Antonio)."),
-    ("Engram",                "",
-     "Neural-recordings reference for the introduction talk (Antonio)."),
+     "Interactive electrode-placement simulation."),
+    ("NTH Bootcamp repo",     "https://github.com/NeuroTechHub/AIMD_bootcamp",
+     "All HTML modules, notebooks, build scripts."),
+    ("Neurotech Hub",         "https://neurotechhub.org/",
+     "The organising community behind the bootcamp."),
 ]
 
 
@@ -924,7 +932,6 @@ def build_plan() -> None:
   <a href='#tracks'><span class='n'>08</span> Tracks</a>
   <a href='#upload'><span class='n'>09</span> Upload &amp; prizes</a>
   <a href='#tools'><span class='n'>10</span> Tools</a>
-  <a href='#followups'><span class='n'>11</span> Follow-ups</a>
 </nav>"""
 
     body = f"""
@@ -960,7 +967,6 @@ def build_plan() -> None:
     </ul>
   </div>
 </div>
-<aside class='warn'><strong>Update the web.</strong> Once content is final, update <a href='https://www.aanmelder.nl/aimdworkshop2026/bootcamp'>aanmelder.nl/aimdworkshop2026/bootcamp</a> with the final schedule, prerequisites, and per-track descriptions.</aside>
 </section>
 
 <section id='summary'>
@@ -984,9 +990,9 @@ def build_plan() -> None:
     <p>One notebook per module. Open in Colab; run cell-by-cell; tweak the parameters and re-run.</p>
   </div>
   <div class='panel'>
-    <h4>Development repo</h4>
-    <div class='panel-sub'>full code, optional OpenAI tokens</div>
-    <p>The full codebase for developer-track participants. OpenAI API tokens if we get them, for vibe-coding workflows.</p>
+    <h4>Source repo</h4>
+    <div class='panel-sub'>full code on GitHub</div>
+    <p>The full codebase &mdash; HTML modules, notebooks, build scripts &mdash; lives at <a href='https://github.com/NeuroTechHub/AIMD_bootcamp'>github.com/NeuroTechHub/AIMD_bootcamp</a>. Clone it for deeper hacks.</p>
   </div>
 </div>
 </section>
@@ -1004,19 +1010,19 @@ def build_plan() -> None:
     </ul>
   </div>
   <div class='panel'>
-    <h4>Vibe-coding track</h4>
+    <h4>Vibe track</h4>
     <div class='panel-sub'>add-on</div>
     <ul class='tight'>
-      <li>Free LLM account (OpenAI, Anthropic, or Mistral)</li>
-      <li>Goal: rapidly prototype with AI support</li>
+      <li>Any LLM account you already have (OpenAI, Anthropic, Mistral)</li>
+      <li>Goal: prompt your way to a working prototype</li>
     </ul>
   </div>
   <div class='panel'>
-    <h4>Developer track</h4>
+    <h4>Code track</h4>
     <div class='panel-sub'>add-on</div>
     <ul class='tight'>
       <li>VS Code, Cursor, Claude Code, Codex, or equivalent</li>
-      <li>Goal: deeper work on code quality, performance, real-time</li>
+      <li>Goal: deeper work on the notebooks &mdash; quality, performance, extensions</li>
     </ul>
   </div>
 </div>
@@ -1072,8 +1078,8 @@ def build_plan() -> None:
 </section>
 
 <section id='tracks'>
-<h2><span class='num'>08</span>Vibe coding, development &amp; experiments (1 hour)</h2>
-<p>Three parallel tracks. Participants pick one. No switching mid-hour.</p>
+<h2><span class='num'>08</span>Tracks (1 hour)</h2>
+<p>Three parallel tracks. Participants pick one. Mentors walk the room to help.</p>
 {render_tracks()}
 </section>
 
@@ -1083,21 +1089,21 @@ def build_plan() -> None:
   <div class='panel'>
     <h4>Upload to GitHub</h4>
     <div class='panel-sub'>15 min slot</div>
-    <p style='margin:0 0 8px;color:var(--ink-2)'>Submission location: <code>GITHUB/NTH/D-BOOTCAMP/submissions</code></p>
+    <p style='margin:0 0 8px;color:var(--ink-2)'>Submissions land in the <code>submissions/</code> folder of <a href='https://github.com/NeuroTechHub/AIMD_bootcamp'>NeuroTechHub/AIMD_bootcamp</a>.</p>
     <ul class='tight'>
-      <li>Code or notebook</li>
+      <li>Code, notebook, or a design deck</li>
       <li>Short README (what it does, how to run, who built it)</li>
       <li>Screenshot, video, or demo artifact</li>
-      <li>Track label: experimental / developer / open neurotech</li>
+      <li>Track label: design / vibe / code</li>
     </ul>
   </div>
   <div class='panel'>
     <h4>Prizes</h4>
     <div class='panel-sub'>organised by NTH</div>
     <ul class='tight'>
-      <li><strong>Experimental:</strong> punchy / visually compelling demo</li>
-      <li><strong>Developer:</strong> real-time, optimized, or closed-loop pipeline</li>
-      <li><strong>Open neurotech:</strong> most original application connected to the bootcamp theme</li>
+      <li><strong>Design:</strong> clearest, most ambitious idea</li>
+      <li><strong>Vibe:</strong> best prompt-led prototype</li>
+      <li><strong>Code:</strong> deepest extension of the modules</li>
     </ul>
   </div>
 </div>
@@ -1107,29 +1113,21 @@ def build_plan() -> None:
 <h2><span class='num'>10</span>Tools</h2>
 {render_tools()}
 </section>
-
-<section id='followups'>
-<h2><span class='num'>11</span>Follow-ups</h2>
-<aside class='todo'><strong>Update the web.</strong> Once content is final, update <a href='https://www.aanmelder.nl/aimdworkshop2026/bootcamp'>aanmelder.nl/aimdworkshop2026/bootcamp</a> with the final schedule, prerequisites, per-track descriptions, and prize info.</aside>
-<aside class='todo'><strong>Module content.</strong> Each lead fills in their module page. Keep the section structure consistent across modules so participants can navigate from one to the next without re-orienting.</aside>
-<aside class='todo'><strong>Neurolight &amp; engram.</strong> Confirm versions / sources Antonio will use before the bootcamp.</aside>
-<aside class='todo'><strong>OpenAI tokens.</strong> Confirm whether we get them. If yes, distribute via the development repo to the vibe-coding track.</aside>
-<aside class='todo'><strong>Development repo.</strong> Set up the dev repo for the developer track. Same five modules, full code, deployable to Colab too.</aside>
-</section>
 """
 
     meta = (
-        '<span><strong>Date:</strong> 04 May 2026</span>'
-        '<span><strong>Status:</strong> Draft</span>'
+        '<span><strong>Event:</strong> 03 June 2026 &middot; AIMD workshop</span>'
+        '<span><strong>NTH:</strong> <a href="https://neurotechhub.org/">neurotechhub.org</a></span>'
+        '<span><strong>Code:</strong> <a href="https://github.com/NeuroTechHub/AIMD_bootcamp">github.com/NeuroTechHub/AIMD_bootcamp</a></span>'
         '<span><strong>Contributors:</strong> Antonio, Lefteris, Jorge, Patricija, Cesc, Stijn, Samantha, Radovan</span>'
     )
 
     html_text = page(
         title="NTH Bootcamp · Plan",
-        eyebrow="NTH / D-Bootcamp",
+        eyebrow="NTH / Bootcamp",
         shared_css_path="modules/_shared.css",
         h1_html="NTH Bootcamp <span style='color:var(--muted-2);font-weight:500'>plan</span>",
-        lede="Internal plan for the leads. Five modules from camera to closed loop, one open hour, one demo upload.",
+        lede="Five modules from camera to closed loop, three parallel tracks, one demo upload at the end.",
         meta_html=meta,
         toc_html=toc,
         body_html=body,
@@ -2844,7 +2842,7 @@ M3_NEXT_HTML = r"""
 <p>Next module: <strong><a href="M4-phosphene-simulation.html">M4 &mdash; Phosphene simulation</a></strong>,
 where the stimulation parameters you just tuned become a perceived image.</p>
 <aside class="callout"><strong>Going deeper (optional).</strong>
-The companion notebook <a href="M3-neuromod-and-stim/neuromod-and-stim.ipynb"><code>neuromod-and-stim.ipynb</code></a>
+The companion notebook <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M3-neuromod-and-stim/neuromod-and-stim.ipynb" target="_blank" rel="noopener"><code>neuromod-and-stim.ipynb</code></a>
 revisits this material in Python &mdash; driving the same parameters from code, pushing them through
 the stimulator API, and inspecting the actual <code>(channels &times; time)</code> stimulation matrices,
 with the charge-balance and Shannon checks exposed as importable functions. It is a self-guided
