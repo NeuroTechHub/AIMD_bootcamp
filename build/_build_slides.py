@@ -930,7 +930,7 @@ def build(out_path: Path) -> Path:
                "Configure → connect → stim"],
         image="s55_p03_1ff3d95a.png",
         subhead="From a clean visual feature to a safe pulse train on an electrode.",
-        credit="Granley & Beyeler — temporal microstim patterns (constant / ramp / biomimetic)",
+        credit="Granley & Beyeler (2021) — temporal microstim patterns (constant / ramp / biomimetic) · doi:10.1109/EMBC46164.2021.9629663",
         image_h=Inches(2.0),
     )
     slide_bullets_image(

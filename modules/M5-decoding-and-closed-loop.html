@@ -1055,7 +1055,7 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
   pauseBtn.addEventListener('click', () => {
     running = !running;
     pauseBtn.textContent = running ? 'pause' : 'play';
-    if (running) loop();
+    if (running) { lastWall = 0; accum = 0; requestAnimationFrame(loop); }
   });
 
   // --- simulation step ------------------------------------------------
@@ -1184,14 +1184,17 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
     }
     ctx.stroke();
 
-    // current trace in bottom zone
-    ctx.strokeStyle = '#7a9aa6'; ctx.lineWidth = 1.4; ctx.beginPath();
+    // current trace in bottom zone — bars (one per frame) so the stim reads
+    // as a discrete pulse train rather than a continuous waveform.
+    ctx.fillStyle = '#7a9aa6';
+    const yC0 = yC(0);
+    const stepW = W / HISTORY;
+    const barW = Math.max(1, stepW * 0.7);
     for (let i=0;i<HISTORY;i++){
       const idx = (head + i) % HISTORY;
       const x = xs(i), y = yC(curArr[idx]);
-      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      if (curArr[idx] > 0) ctx.fillRect(x - barW/2, y, barW, yC0 - y);
     }
-    ctx.stroke();
 
     // axis labels
     ctx.fillStyle = '#9a9a93'; ctx.font = '10px JetBrains Mono, monospace';
@@ -2311,7 +2314,7 @@ Compare the &lsquo;moving dot&rsquo; default in both modes. Open loop: the dot&r
   playBtn.addEventListener('click', () => {
     running = !running;
     playBtn.textContent = running ? 'pause' : 'play';
-    if (running) loop();
+    if (running) { lastWall = 0; accum = 0; requestAnimationFrame(loop); }
   });
   resetBtn.addEventListener('click', () => {
     A.fill(0); T.fill(0); integral = 0; prevErr = 0;
