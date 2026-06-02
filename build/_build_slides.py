@@ -1041,8 +1041,8 @@ def build(out_path: Path) -> Path:
         prs, "AIMD highlights",
         subhead="Vision-restoration and clinical-BCI contributions worth flagging at AIMD.",
         items=[
-            "Eduardo Fernández — UMH Elche · CORTIVIS first-in-human intracortical visual prosthesis (NEJM 2021 Gómez et al.; Sci Adv 2025)",
-            "Nick Ramsey — UMC Utrecht · long-term cortical BCI for locked-in communication (NEJM 2016 Vansteensel et al.) and motor decoding",
+            "Eduardo Fernández — UMH Elche · CORTIVIS first-in-human intracortical visual prosthesis (Fernández et al. 2021, J. Clin. Invest. 131(23):e151331 · doi:10.1172/JCI151331)",
+            "Nick Ramsey — UMC Utrecht · long-term cortical BCI for locked-in communication (Vansteensel, Ramsey et al. 2016, NEJM 375:2060–2066 · doi:10.1056/NEJMoa1608085)",
         ],
     )
 

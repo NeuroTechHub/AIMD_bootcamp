@@ -753,6 +753,7 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
       <button class='pid-preset' data-preset='p'>P-only</button>
       <button class='pid-preset' data-preset='pi'>PI</button>
       <button class='pid-preset active' data-preset='pid'>PID</button>
+      <button class='pid-preset' data-preset='kmax' title='Crank all three gains to the cap — watch the failure mode'>K-max</button>
     </div>
     <div class='pid-targets'>
       <label for='pid-target'>target</label>
@@ -1023,9 +1024,10 @@ Sum the three, clip to the stim range, send to dynaphos. Repeat 30 times per sec
 
   function setPreset(p){
     presetBtns.forEach(b => b.classList.toggle('active', b.dataset.preset === p));
-    if (p==='p')   { kpEl.value=150; kiEl.value=0;   kdEl.value=0;  }
-    if (p==='pi')  { kpEl.value=100; kiEl.value=140; kdEl.value=0;  }
-    if (p==='pid') { kpEl.value=100; kiEl.value=80;  kdEl.value=15; }
+    if (p==='p')    { kpEl.value=150; kiEl.value=0;   kdEl.value=0;  }
+    if (p==='pi')   { kpEl.value=100; kiEl.value=140; kdEl.value=0;  }
+    if (p==='pid')  { kpEl.value=100; kiEl.value=80;  kdEl.value=15; }
+    if (p==='kmax') { kpEl.value=500; kiEl.value=800; kdEl.value=200; }
     syncGains();
     resetTrace();
   }
