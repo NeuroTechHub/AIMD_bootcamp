@@ -679,6 +679,20 @@ def build(out_path: Path) -> Path:
         image_credit="from A. Lozano, Brain & the Chip II (Elche 2024)",
     )
 
+    # 1.5 — "Why this matters" — humanizing pause before the field overview.
+    # SKELETON COPY: Antonio refines tone/specifics before recording.
+    slide_bullets(
+        prs, "Why this matters",
+        subhead="Before any of the pipeline talk — what we're actually trying to give back.",
+        items=[
+            "Profound blindness affects ~40M people globally. For most causes, the eye and optic nerve are gone or unreachable — a retinal implant cannot help.",
+            "What people lose first is independence: navigation, faces, reading a sign, recognising the cup on the table. Coarse spatial vision restores most of it.",
+            "Cortical V1 is the place to write to because it's the last common point in the pathway — it works no matter what broke upstream.",
+            "Tonight you'll touch the same five pieces a clinical pipeline actually uses. The point isn't to read the slides; the point is to have your hand on it.",
+        ],
+        size=18,
+    )
+
     # 2 — One slide replaces the four definition slides + the section divider.
     #     Three columns of where the field actually is in 2026.
     slide_three_columns(
@@ -1031,6 +1045,50 @@ def build(out_path: Path) -> Path:
             ("Milan ten Bosch",       TEAM_DIR / "milan_ten_bosch.jpg"),
         ],
         cols=4,
+    )
+
+    # A4 — "Navigate the HTMLs" guide. Three live highlights Antonio drives,
+    # each ~2 min talk + ~10 min audience play, then released to the tracks.
+    # SKELETON COPY: Antonio refines wording / picks the exact entry points
+    # before recording. Decided live (00:51:42 meeting): M3 stim + M1 YOLO +
+    # M4 phosphene-scene are the three.
+    slide_bullets(
+        prs, "Three live highlights — drive these yourself",
+        subhead="Two minutes of pointing, ten minutes of you clicking. Then we release.",
+        items=[
+            "M1 · Computer vision — YOLO live on your webcam. Open M1, scroll to §03, click 'start webcam'. Swap the detector to Sobel and watch the same pipeline degrade.",
+            "M3 · Neuromodulation — Utah array configurator. Open M3, scroll to §03, draft a channel, 'add to list', then §04 → configure → connect → stim. Watch the safety chip flag aggressive corners.",
+            "M4 · Phosphenes — gaze-driven scene. Open M4, scroll to §05, drag the implant from x=2mm to x=28mm. Cycle through the target images and notice which still read as the original object.",
+        ],
+        size=18,
+    )
+
+    # A4 — Tracks reinforcement at the boundary between guided and free-roam.
+    # Prelude covered tracks once; this is the in-talk reminder right before
+    # they scatter into groups. SKELETON COPY.
+    slide_three_columns(
+        prs, "Pick a track for the next hour",
+        subhead="Make a group of 3-4. Pick the track that fits how you want to think tonight. We'll be walking around.",
+        columns=[
+            ("Design", [
+                "No code required.",
+                "Sketch a tool, a UI, a study, a clinical workflow.",
+                "Deliverable: a one-pager or a whiteboard pitch.",
+                "Useful when the right question is 'what should this look like?'",
+            ]),
+            ("Vibe", [
+                "LLM-led prototyping.",
+                "Describe the change you want; let the assistant write the code.",
+                "Open the HTMLs or notebooks; iterate via prompts.",
+                "Useful when the right question is 'does this idea hold up?'",
+            ]),
+            ("Code", [
+                "Open the Colab notebooks (link in every module's masthead).",
+                "Work the exercises tagged easy / intermediate / challenge.",
+                "Solution notebooks ship alongside for when you're stuck.",
+                "Useful when the right question is 'how exactly does this work?'",
+            ]),
+        ],
     )
 
     # (Groups, tracks, prizes, GitHub already covered in the prelude.)
