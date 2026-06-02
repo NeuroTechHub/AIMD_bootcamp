@@ -58,7 +58,9 @@ old/
 #     build/_extract_pptx_assets.py <source.pptx> presentations/sources/<name>/
 presentations/*.pdf
 presentations/*.pptx
+presentations/*.pptx.bak
 presentations/sources/
+presentations/feedback/
 
 # --- secrets ----------------------------------------------------------------
 .env

@@ -147,7 +147,7 @@ header.masthead .meta a:hover{color:var(--accent)}
   <p class="lede">A live, no-Python playground for the same equations as
     <code>dynaphos</code>. Move the sliders, watch the basis change. Use this
     to build intuition before (or alongside) the
-    <a href="M4-phosphene-simulation/phosphene-simulation.ipynb">notebook</a>.</p>
+    <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M4-phosphene-simulation/phosphene-simulation.ipynb" target="_blank" rel="noopener">notebook</a>.</p>
   <div class="meta">
     <span><strong>Module:</strong> M4</span>
     <span><strong>Pair with:</strong>
@@ -447,7 +447,7 @@ electrode's location, convert to a stimulation current, render the canvas.</p>
     <select id="f-target">
       <option value="square" selected>square + disc</option>
       <option value="letterE">letter "E"</option>
-      <option value="facePhoto">face (photo)</option>
+      <option value="facePhoto">kitten (photo)</option>
       <option value="scenePhoto">scene (photo, Canny edges)</option>
       <option value="grid">grating bars</option>
       <option value="diag">diagonal line</option>
@@ -484,23 +484,24 @@ electrode's location, convert to a stimulation current, render the canvas.</p>
   <p>The abstract shapes (square + disc, letter "E", grating bars,
   diagonal line) stay legible &mdash; their information lives in a few
   large, high-contrast regions that survive coarse sampling by the
-  electrode lattice. The natural photographs (face, scene) do not:
+  electrode lattice. The natural photographs (kitten, scene) do not:
   most of the recognisable signal in a real image lives in fine edges
   and texture that fall below the inter-electrode spacing, so they
   alias into a blobby mess that no longer reads as the original object.</p>
 </details>
 
 <details class="prompt">
-  <summary>On the face photo, what is the one characteristic of the person you can still recognize?</summary>
-  <p>The overall <strong>shape of the head</strong> &mdash; a roughly
-  oval bright blob against a darker background. Individual facial
-  features (eyes, nose, mouth, hairline) are essentially gone: they sit
-  inside that blob at spatial scales finer than the lattice can
-  resolve. This is why a pure intensity-based forward pass is a poor
-  match for faces in particular: face recognition is driven by the
-  geometry of internal features, not by the silhouette. To carry face
+  <summary>On the kitten photo, what is the one characteristic you can still recognize?</summary>
+  <p>The overall <strong>silhouette</strong> &mdash; a roughly round
+  bright blob with two triangular ear notches against a darker
+  background. Individual features (eyes, whiskers, fur texture, fur
+  boundaries) are essentially gone: they sit inside that blob at
+  spatial scales finer than the lattice can resolve. The same point
+  generalises to faces: a pure intensity-based forward pass is a poor
+  match whenever identity is carried by the geometry of internal
+  features rather than by the outer silhouette. To carry that
   information you would need a representation that first extracts
-  feature locations (eyes, mouth, hair boundary) and renders those
+  feature locations (eyes, mouth, ear tips) and renders those
   explicitly, instead of sampling raw pixel brightness.</p>
 </details>
 
@@ -785,7 +786,7 @@ The encoding mode is the engineering decision M1 (vision) and M3
 </div>
 
 <aside class="callout"><strong>Going deeper (optional).</strong> The companion notebook
-<a href="M4-phosphene-simulation/phosphene-simulation.ipynb"><code>phosphene-simulation.ipynb</code></a>
+<a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M4-phosphene-simulation/phosphene-simulation.ipynb" target="_blank" rel="noopener"><code>phosphene-simulation.ipynb</code></a>
 revisits this material in Python against the real <code>dynaphos</code> library, and goes
 one step further: it drives the simulator from neural-network outputs &mdash; YOLO
 segmentation, monocular depth (MiDaS), saliency, and open-vocabulary detection
@@ -822,7 +823,7 @@ workshop: open it whenever you want the hands-on version.</aside>
 </details>
 
 <details class="prompt">
-  <summary>Q3. When you cycle through the targets in Section&nbsp;03, the abstract shapes (square, letter, grating) stay recognizable but real photos of faces and scenes turn into a vague blobby mess. Why does the prosthesis handle abstract test images so much better than natural ones?</summary>
+  <summary>Q3. When you cycle through the targets in Section&nbsp;03, the abstract shapes (square, letter, grating) stay recognizable but real photos (the kitten, the scene) turn into a vague blobby mess. Why does the prosthesis handle abstract test images so much better than natural ones?</summary>
   <p>Because the information that identifies a natural image lives in
   fine edges and textures &mdash; spatial frequencies above what the
   electrode lattice can carry. By the time the image is resampled onto
@@ -970,7 +971,7 @@ avoids the CORS edge cases that hit when an HTML file is opened via
 <code>file://</code> (some browsers refuse <code>crossOrigin="anonymous"</code>
 canvas reads from <code>null</code> origins) and means the page works
 fully offline. Two of the three images below
-(face&nbsp;photo, scene&nbsp;photo) are Wikimedia Commons thumbnails
+(kitten&nbsp;photo, scene&nbsp;photo) are Wikimedia Commons thumbnails
 embedded verbatim &mdash; the Wikimedia File: page is their canonical
 source and license reference. A single Wikimedia network fallback (for
 the scene photo) is listed alongside, in case the inlined data is
@@ -981,7 +982,7 @@ identified, no network fallback is configured for it, and it is
 treated separately below.</p>
 <ol>
   <li>
-    <em>Section 03 &middot; face (photo):</em>
+    <em>Section 03 &middot; kitten (photo):</em>
     <a href="https://commons.wikimedia.org/wiki/File:Six_weeks_old_cat_(aka).jpg" target="_blank" rel="noopener">Six-week-old cat</a>
     (2005), photo by Andr&eacute; Karwath (Wikimedia user
     <a href="https://commons.wikimedia.org/wiki/User:Aka" target="_blank" rel="noopener">Aka</a>).
