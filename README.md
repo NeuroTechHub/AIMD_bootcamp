@@ -42,8 +42,8 @@ AIMD_bootcamp/
 Neurolight2 style reference. Keep it locally if you want to crib styling; nothing in the
 shipped tree depends on it.
 
-Open any module in a browser. None of them need a server. M1's YOLO download is
-~25 MB on first use (in-browser, cached).
+Open any module in a browser. M1's YOLO download is ~25 MB on first use
+(in-browser, cached).
 
 ## Setup
 
@@ -163,6 +163,23 @@ twice.
 In the open notebook, click the first code cell and press `Shift`+`Enter`.
 If it prints output without a red error box, Python, the environment, and
 the kernel are all wired up. You're ready for the workshop.
+
+### 8. (Optional) Serve the HTML modules over HTTP
+
+Most panels in the `.html` modules work by just double-clicking them — that
+gives you a `file://` URL. Two browser policies kick in for local files
+though: `fetch()` of relative paths is blocked (M1's YOLO sample-image
+playback, M5's end-to-end weights), and `getUserMedia` only runs in a
+"secure context" (M1's webcam). To make those panels work, serve the repo
+over loopback HTTP. In a **second terminal** (so JupyterLab keeps running):
+
+```bash
+uv run html_modules.py
+```
+
+Then open <http://127.0.0.1:8889/bootcamp-plan.html>. Loopback is treated
+as a secure context, so `fetch()` + camera both work normally. Ctrl-C to
+stop.
 
 ### Common problems
 
