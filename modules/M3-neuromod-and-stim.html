@@ -664,7 +664,7 @@ footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 <header class="masthead">
   <div class="eyebrow">NTH / M3 &middot; Interactive companion</div>
   <h1>Neuromodulation <span style="color:var(--muted-2);font-weight:500">&amp; stimulation</span></h1>
-  <p class="lede">How a cortical prosthesis turns numbers into neuronal firing. Three live playgrounds &mdash; one biphasic pulse, one Utah-array configuration table, one real-time stimulator with safety chips and a cumulative-charge readout &mdash; let you build intuition before (or alongside) the notebook.</p>
+  <p class="lede">How a cortical prosthesis turns numbers into neuronal firing. Three live playgrounds &mdash; one biphasic pulse, one Utah-array configuration table, one real-time stimulator with safety chips and a live charge-rate readout &mdash; let you build intuition before (or alongside) the notebook.</p>
   <div class="meta"><span><strong>Lead:</strong> <span class="role">Antonio</span></span><span><strong>Notebook:</strong> <a href="https://colab.research.google.com/github/NeuroTechHub/AIMD_bootcamp/blob/main/modules/M3-neuromod-and-stim/neuromod-and-stim.ipynb" target="_blank" rel="noopener">Colab</a></span><span>part of the <a href="../bootcamp-plan.html">NTH bootcamp plan</a></span></div>
 </header>
 
@@ -1429,10 +1429,10 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
     };
   }
   surpriseBtn.addEventListener('click', () => {
-    // refuse if the lifecycle isn't at idle (configure must be available)
+    // refuse if the lifecycle isn't at idle (connect must be available)
     const fd0 = document.getElementById('flow-demo');
-    const cfgBtn0 = fd0 && fd0.querySelector('#fd-btn-configure');
-    if(cfgBtn0 && cfgBtn0.disabled){
+    const connBtn0 = fd0 && fd0.querySelector('#fd-btn-connect');
+    if(connBtn0 && connBtn0.disabled){
       surpriseBtn.classList.add('shake');
       setTimeout(() => surpriseBtn.classList.remove('shake'), 400);
       return;
@@ -1581,19 +1581,19 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
 
 <section id='neurolight'>
 <h2><span class='num'>04</span>Run the stimulator</h2>
-<p class='kicker'>Once channels are configured, the Neurolight session walks through <em>configure</em> &rarr; <em>connect</em> &rarr; <em>stim</em> &rarr; <em>disconnect</em>. Press <em>Stim</em> to fire one finite trial (<code>reps</code> trains, each repeated every <code>train period</code> milliseconds, so trains of different lengths stay phase-locked) and watch the four live panels update in real time. All four can be read at a glance: <em>where</em> firing is happening (array), <em>when</em> it happens (carousel), <em>how safe</em> the parameters are (current limit + Shannon-k), and <em>how much</em> charge has been delivered so far (peak current per channel + cumulative charge trace).</p>
+<p class='kicker'>Once channels are configured, the Neurolight session walks through <em>configure</em> &rarr; <em>connect</em> &rarr; <em>stim</em> &rarr; <em>disconnect</em>. Press <em>Stim</em> to fire one finite trial (<code>reps</code> trains, each repeated every <code>train period</code> milliseconds, so trains of different lengths stay phase-locked) and watch the four live panels update in real time. All four can be read at a glance: <em>where</em> firing is happening (array), <em>when</em> it happens (carousel), <em>how safe</em> the parameters are (current limit + Shannon-k), and <em>how fast</em> charge is being delivered (peak current per channel + instant charge-rate trace).</p>
 
 <div class='flow-demo conductor' id='flow-demo'>
 
   <!-- HEADER: lifecycle pill + state + clock + Surprise me proxy -->
   <div class='cond-header'>
     <div class='cond-pills' role='group' aria-label='Lifecycle steps'>
-      <button class='cond-pill armed' data-step='0' id='fd-btn-configure'>
-        <span class='n'>1</span><span class='lbl'>Configure</span>
+      <button class='cond-pill armed' data-step='0' id='fd-btn-connect'>
+        <span class='n'>1</span><span class='lbl'>Connect</span>
       </button>
       <span class='cond-arrow'>&rsaquo;</span>
-      <button class='cond-pill' data-step='1' id='fd-btn-connect' disabled>
-        <span class='n'>2</span><span class='lbl'>Connect</span>
+      <button class='cond-pill' data-step='1' id='fd-btn-configure' disabled>
+        <span class='n'>2</span><span class='lbl'>Configure</span>
       </button>
       <span class='cond-arrow'>&rsaquo;</span>
       <button class='cond-pill' data-step='2' id='fd-btn-stim' disabled>
@@ -1670,23 +1670,23 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
           <div class='fd-metric-sub'>amp &times; duty</div>
         </div>
         <div class='fd-metric live'>
-          <div class='fd-metric-h'>cumulative charge</div>
-          <div class='fd-metric-v' id='fd-mx-P'>0.000 &micro;C</div>
-          <div class='fd-metric-sub'>since stim start</div>
+          <div class='fd-metric-h'>instant charge rate</div>
+          <div class='fd-metric-v' id='fd-mx-P'>0.00 &micro;C/s</div>
+          <div class='fd-metric-sub'>now &middot; sum of channels</div>
         </div>
       </div>
       <div class='fd-safety-warn' id='fd-safety-warn'></div>
     </div>
 
-    <!-- BR: cumulative-charge trace -->
+    <!-- BR: instant charge-rate trace -->
     <div class='cond-cell cond-power'>
       <div class='cond-h'>
-        <span>Cumulative charge trace</span>
+        <span>Instant charge-rate trace</span>
         <span class='cond-tag'>analytic, all channels</span>
-        <span class='cond-sub' id='fd-power-now'>0.000 &micro;C</span>
+        <span class='cond-sub' id='fd-power-now'>0.00 &micro;C/s</span>
       </div>
       <div class='cond-power-body'>
-        <svg id='fd-power-svg' viewBox='0 0 1000 180' aria-label='Cumulative charge live chart' preserveAspectRatio='none'></svg>
+        <svg id='fd-power-svg' viewBox='0 0 1000 180' aria-label='Instant charge-rate live chart' preserveAspectRatio='none'></svg>
       </div>
     </div>
 
@@ -1720,7 +1720,7 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
       <button class='added-clear' id='fd-log-clear' title='Clear log' type='button'>clear</button>
     </summary>
     <div class='fd-log' id='fd-log'>
-      <div class='fd-log-row muted'><span class='ts'>--:--.---</span><span class='msg'>stimulator idle &middot; allocate channels then press Configure</span></div>
+      <div class='fd-log-row muted'><span class='ts'>--:--.---</span><span class='msg'>stimulator idle &middot; press Connect to begin</span></div>
     </div>
   </details>
 
@@ -1762,7 +1762,7 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
     stim:  root.querySelector('#fd-btn-stim'),
     disc:  root.querySelector('#fd-btn-disconnect')
   };
-  const LIFECYCLE = ['configure', 'connect', 'stim', 'disconnect'];
+  const LIFECYCLE = ['connect', 'configure', 'stim', 'disconnect'];
 
   // safety metric refs
   const mx = {
@@ -1865,7 +1865,7 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
     if(e) e.textContent = text;
   }
   function setButtons(active){
-    const order = ['cfg','conn','stim','disc'];
+    const order = ['conn','cfg','stim','disc'];
     order.forEach(name => {
       const b = btn[name];
       b.classList.remove('done','armed','active','danger');
@@ -1878,8 +1878,8 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
     setLbl(btn.disc, 'Disconnect');
 
     if(phase < 0){
-      btn.cfg.disabled = false;
-      btn.cfg.classList.add('armed');
+      btn.conn.disabled = false;
+      btn.conn.classList.add('armed');
       return;
     }
     order.forEach((name, idx) => {
@@ -1894,7 +1894,7 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
       return;
     }
     if(phase === 0){
-      btn.conn.disabled = false; btn.conn.classList.add('armed');
+      btn.cfg.disabled = false; btn.cfg.classList.add('armed');
     } else if(phase === 1){
       btn.stim.disabled = false; btn.stim.classList.add('armed');
     } else if(phase === 2){
@@ -1907,11 +1907,11 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
     setNodes(phase);
     setButtons();
     if(phase < 0){
-      summaryEl.innerHTML = 'configure to allocate channels';
+      summaryEl.innerHTML = 'press connect to begin';
     } else if(phase === 0){
-      summaryEl.innerHTML = channels.length + ' channels allocated &middot; connect to arm';
+      summaryEl.innerHTML = 'connected &middot; build a channel list above and configure';
     } else if(phase === 1){
-      summaryEl.innerHTML = 'channels armed &middot; press stim to deliver';
+      summaryEl.innerHTML = channels.length + ' channels armed &middot; press stim to deliver';
     } else if(phase === 2 && stimRunning){
       summaryEl.innerHTML = 'delivering &middot; trial in progress';
     } else if(phase === 2){
@@ -2014,15 +2014,17 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
       safetyWarn.innerHTML = '';
     }
   }
-  // SVG handles for the cumulative-charge trace + summary readout.
+  // SVG handles for the instant-rate trace + summary readout.
   const powerSvg = root.querySelector('#fd-power-svg');
   const powerNowEl = root.querySelector('#fd-power-now');
 
-  // ----- cumulative charge (replaces the old instant-power readout) -----
+  // ----- charge bookkeeping -----
   // Real stim systems are current-controlled, not power-controlled, so the
-  // diagnostic that matters is "how much charge have we put through the
-  // tissue so far" and "what is the peak current per channel". We compute
-  // total delivered charge analytically by counting pulse-starts.
+  // diagnostic that matters is the rate of charge delivery: peak current per
+  // channel, plus an instantaneous &micro;C/s trace that rises during a train
+  // and drops to zero in the inter-train gaps. nPulsesFired() and
+  // cumulativeChargeUc() are kept for completeness (used by other diagnostics
+  // and the self-check math), even though the live chart now shows the rate.
   function nPulsesFired(ch, t){
     if(runStartMs == null) return 0;
     const p = ch.params;
@@ -2058,13 +2060,45 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
     return m;
   }
 
-  // historical buffer for the cumulative-charge trace
-  const traceBuf = []; // [{t, q}]   q in uC
+  // historical buffer for the instant-rate trace
+  const traceBuf = []; // [{t, q}]   q in uC/s (instantaneous charge rate)
   const TRACE_HISTORY_MS = 12000;
-  // Fixed y-scale for the charge chart. Set once at stim start to the projected
-  // end-of-run total so the trace climbs visibly instead of the axis rescaling
-  // every frame as charge accumulates.
+  // Fixed y-scale for the rate chart. Set once at stim start to the peak
+  // steady-state rate (sum of chargePerPhase * freq across channels) so the
+  // bars during a train read full-height without the axis rescaling on every
+  // train gap.
   let chartYMaxUc = 0.01;
+  // Channel is firing pulses at time t iff we're inside one of its trains.
+  function channelInTrain(ch, t){
+    if(runStartMs == null || t < runStartMs || t > runEndMs) return false;
+    const p = ch.params;
+    const trainMs = trainDurationMs(p);
+    const trainPeriodMs = effectiveTrainPeriodMs();
+    const n = +reps.value;
+    const elapsed = t - runStartMs;
+    const trainIdx = Math.floor(elapsed / trainPeriodMs);
+    if(trainIdx >= n) return false;
+    const localT = elapsed - trainIdx * trainPeriodMs;
+    return localT >= 0 && localT <= trainMs;
+  }
+  function instantChargeRateUcPerSec(t){
+    if(channels.length === 0 || runStartMs == null) return 0;
+    if(t < runStartMs || t > runEndMs) return 0;
+    let rate = 0;
+    for(const ch of channels){
+      if(channelInTrain(ch, t)){
+        rate += chargePerPhaseUc(ch.params) * ch.params.fr;
+      }
+    }
+    return rate;
+  }
+  function peakInstantRateUcPerSec(){
+    let m = 0;
+    for(const ch of channels){
+      m += chargePerPhaseUc(ch.params) * ch.params.fr;
+    }
+    return m;
+  }
   function niceCeil(x){
     if(x <= 0) return 1;
     const exp  = Math.floor(Math.log10(x));
@@ -2090,19 +2124,28 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
 
     let out = '';
     out += '<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+plotH+'" fill="#ffffff" stroke="#d8d6cf"/>';
-    out += '<text x="'+(padL-8)+'" y="'+(padT+10)+'" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#6c6c66">'+ fmtFix(yMax,3) +' &#xB5;C</text>';
+    out += '<text x="'+(padL-8)+'" y="'+(padT+10)+'" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#6c6c66">'+ fmtFix(yMax,2) +' &#xB5;C/s</text>';
     out += '<text x="'+(padL-8)+'" y="'+(padT+plotH-2)+'" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#6c6c66">0</text>';
 
-    // cumulative-charge polyline
-    let pts = '';
-    for(let i = 0; i < traceBuf.length; i++){
-      const s = traceBuf[i];
-      if(s.t < tStart) continue;
-      if(s.t > tEnd)   break;
-      pts += xs(s.t).toFixed(1) + ',' + ys(s.q).toFixed(1) + ' ';
-    }
-    if(pts){
-      out += '<polyline points="'+pts+'" fill="none" stroke="#d86f91" stroke-width="2"/>';
+    // instant-rate area: filled polygon down to baseline so train gaps read clearly.
+    if(traceBuf.length){
+      const yBase = padT + plotH;
+      let pts = '';
+      let firstX = null, lastX = null;
+      for(let i = 0; i < traceBuf.length; i++){
+        const s = traceBuf[i];
+        if(s.t < tStart) continue;
+        if(s.t > tEnd)   break;
+        const x = xs(s.t).toFixed(1);
+        if(firstX === null) firstX = x;
+        lastX = x;
+        pts += x + ',' + ys(s.q).toFixed(1) + ' ';
+      }
+      if(pts){
+        const filled = firstX + ',' + yBase + ' ' + pts + lastX + ',' + yBase;
+        out += '<polygon points="'+filled+'" fill="rgba(216,111,145,0.18)" stroke="none"/>';
+        out += '<polyline points="'+pts+'" fill="none" stroke="#d86f91" stroke-width="1.8"/>';
+      }
     }
 
     // now line
@@ -2111,18 +2154,18 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
            '" stroke="#8a3a1d" stroke-width="1.2"/>';
     // axis label
     out += '<text x="'+(padL+plotW/2)+'" y="'+(H-4)+'" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#6c6c66">'+
-            (windowMs/1000).toFixed(2) + ' s window &middot; cumulative since stim start</text>';
+            (windowMs/1000).toFixed(2) + ' s window &middot; instantaneous rate &middot; bars rise during trains, fall in the gaps</text>';
 
     powerSvg.innerHTML = out;
   }
 
-  function renderCumulativeCharge(nowMs){
-    const qNow = cumulativeChargeUc(nowMs);
-    traceBuf.push({t: nowMs, q: qNow});
+  function renderInstantCharge(nowMs){
+    const rateNow = instantChargeRateUcPerSec(nowMs);
+    traceBuf.push({t: nowMs, q: rateNow});
     const cutoff = nowMs - TRACE_HISTORY_MS;
     while(traceBuf.length && traceBuf[0].t < cutoff) traceBuf.shift();
-    mx.P.innerHTML = fmtFix(qNow, 3) + ' &micro;C';
-    powerNowEl.innerHTML = fmtFix(qNow, 3) + ' &micro;C';
+    mx.P.innerHTML = fmtFix(rateNow, 2) + ' &micro;C/s';
+    powerNowEl.innerHTML = fmtFix(rateNow, 2) + ' &micro;C/s';
     renderChargeChart(nowMs);
   }
 
@@ -2262,7 +2305,7 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
     idleClockMs = elapsed;
     clockEl.textContent = fmtTime(elapsed);
     renderStrip(now);
-    renderCumulativeCharge(now);
+    renderInstantCharge(now);
     paintUtah(now);
     lastTickMs = now;
     rafId = requestAnimationFrame(tick);
@@ -2399,15 +2442,23 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
   tick();
 
   // ----- lifecycle button handlers -----
+  btn.conn.addEventListener('click', () => {
+    if(phase >= 0) return;
+    phase = 0;
+    logLine('connect &middot; stimulator online &middot; impedance check ok', 'info');
+    updateState();
+  });
+
   btn.cfg.addEventListener('click', () => {
+    if(phase !== 0) return;
     const chs = readChannels();
     if(chs.length === 0){
       logLine('configure refused &middot; no electrodes in the list above', 'warn');
       return;
     }
     channels = chs;
-    phase = 0;
-    logLine('configure &middot; ' + chs.length + ' channel' + (chs.length>1?'s':'') + ' allocated', 'info');
+    phase = 1;
+    logLine('configure &middot; ' + chs.length + ' channel' + (chs.length>1?'s':'') + ' armed', 'info');
     chs.slice(0, 6).forEach(ch => {
       logLine('  ' + eLabel(ch.i) + ' &middot; ' + paramSummaryStr(ch.params), 'dim');
     });
@@ -2423,13 +2474,6 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
       if(overK.length > 4) logLine('  ... ' + (overK.length-4) + ' more', 'warn');
     }
     renderSafety();
-    updateState();
-  });
-
-  btn.conn.addEventListener('click', () => {
-    if(phase !== 0) return;
-    phase = 1;
-    logLine('connect &middot; channels armed &middot; impedance check ok', 'info');
     updateState();
   });
 
@@ -2460,9 +2504,11 @@ phase <code>Q</code> in &micro;C, charge density <code>Qd</code> in &micro;C/cm&
     stimRunning = true;
     runStartMs = performance.now() + 50;
     runEndMs = runStartMs + dur;
-    // lock the charge-chart y-scale to the projected end-of-run total
+    // lock the rate-chart y-scale to the projected peak rate (sum of
+    // chargePerPhase * freq across channels) so the bars during a train
+    // read full-height regardless of duty cycle.
     traceBuf.length = 0;
-    chartYMaxUc = niceCeil(Math.max(1e-3, cumulativeChargeUc(runEndMs)));
+    chartYMaxUc = niceCeil(Math.max(1e-3, peakInstantRateUcPerSec()));
     const n = +reps.value, trainPeriodMs = effectiveTrainPeriodMs();
     logLine('stim ' + stimRunCount + ' start &middot; ' + n + ' train' + (n>1?'s':'') +
             ' &middot; period ' + trainPeriodMs + ' ms &middot; duration ' +
