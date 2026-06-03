@@ -1,7 +1,8 @@
 # Shared Python dependencies for the optional Jupyter notebooks.
 #
-# The browser HTML modules still run without Python. This file is for local
-# notebook setup and for validation runs.
+# Mirror of `pyproject.toml` for Colab / plain-pip users — if you change deps
+# here, update pyproject.toml too. Local dev uses uv (`uv sync` reads
+# pyproject.toml); this file is for `pip install -r requirements-notebooks.txt`.
 numpy
 matplotlib
 scipy

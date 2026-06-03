@@ -1,0 +1,33 @@
+# Local dev (uv) source of truth for the bootcamp notebooks.
+# `requirements-notebooks.txt` mirrors this list for Colab / plain-pip users —
+# if you change deps here, update that file too.
+
+[project]
+name = "aimd-bootcamp"
+version = "0.0.0"
+description = "AIMD Workshop 2026 NeuroTechHub bootcamp — notebooks for the cortical visual-prosthesis pipeline (M1 vision → M5 closed loop)."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "scipy",
+    "scikit-image",
+    "opencv-contrib-python",
+    "torch",
+    # torchvision + einops kept: M2's gaze_workshop pip-installs both and they
+    # are transitive runtime deps of deepgaze_pytorch even when no notebook
+    # code explicitly imports them.
+    "torchvision",
+    "einops",
+    "ipywidgets",
+    "dynaphos",
+    "ultralytics",
+    "Pillow",
+    "nbformat",
+    "nbclient",
+    "jupyterlab",
+    "deepgaze-pytorch @ git+https://github.com/matthias-k/DeepGaze.git",
+]
+
+[tool.uv]
+package = false

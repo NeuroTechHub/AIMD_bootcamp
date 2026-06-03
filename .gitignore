@@ -69,3 +69,12 @@ presentations/feedback/
 
 # --- Claude Code local state ------------------------------------------------
 .claude/
+
+# Added by container scaffolding (~/.claude/commands/box.md) — template-owned scaffolding
+/Dockerfile
+/compose.yaml
+/.devcontainer/
+/bin/aimd-bootcamp
+/instruction.md
+/cheatsheet.md
+/help.sh
