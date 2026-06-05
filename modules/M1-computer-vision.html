@@ -973,7 +973,7 @@ function onOpenCvReady(){
 }
 window.Module = { onRuntimeInitialized: onOpenCvReady };
 </script>
-<script async src="https://docs.opencv.org/4.10.0/opencv.js" onerror="document.getElementById('cvStatus').textContent='OpenCV.js failed to load — check internet'; document.getElementById('cvStatus').className='status err';"></script>
+<script async src="https://docs.opencv.org/4.x/opencv.js" onerror="document.getElementById('cvStatus').textContent='OpenCV.js failed to load — check internet'; document.getElementById('cvStatus').className='status err';"></script>
 <!-- Object detection model for the webcam section (loaded lazily on first use) -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
